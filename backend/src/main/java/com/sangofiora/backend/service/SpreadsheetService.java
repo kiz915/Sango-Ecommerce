@@ -192,7 +192,7 @@ public class SpreadsheetService {
                     if (o.getOrderId() != null && !existingOrderIds.contains(o.getOrderId().trim())) {
                         Map<String, String> m = new LinkedHashMap<>();
                         m.put("Order ID", o.getOrderId());
-                        m.put("Payment ID", o.getPaymentId() != null ? o.getPaymentId() : (o.getTxnId() != null ? o.getTxnId() : ""));
+                        m.put("Payment ID", o.getTxnId() != null ? o.getTxnId() : "");
                         m.put("Date", o.getCreatedAt() != null ? o.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) : "");
                         m.put("Customer Name", o.getCustomerName() != null ? o.getCustomerName() : "");
                         m.put("Phone", o.getCustomerPhone() != null ? o.getCustomerPhone() : "");
@@ -201,7 +201,7 @@ public class SpreadsheetService {
                         m.put("City", o.getCity() != null ? o.getCity() : "");
                         m.put("State", o.getState() != null ? o.getState() : "");
                         m.put("Pincode", o.getPincode() != null ? o.getPincode() : "");
-                        m.put("Special Instructions", o.getDeliveryInstructions() != null ? o.getDeliveryInstructions() : "");
+                        m.put("Special Instructions", o.getLandmark() != null ? o.getLandmark() : "");
                         String itemsStr = (o.getItems() != null)
                                 ? o.getItems().stream().map(it -> it.getProductName() + " (x" + it.getQty() + ")").reduce((a, b) -> a + "; " + b).orElse("")
                                 : "";
@@ -244,7 +244,8 @@ public class SpreadsheetService {
                         m.put("Email", enq.getEmail() != null ? enq.getEmail() : "");
                         m.put("Topic", enq.getSubject() != null ? enq.getSubject() : "General Inquiry");
                         m.put("Message", enq.getMessage() != null ? enq.getMessage() : "");
-                        m.put("Status", enq.getStatus() != null ? enq.getStatus() : "Open");
+                        String st = (enq.getIsResolved() != null && enq.getIsResolved()) ? "Resolved" : "Open";
+                        m.put("Status", st);
                         rows.add(m);
                     }
                 }

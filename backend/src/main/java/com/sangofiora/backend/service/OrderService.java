@@ -181,15 +181,15 @@ public class OrderService {
             if (spreadsheetService != null) {
                 Map<String, Object> deliv = new HashMap<>();
                 deliv.put("orderId", savedOrder.getOrderId());
-                deliv.put("paymentId", savedOrder.getPaymentId() != null ? savedOrder.getPaymentId() : savedOrder.getTxnId());
+                deliv.put("paymentId", savedOrder.getTxnId() != null ? savedOrder.getTxnId() : "");
                 deliv.put("customerName", savedOrder.getCustomerName());
                 deliv.put("phone", savedOrder.getCustomerPhone());
-                deliv.put("email", savedOrder.getCustomerEmail());
+                deliv.put("email", savedOrder.getCustomerEmail() != null ? savedOrder.getCustomerEmail() : "");
                 deliv.put("address", savedOrder.getShippingAddress());
-                deliv.put("city", savedOrder.getCity());
-                deliv.put("state", savedOrder.getState());
+                deliv.put("city", savedOrder.getCity() != null ? savedOrder.getCity() : "");
+                deliv.put("state", savedOrder.getState() != null ? savedOrder.getState() : "");
                 deliv.put("pincode", savedOrder.getPincode());
-                deliv.put("instructions", savedOrder.getDeliveryInstructions() != null ? savedOrder.getDeliveryInstructions() : "");
+                deliv.put("instructions", savedOrder.getLandmark() != null ? savedOrder.getLandmark() : "");
                 deliv.put("items", items.stream().map(i -> i.getProductName() + " (x" + i.getQty() + ")").reduce((a, b) -> a + "; " + b).orElse(""));
                 deliv.put("total", String.valueOf(savedOrder.getNetTotal()));
                 deliv.put("paymentMethod", savedOrder.getPaymentMethod() != null ? savedOrder.getPaymentMethod() : "UPI");
