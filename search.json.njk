@@ -4,6 +4,6 @@ eleventyExcludeFromCollections: true
 ---
 [
 {%- for p in plants.products -%}
-  {"slug": {{ p.slug | dump }}, "name": {{ p.name | dump }}, "category": {{ p.category | dump }}, "size": {{ p.size | dump }}, "price": {{ p.price }}, "mrp": {{ p.mrp }}, "image": {{ p.image | dump }}}{% if not loop.last %},{% endif %}
+  {"slug": {{ p.slug | dump | safe }}, "name": {{ p.name | dump | safe }}, "category": {{ p.category | dump | safe }}, "size": {{ p.size | dump | safe }}, "price": {{ p.price }}, "mrp": {{ p.mrp }}, "image": {{ p.image | dump | safe }}}{% if not loop.last %},{% endif %}
 {%- endfor -%}
 ]

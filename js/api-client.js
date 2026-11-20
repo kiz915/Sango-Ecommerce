@@ -5,8 +5,12 @@
   'use strict';
 
   // In local dev, Spring Boot runs on port 8080.
-  // In production, configure window.SANGO_API_BASE or fallback to relative /api
-  var API_BASE = window.SANGO_API_BASE || 'http://localhost:8080/api';
+  // In production, fallback to relative /api handled by server.js or backend proxy
+  var API_BASE = window.SANGO_API_BASE || (
+    typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+      ? 'http://localhost:8080/api'
+      : '/api'
+  );
 
   function request(endpoint, options) {
     options = options || {};

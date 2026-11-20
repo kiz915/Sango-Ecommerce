@@ -5,6 +5,7 @@ const path = require('path');
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const HOST = '0.0.0.0';
 const PUBLIC_DIR = path.join(__dirname, '_site');
+const DATA_DIR = path.join(__dirname, '_data');
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=UTF-8',
@@ -25,7 +26,34 @@ const MIME_TYPES = {
   '.ttf': 'font/ttf'
 };
 
+// Cached products list
+let cachedProducts = null;
+function getProductsData() {
+  if (cachedProducts) return cachedProducts;
+  try {
+    const plantsFile = path.join(DATA_DIR, 'plants.json');
+    if (fs.existsSync(plantsFile)) {
+      const data = JSON.parse(fs.readFileSync(plantsFile, 'utf8'));
+      cachedProducts = data.products || [];
+      return cachedProducts;
+    }
+  } catch (e) {
+    console.error('Error reading plants.json:', e);
+  }
+  return [];
+}
+
 const server = http.createServer((req, res) => {
+  // Common CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204);
+    return res.end();
+  }
+
   // Health check endpoint
   if (req.url === '/health' || req.url === '/healthz') {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
@@ -35,6 +63,47 @@ const server = http.createServer((req, res) => {
   try {
     const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
     let pathname = decodeURIComponent(parsedUrl.pathname);
+
+    // REST API endpoints fallback (if running standalone static server)
+    if (pathname.startsWith('/api/')) {
+      res.setHeader('Content-Type', 'application/json');
+
+      if (pathname === '/api/products' || pathname === '/api/products/') {
+        const category = parsedUrl.searchParams.get('category');
+        let products = getProductsData();
+        if (category && category !== 'all') {
+          products = products.filter(p => (p.category || '').toLowerCase() === category.toLowerCase());
+        }
+        res.writeHead(200);
+        return res.end(JSON.stringify(products));
+      }
+
+      if (pathname.startsWith('/api/products/')) {
+        const slug = pathname.replace('/api/products/', '').replace(/\/$/, '');
+        const products = getProductsData();
+        const found = products.find(p => p.slug === slug);
+        if (found) {
+          res.writeHead(200);
+          return res.end(JSON.stringify(found));
+        }
+        res.writeHead(404);
+        return res.end(JSON.stringify({ error: 'Product not found' }));
+      }
+
+      if (pathname === '/api/coupons/validate') {
+        const code = parsedUrl.searchParams.get('code');
+        if (code && code.toUpperCase() === 'WELCOME10') {
+          res.writeHead(200);
+          return res.end(JSON.stringify({ valid: true, discountPercent: 10, code: 'WELCOME10' }));
+        }
+        res.writeHead(400);
+        return res.end(JSON.stringify({ valid: false, message: 'Invalid coupon code' }));
+      }
+
+      // Default mock 200 for other /api requests (e.g. cart sync, contact)
+      res.writeHead(200);
+      return res.end(JSON.stringify({ success: true, message: 'API simulated successfully' }));
+    }
 
     // Prevent directory traversal
     const safePath = path.normalize(pathname).replace(/^(\.\.[\/\\])+/, '');
