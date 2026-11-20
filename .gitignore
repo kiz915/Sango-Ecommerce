@@ -23,6 +23,14 @@ Thumbs.db
 # Agent skills, internal agent configs, and temporary scratch files
 .agent/
 .agents/
+.claude/
+agent/
+data/skills/
+skills-lock.json
+setup-claude-bedrock.ps1
+stitch_assets/
+_xlsx-media/
+*.xlsx
 .gemini/
 .gsd/
 .vscode/
