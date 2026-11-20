@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "css:build": "tailwindcss -i ./src/css/main.css -o ./css/main.css --minify",
-    "start": "npm run css:build && eleventy --serve --port=3000",
-    "dev": "npm run start",
     "build": "npm run css:build && eleventy",
+    "start": "node server.js",
+    "dev": "npm run css:build && eleventy --serve --port=3000",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
