@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var sb = null; // Supabase client ref
+  var sb = window.SangoSupabase || null; // Supabase client ref
   var STATUS_LABELS = {
     1: 'Order Placed',
     2: 'Quality Inspection',
@@ -36,12 +36,19 @@
 
   // ─── Admin Initialization (Backend Enforces Auth via Spring Security JWT) ───
   function checkAdminAuth() {
+    if (!sb && window.SangoSupabase) sb = window.SangoSupabase;
     var gate = document.getElementById('auth-gate');
     var main = document.getElementById('admin-main');
     if (gate) gate.classList.add('hidden');
     if (main) main.classList.remove('hidden');
 
     var user = window.SangoAuth && window.SangoAuth.getUser ? window.SangoAuth.getUser() : null;
+    if (!user) {
+      try {
+        var raw = localStorage.getItem('sango_auth_session');
+        if (raw) user = JSON.parse(raw).user;
+      } catch (e) {}
+    }
     var nameEl = document.getElementById('admin-user-name');
     if (nameEl) nameEl.textContent = (user && user.email) || 'Admin';
 
@@ -109,7 +116,6 @@
 
     getDeliv
       .then(function (rows) {
-      .then(function (rows) {
         if (!tbDeliveries) return;
         if (!rows || rows.length === 0) {
           tbDeliveries.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-gray-400">No delivery orders logged yet.</td></tr>';
@@ -137,7 +143,6 @@
       : fetch('/api/spreadsheet/contacts').then(function (r) { return r.json(); });
 
     getCont
-      .then(function (rows) {
       .then(function (rows) {
         if (!tbContacts) return;
         if (!rows || rows.length === 0) {
@@ -721,6 +726,10 @@
   // ═══════════════════════════════════════
   //  INIT
   // ═══════════════════════════════════════
-  document.addEventListener('DOMContentLoaded', checkAdminAuth);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', checkAdminAuth);
+  } else {
+    checkAdminAuth();
+  }
 
 })();
