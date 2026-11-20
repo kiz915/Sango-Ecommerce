@@ -13,7 +13,9 @@
       "rating": 4.8,
       "reviews": 84,
       "image": "/images/products/rose-plant-white-colour-90cm.jpg",
-      "description": "Rose Plant standing approximately 90cm tall, delivered in a decorative pot. Seasonal colour and fragrance for your home — enjoy beautiful blooms with simple, low-effort care."
+      "description": "Rose Plant standing approximately 90cm tall, delivered in a decorative pot. Seasonal colour and fragrance for your home — enjoy beautiful blooms with simple, low-effort care.",
+      "stock": 26,
+      "isSoldOut": false
     },
     {
       "slug": "rose-plant-yellow-colour-90cm",
@@ -28,7 +30,9 @@
       "rating": 4.9,
       "reviews": 303,
       "image": "/images/products/rose-plant-yellow-colour-90cm.jpg",
-      "description": "Rose Plant standing approximately 90cm tall, delivered in a decorative pot. Seasonal colour and fragrance for your home — enjoy beautiful blooms with simple, low-effort care."
+      "description": "Rose Plant standing approximately 90cm tall, delivered in a decorative pot. Seasonal colour and fragrance for your home — enjoy beautiful blooms with simple, low-effort care.",
+      "stock": 15,
+      "isSoldOut": false
     },
     {
       "slug": "fiddle-leaf-fig-180cm",
@@ -43,7 +47,9 @@
       "rating": 4.6,
       "reviews": 249,
       "image": "/images/products/fiddle-leaf-fig-180cm.jpg",
-      "description": "Fiddle Leaf Fig standing approximately 180cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Fiddle Leaf Fig standing approximately 180cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 16,
+      "isSoldOut": false
     },
     {
       "slug": "fan-palm-tree-120cm",
@@ -58,7 +64,9 @@
       "rating": 4.7,
       "reviews": 202,
       "image": "/images/products/fan-palm-tree-120cm.jpg",
-      "description": "Fan Palm Tree standing approximately 120cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies."
+      "description": "Fan Palm Tree standing approximately 120cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies.",
+      "stock": 29,
+      "isSoldOut": false
     },
     {
       "slug": "ficus-benjamina-tree-210cm",
@@ -73,7 +81,9 @@
       "rating": 4.9,
       "reviews": 451,
       "image": "/images/products/ficus-benjamina-tree-210cm.jpg",
-      "description": "Ficus Benjamina Tree standing approximately 210cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Ficus Benjamina Tree standing approximately 210cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 3,
+      "isSoldOut": false
     },
     {
       "slug": "dracaena-marginata-plant-140cm",
@@ -88,7 +98,9 @@
       "rating": 4.4,
       "reviews": 453,
       "image": "/images/products/dracaena-marginata-plant-140cm.jpg",
-      "description": "Dracaena Marginata Plant standing approximately 140cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Dracaena Marginata Plant standing approximately 140cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 30,
+      "isSoldOut": false
     },
     {
       "slug": "common-fig-tree-with-fruits-40cm",
@@ -103,7 +115,9 @@
       "rating": 4.9,
       "reviews": 372,
       "image": "/images/products/common-fig-tree-with-fruits-40cm.jpg",
-      "description": "Common Fig Tree standing approximately 40cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Common Fig Tree standing approximately 40cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 19,
+      "isSoldOut": false
     },
     {
       "slug": "common-fig-tree-with-fruits-120cm",
@@ -118,7 +132,9 @@
       "rating": 4.4,
       "reviews": 33,
       "image": "/images/products/common-fig-tree-with-fruits-120cm.jpg",
-      "description": "Common Fig Tree standing approximately 120cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Common Fig Tree standing approximately 120cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 3,
+      "isSoldOut": false
     },
     {
       "slug": "citrus-tree-with-frut-90cm",
@@ -133,7 +149,9 @@
       "rating": 4.2,
       "reviews": 323,
       "image": "/images/products/citrus-tree-with-frut-90cm.jpg",
-      "description": "Citrus Tree standing approximately 90cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Citrus Tree standing approximately 90cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 20,
+      "isSoldOut": false
     },
     {
       "slug": "citrus-tree-with-frut-80cm",
@@ -148,7 +166,9 @@
       "rating": 4.3,
       "reviews": 292,
       "image": "/images/products/citrus-tree-with-frut-80cm.jpg",
-      "description": "Citrus Tree standing approximately 80cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Citrus Tree standing approximately 80cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 3,
+      "isSoldOut": false
     },
     {
       "slug": "philodendron-selloum-90cm",
@@ -163,7 +183,9 @@
       "rating": 4.2,
       "reviews": 112,
       "image": "/images/products/philodendron-selloum-90cm.jpg",
-      "description": "Philodendron Selloum standing approximately 90cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Philodendron Selloum standing approximately 90cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 24,
+      "isSoldOut": false
     },
     {
       "slug": "dracaena-marginata-120cm",
@@ -178,7 +200,9 @@
       "rating": 4.4,
       "reviews": 454,
       "image": "/images/products/dracaena-marginata-120cm.jpg",
-      "description": "Dracaena Marginata standing approximately 120cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Dracaena Marginata standing approximately 120cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 2,
+      "isSoldOut": false
     },
     {
       "slug": "citrus-tree-with-frut-90cm-2",
@@ -193,7 +217,9 @@
       "rating": 4.7,
       "reviews": 119,
       "image": "/images/products/citrus-tree-with-frut-90cm-2.jpg",
-      "description": "Citrus Tree standing approximately 90cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Citrus Tree standing approximately 90cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 21,
+      "isSoldOut": false
     },
     {
       "slug": "fiddle-leaf-fig-90cm",
@@ -208,7 +234,9 @@
       "rating": 4.2,
       "reviews": 72,
       "image": "/images/products/fiddle-leaf-fig-90cm.jpg",
-      "description": "Fiddle Leaf Fig standing approximately 90cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Fiddle Leaf Fig standing approximately 90cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 24,
+      "isSoldOut": false
     },
     {
       "slug": "areca-palm-tree-100cm",
@@ -223,7 +251,9 @@
       "rating": 4.6,
       "reviews": 232,
       "image": "/images/products/areca-palm-tree-100cm.jpg",
-      "description": "Areca Palm Tree standing approximately 100cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies."
+      "description": "Areca Palm Tree standing approximately 100cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies.",
+      "stock": 24,
+      "isSoldOut": false
     },
     {
       "slug": "paradise-palm-tree-110cm",
@@ -238,7 +268,9 @@
       "rating": 4.2,
       "reviews": 412,
       "image": "/images/products/paradise-palm-tree-110cm.jpg",
-      "description": "Paradise Palm Tree standing approximately 110cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies."
+      "description": "Paradise Palm Tree standing approximately 110cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies.",
+      "stock": 24,
+      "isSoldOut": false
     },
     {
       "slug": "sago-palm-tree-70cm",
@@ -253,7 +285,9 @@
       "rating": 4.4,
       "reviews": 250,
       "image": "/images/products/sago-palm-tree-70cm.svg",
-      "description": "Sago Palm Tree standing approximately 70cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies."
+      "description": "Sago Palm Tree standing approximately 70cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies.",
+      "stock": 4,
+      "isSoldOut": false
     },
     {
       "slug": "areca-palm-tree-100cm-2",
@@ -268,7 +302,9 @@
       "rating": 4.3,
       "reviews": 474,
       "image": "/images/products/areca-palm-tree-100cm-2.jpg",
-      "description": "Areca Palm Tree standing approximately 100cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies."
+      "description": "Areca Palm Tree standing approximately 100cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies.",
+      "stock": 21,
+      "isSoldOut": false
     },
     {
       "slug": "tropical-green-foliage-tree-70cm",
@@ -283,7 +319,9 @@
       "rating": 4.7,
       "reviews": 453,
       "image": "/images/products/tropical-green-foliage-tree-70cm.jpg",
-      "description": "Tropical Green Foliage Tree standing approximately 70cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Tropical Green Foliage Tree standing approximately 70cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 25,
+      "isSoldOut": false
     },
     {
       "slug": "ficus-benjamina-tree-120cm",
@@ -298,7 +336,9 @@
       "rating": 4.7,
       "reviews": 451,
       "image": "/images/products/ficus-benjamina-tree-120cm.jpg",
-      "description": "Ficus Benjamina Tree standing approximately 120cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Ficus Benjamina Tree standing approximately 120cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 13,
+      "isSoldOut": false
     },
     {
       "slug": "olive-tree-180cm",
@@ -313,7 +353,9 @@
       "rating": 4.8,
       "reviews": 336,
       "image": "/images/products/olive-tree-180cm.jpg",
-      "description": "Olive Tree standing approximately 180cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Olive Tree standing approximately 180cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 18,
+      "isSoldOut": false
     },
     {
       "slug": "philodendron-selloum-70cm",
@@ -328,7 +370,9 @@
       "rating": 4.8,
       "reviews": 174,
       "image": "/images/products/philodendron-selloum-70cm.jpg",
-      "description": "Philodendron Selloum standing approximately 70cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Philodendron Selloum standing approximately 70cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 26,
+      "isSoldOut": false
     },
     {
       "slug": "fiddle-leaf-fig-160cm",
@@ -343,7 +387,9 @@
       "rating": 4.4,
       "reviews": 311,
       "image": "/images/products/fiddle-leaf-fig-160cm.jpg",
-      "description": "Fiddle Leaf Fig standing approximately 160cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Fiddle Leaf Fig standing approximately 160cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 18,
+      "isSoldOut": false
     },
     {
       "slug": "areca-palm-tree-190cm",
@@ -358,7 +404,9 @@
       "rating": 4.5,
       "reviews": 46,
       "image": "/images/products/areca-palm-tree-190cm.jpg",
-      "description": "Areca Palm Tree standing approximately 190cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies."
+      "description": "Areca Palm Tree standing approximately 190cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies.",
+      "stock": 23,
+      "isSoldOut": false
     },
     {
       "slug": "bamboo-tree-155cm",
@@ -373,7 +421,9 @@
       "rating": 4.5,
       "reviews": 335,
       "image": "/images/products/bamboo-tree-155cm.jpg",
-      "description": "Bamboo Tree standing approximately 155cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Bamboo Tree standing approximately 155cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 4,
+      "isSoldOut": false
     },
     {
       "slug": "elephant-ear-plant-80cm",
@@ -388,7 +438,9 @@
       "rating": 4.9,
       "reviews": 92,
       "image": "/images/products/elephant-ear-plant-80cm.jpg",
-      "description": "Elephant Ear Plant standing approximately 80cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Elephant Ear Plant standing approximately 80cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 2,
+      "isSoldOut": false
     },
     {
       "slug": "fiddle-leaf-fig-80cm",
@@ -403,7 +455,9 @@
       "rating": 4.9,
       "reviews": 103,
       "image": "/images/products/fiddle-leaf-fig-80cm.jpg",
-      "description": "Fiddle Leaf Fig standing approximately 80cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Fiddle Leaf Fig standing approximately 80cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 3,
+      "isSoldOut": false
     },
     {
       "slug": "topiary-bay-laurel-double-boll-tree-120cm",
@@ -418,7 +472,9 @@
       "rating": 4.8,
       "reviews": 378,
       "image": "/images/products/topiary-bay-laurel-double-boll-tree-120cm.jpg",
-      "description": "Topiary Bay Laurel standing approximately 120cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Topiary Bay Laurel standing approximately 120cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 3,
+      "isSoldOut": false
     },
     {
       "slug": "fan-palm-tree-160cm",
@@ -433,7 +489,9 @@
       "rating": 4.3,
       "reviews": 78,
       "image": "/images/products/fan-palm-tree-160cm.jpg",
-      "description": "Fan Palm Tree standing approximately 160cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies."
+      "description": "Fan Palm Tree standing approximately 160cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies.",
+      "stock": 3,
+      "isSoldOut": false
     },
     {
       "slug": "citrus-tree-with-frut-115cm",
@@ -448,7 +506,9 @@
       "rating": 4.2,
       "reviews": 417,
       "image": "/images/products/citrus-tree-with-frut-115cm.jpg",
-      "description": "Citrus Tree standing approximately 115cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Citrus Tree standing approximately 115cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 24,
+      "isSoldOut": false
     },
     {
       "slug": "dracaena-fragrans-160cm",
@@ -463,7 +523,9 @@
       "rating": 4.6,
       "reviews": 33,
       "image": "/images/products/dracaena-fragrans-160cm.jpg",
-      "description": "Dracaena Fragrans standing approximately 160cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Dracaena Fragrans standing approximately 160cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 20,
+      "isSoldOut": false
     },
     {
       "slug": "calathea-orbifolia-green-with-siver-100cm",
@@ -478,7 +540,9 @@
       "rating": 4.6,
       "reviews": 236,
       "image": "/images/products/calathea-orbifolia-green-with-siver-100cm.jpg",
-      "description": "Calathea Orbifolia standing approximately 100cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Calathea Orbifolia standing approximately 100cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 2,
+      "isSoldOut": false
     },
     {
       "slug": "rubber-plant-55cm",
@@ -493,7 +557,9 @@
       "rating": 4.9,
       "reviews": 224,
       "image": "/images/products/rubber-plant-55cm.jpg",
-      "description": "Rubber Plant standing approximately 55cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Rubber Plant standing approximately 55cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 31,
+      "isSoldOut": false
     },
     {
       "slug": "calathea-orbifolia-140cm",
@@ -508,7 +574,9 @@
       "rating": 4.3,
       "reviews": 299,
       "image": "/images/products/calathea-orbifolia-140cm.jpg",
-      "description": "Calathea Orbifolia standing approximately 140cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Calathea Orbifolia standing approximately 140cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 21,
+      "isSoldOut": false
     },
     {
       "slug": "phoenix-palm-tree-140cm",
@@ -523,7 +591,9 @@
       "rating": 4.7,
       "reviews": 169,
       "image": "/images/products/phoenix-palm-tree-140cm.jpg",
-      "description": "Phoenix Palm Tree standing approximately 140cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies."
+      "description": "Phoenix Palm Tree standing approximately 140cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies.",
+      "stock": 2,
+      "isSoldOut": false
     },
     {
       "slug": "ming-aralia-tree-80cm",
@@ -538,7 +608,9 @@
       "rating": 4.2,
       "reviews": 24,
       "image": "/images/products/ming-aralia-tree-80cm.jpg",
-      "description": "Ming Aralia Tree standing approximately 80cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Ming Aralia Tree standing approximately 80cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 16,
+      "isSoldOut": false
     },
     {
       "slug": "bamboo-tree-120cm",
@@ -553,7 +625,9 @@
       "rating": 4.7,
       "reviews": 118,
       "image": "/images/products/bamboo-tree-120cm.jpg",
-      "description": "Bamboo Tree standing approximately 120cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Bamboo Tree standing approximately 120cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 25,
+      "isSoldOut": false
     },
     {
       "slug": "swiss-cheese-plant-160cm",
@@ -568,7 +642,9 @@
       "rating": 4.7,
       "reviews": 302,
       "image": "/images/products/swiss-cheese-plant-160cm.jpg",
-      "description": "Swiss Cheese Plant standing approximately 160cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Swiss Cheese Plant standing approximately 160cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 29,
+      "isSoldOut": false
     },
     {
       "slug": "olive-tree-120cm",
@@ -583,7 +659,9 @@
       "rating": 4.6,
       "reviews": 150,
       "image": "/images/products/olive-tree-120cm.jpg",
-      "description": "Olive Tree standing approximately 120cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Olive Tree standing approximately 120cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 4,
+      "isSoldOut": false
     },
     {
       "slug": "snake-plant-65cm",
@@ -598,7 +676,9 @@
       "rating": 4.2,
       "reviews": 426,
       "image": "/images/products/snake-plant-65cm.jpg",
-      "description": "Snake Plant standing approximately 65cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Snake Plant standing approximately 65cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 28,
+      "isSoldOut": false
     },
     {
       "slug": "snake-plant-90cm",
@@ -613,7 +693,9 @@
       "rating": 4.2,
       "reviews": 23,
       "image": "/images/products/snake-plant-90cm.jpg",
-      "description": "Snake Plant standing approximately 90cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Snake Plant standing approximately 90cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 20,
+      "isSoldOut": false
     },
     {
       "slug": "snake-plant-90cm-2",
@@ -628,7 +710,9 @@
       "rating": 4.7,
       "reviews": 145,
       "image": "/images/products/snake-plant-90cm-2.jpg",
-      "description": "Snake Plant standing approximately 90cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Snake Plant standing approximately 90cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 4,
+      "isSoldOut": false
     },
     {
       "slug": "snake-plant-120cm",
@@ -643,7 +727,9 @@
       "rating": 4.4,
       "reviews": 253,
       "image": "/images/products/snake-plant-120cm.jpg",
-      "description": "Snake Plant standing approximately 120cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Snake Plant standing approximately 120cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 30,
+      "isSoldOut": false
     },
     {
       "slug": "aloe-vera-60cm",
@@ -658,7 +744,9 @@
       "rating": 4.3,
       "reviews": 205,
       "image": "/images/products/aloe-vera-60cm.jpg",
-      "description": "Aloe Vera standing approximately 60cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Aloe Vera standing approximately 60cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 4,
+      "isSoldOut": false
     },
     {
       "slug": "areca-palm-tree-180cm",
@@ -673,7 +761,9 @@
       "rating": 4.6,
       "reviews": 15,
       "image": "/images/products/areca-palm-tree-180cm.jpg",
-      "description": "Areca Palm Tree standing approximately 180cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies."
+      "description": "Areca Palm Tree standing approximately 180cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies.",
+      "stock": 4,
+      "isSoldOut": false
     },
     {
       "slug": "china-doll-tree-160cm",
@@ -688,7 +778,9 @@
       "rating": 4.8,
       "reviews": 287,
       "image": "/images/products/china-doll-tree-160cm.jpg",
-      "description": "China Doll Tree standing approximately 160cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "China Doll Tree standing approximately 160cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 14,
+      "isSoldOut": false
     },
     {
       "slug": "dracaena-lemon-lime-100cm",
@@ -703,7 +795,9 @@
       "rating": 4.5,
       "reviews": 360,
       "image": "/images/products/dracaena-lemon-lime-100cm.jpg",
-      "description": "Dracaena Lemon Lime standing approximately 100cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Dracaena Lemon Lime standing approximately 100cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 4,
+      "isSoldOut": false
     },
     {
       "slug": "fiddle-leaf-fig-90cm-2",
@@ -718,7 +812,9 @@
       "rating": 4.7,
       "reviews": 89,
       "image": "/images/products/fiddle-leaf-fig-90cm-2.jpg",
-      "description": "Fiddle Leaf Fig standing approximately 90cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Fiddle Leaf Fig standing approximately 90cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 21,
+      "isSoldOut": false
     },
     {
       "slug": "calathea-orbifolia-50cm",
@@ -733,7 +829,9 @@
       "rating": 4.7,
       "reviews": 399,
       "image": "/images/products/calathea-orbifolia-50cm.jpg",
-      "description": "Calathea Orbifolia standing approximately 50cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Calathea Orbifolia standing approximately 50cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 21,
+      "isSoldOut": false
     },
     {
       "slug": "fan-palm-tree-96cm",
@@ -748,7 +846,9 @@
       "rating": 4.7,
       "reviews": 479,
       "image": "/images/products/fan-palm-tree-96cm.jpg",
-      "description": "Fan Palm Tree standing approximately 96cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies."
+      "description": "Fan Palm Tree standing approximately 96cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies.",
+      "stock": 21,
+      "isSoldOut": false
     },
     {
       "slug": "fan-palm-tree-160cm-2",
@@ -763,7 +863,9 @@
       "rating": 4.6,
       "reviews": 140,
       "image": "/images/products/fan-palm-tree-160cm-2.jpg",
-      "description": "Fan Palm Tree standing approximately 160cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies."
+      "description": "Fan Palm Tree standing approximately 160cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies.",
+      "stock": 4,
+      "isSoldOut": false
     },
     {
       "slug": "swiss-cheese-plant-130cm",
@@ -778,7 +880,9 @@
       "rating": 4.2,
       "reviews": 209,
       "image": "/images/products/swiss-cheese-plant-130cm.jpg",
-      "description": "Swiss Cheese Plant standing approximately 130cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Swiss Cheese Plant standing approximately 130cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 16,
+      "isSoldOut": false
     },
     {
       "slug": "bird-of-paradise-160cm",
@@ -793,7 +897,9 @@
       "rating": 4.3,
       "reviews": 152,
       "image": "/images/products/bird-of-paradise-160cm.jpg",
-      "description": "Bird of Paradise standing approximately 160cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Bird of Paradise standing approximately 160cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 29,
+      "isSoldOut": false
     },
     {
       "slug": "elephant-ear-plant-45cm",
@@ -808,7 +914,9 @@
       "rating": 4.2,
       "reviews": 123,
       "image": "/images/products/elephant-ear-plant-45cm.jpg",
-      "description": "Elephant Ear Plant standing approximately 45cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Elephant Ear Plant standing approximately 45cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 20,
+      "isSoldOut": false
     },
     {
       "slug": "calathea-orbifolia-yellow-60cm",
@@ -823,7 +931,9 @@
       "rating": 4.9,
       "reviews": 143,
       "image": "/images/products/calathea-orbifolia-yellow-60cm.jpg",
-      "description": "Calathea Orbifolia standing approximately 60cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Calathea Orbifolia standing approximately 60cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 15,
+      "isSoldOut": false
     },
     {
       "slug": "bird-of-paradise-80cm",
@@ -838,7 +948,9 @@
       "rating": 4.4,
       "reviews": 82,
       "image": "/images/products/bird-of-paradise-80cm.jpg",
-      "description": "Bird of Paradise standing approximately 80cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Bird of Paradise standing approximately 80cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 14,
+      "isSoldOut": false
     },
     {
       "slug": "elephant-ear-plant-70cm",
@@ -853,7 +965,9 @@
       "rating": 4.2,
       "reviews": 61,
       "image": "/images/products/elephant-ear-plant-70cm.jpg",
-      "description": "Elephant Ear Plant standing approximately 70cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Elephant Ear Plant standing approximately 70cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 3,
+      "isSoldOut": false
     },
     {
       "slug": "banana-tree-80cm",
@@ -868,7 +982,9 @@
       "rating": 4.3,
       "reviews": 429,
       "image": "/images/products/banana-tree-80cm.jpg",
-      "description": "Banana Tree standing approximately 80cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Banana Tree standing approximately 80cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 21,
+      "isSoldOut": false
     },
     {
       "slug": "ficus-plant-90cm",
@@ -883,7 +999,9 @@
       "rating": 4.4,
       "reviews": 215,
       "image": "/images/products/ficus-plant-90cm.jpg",
-      "description": "Ficus Plant standing approximately 90cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Ficus Plant standing approximately 90cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 4,
+      "isSoldOut": false
     },
     {
       "slug": "olive-tree-160cm",
@@ -898,7 +1016,9 @@
       "rating": 4.2,
       "reviews": 274,
       "image": "/images/products/olive-tree-160cm.jpg",
-      "description": "Olive Tree standing approximately 160cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Olive Tree standing approximately 160cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 16,
+      "isSoldOut": false
     },
     {
       "slug": "tropical-green-foliage-tree-85cm",
@@ -913,7 +1033,9 @@
       "rating": 4.3,
       "reviews": 267,
       "image": "/images/products/tropical-green-foliage-tree-85cm.jpg",
-      "description": "Tropical Green Foliage Tree standing approximately 85cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Tropical Green Foliage Tree standing approximately 85cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 29,
+      "isSoldOut": false
     },
     {
       "slug": "swiss-cheese-plant-150cm",
@@ -928,7 +1050,9 @@
       "rating": 4.8,
       "reviews": 271,
       "image": "/images/products/swiss-cheese-plant-150cm.jpg",
-      "description": "Swiss Cheese Plant standing approximately 150cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Swiss Cheese Plant standing approximately 150cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 18,
+      "isSoldOut": false
     },
     {
       "slug": "areca-palm-tree-120cm",
@@ -943,7 +1067,9 @@
       "rating": 4.4,
       "reviews": 294,
       "image": "/images/products/areca-palm-tree-120cm.jpg",
-      "description": "Areca Palm Tree standing approximately 120cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies."
+      "description": "Areca Palm Tree standing approximately 120cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies.",
+      "stock": 26,
+      "isSoldOut": false
     },
     {
       "slug": "bamboo-tree-150cm",
@@ -958,7 +1084,9 @@
       "rating": 4.2,
       "reviews": 25,
       "image": "/images/products/bamboo-tree-150cm.jpg",
-      "description": "Bamboo Tree standing approximately 150cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Bamboo Tree standing approximately 150cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 4,
+      "isSoldOut": false
     },
     {
       "slug": "mini-fan-palm-tree-130cm",
@@ -973,7 +1101,9 @@
       "rating": 4.6,
       "reviews": 470,
       "image": "/images/products/mini-fan-palm-tree-130cm.jpg",
-      "description": "Mini Fan Palm Tree standing approximately 130cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies."
+      "description": "Mini Fan Palm Tree standing approximately 130cm tall, delivered in a decorative pot. Architectural fronds bring resort-style calm to any space — perfect beside sofas, in entryways or on covered balconies.",
+      "stock": 4,
+      "isSoldOut": false
     },
     {
       "slug": "fiddle-leaf-fig-225cm",
@@ -988,7 +1118,9 @@
       "rating": 4.2,
       "reviews": 249,
       "image": "/images/products/fiddle-leaf-fig-225cm.jpg",
-      "description": "Fiddle Leaf Fig standing approximately 225cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Fiddle Leaf Fig standing approximately 225cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 2,
+      "isSoldOut": false
     },
     {
       "slug": "bamboo-tree-170cm",
@@ -1003,22 +1135,26 @@
       "rating": 4.4,
       "reviews": 428,
       "image": "/images/products/bamboo-tree-170cm.jpg",
-      "description": "Bamboo Tree standing approximately 170cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Bamboo Tree standing approximately 170cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 30,
+      "isSoldOut": false
     },
     {
-      "slug": "cherry-blossom-tree-white-195cm",
-      "name": "Cherry Blossom Tree",
-      "variant": "White",
-      "category": "Flowering",
-      "size": "195cm",
+      "slug": "monstera-deliciosa-160cm",
+      "name": "Monstera Deliciosa",
+      "variant": "Emerald",
+      "category": "Foliage",
+      "size": "160cm",
       "potIncluded": true,
-      "price": 9512,
-      "mrp": 12450,
-      "discount": 24,
-      "rating": 4.8,
-      "reviews": 201,
-      "image": "/images/products/cherry-blossom-tree-white-195cm.jpg",
-      "description": "Cherry Blossom Tree standing approximately 195cm tall, delivered in a decorative pot. Seasonal colour and fragrance for your home — enjoy beautiful blooms with simple, low-effort care."
+      "price": 5920,
+      "mrp": 7890,
+      "discount": 25,
+      "rating": 4.9,
+      "reviews": 318,
+      "image": "/images/products/swiss-cheese-plant-160cm.jpg",
+      "description": "Iconic Monstera Deliciosa standing 160cm tall with perforated architectural leaves and deep rainforest green luster. Delivered in a premium weighted ceramic-style pot with zero care needed.",
+      "stock": 12,
+      "isSoldOut": false
     },
     {
       "slug": "elephant-ear-plant-160cm",
@@ -1033,7 +1169,9 @@
       "rating": 4.2,
       "reviews": 144,
       "image": "/images/products/elephant-ear-plant-160cm.jpg",
-      "description": "Elephant Ear Plant standing approximately 160cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Elephant Ear Plant standing approximately 160cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 3,
+      "isSoldOut": false
     },
     {
       "slug": "topiary-bay-laurel-double-boll-tree-150cm",
@@ -1048,7 +1186,9 @@
       "rating": 4.5,
       "reviews": 471,
       "image": "/images/products/topiary-bay-laurel-double-boll-tree-150cm.jpg",
-      "description": "Topiary Bay Laurel standing approximately 150cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Topiary Bay Laurel standing approximately 150cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 23,
+      "isSoldOut": false
     },
     {
       "slug": "agave-plant-100cm",
@@ -1063,7 +1203,9 @@
       "rating": 4.8,
       "reviews": 385,
       "image": "/images/products/agave-plant-100cm.jpg",
-      "description": "Agave Plant standing approximately 100cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Agave Plant standing approximately 100cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 4,
+      "isSoldOut": false
     },
     {
       "slug": "banyan-ficus-tree-200cm",
@@ -1078,7 +1220,9 @@
       "rating": 4.4,
       "reviews": 24,
       "image": "/images/products/banyan-ficus-tree-200cm.jpg",
-      "description": "Banyan Ficus Tree standing approximately 200cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Banyan Ficus Tree standing approximately 200cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 2,
+      "isSoldOut": false
     },
     {
       "slug": "slim-mango-tree-180cm",
@@ -1093,7 +1237,9 @@
       "rating": 4.9,
       "reviews": 173,
       "image": "/images/products/slim-mango-tree-180cm.jpg",
-      "description": "Slim Mango Tree standing approximately 180cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Slim Mango Tree standing approximately 180cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 2,
+      "isSoldOut": false
     },
     {
       "slug": "banana-leaf-tree-160cm",
@@ -1108,7 +1254,9 @@
       "rating": 4.5,
       "reviews": 301,
       "image": "/images/products/banana-leaf-tree-160cm.jpg",
-      "description": "Banana Leaf Tree standing approximately 160cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors."
+      "description": "Banana Leaf Tree standing approximately 160cm tall, delivered in a decorative pot. A sculptural indoor tree handpicked for structure and healthy growth, ideal as a natural focal point in modern interiors.",
+      "stock": 23,
+      "isSoldOut": false
     },
     {
       "slug": "swiss-cheese-plant-200cm",
@@ -1123,7 +1271,9 @@
       "rating": 4.6,
       "reviews": 147,
       "image": "/images/products/swiss-cheese-plant-200cm.jpg",
-      "description": "Swiss Cheese Plant standing approximately 200cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners."
+      "description": "Swiss Cheese Plant standing approximately 200cm tall, delivered in a decorative pot. A lush statement plant that thrives in bright, indirect light and instantly elevates living rooms, bedrooms and office corners.",
+      "stock": 24,
+      "isSoldOut": false
     }
   ],
   "collectionsList": [
@@ -1132,7 +1282,7 @@
       "title": "Foliage",
       "heading": "Foliage Plants",
       "tagline": "Lush statement greens for every room",
-      "banner": "/images/products/calathea-orbifolia-120cm.jpg",
+      "banner": "/images/collections/foliage.jpg",
       "count": 27
     },
     {
@@ -1157,7 +1307,7 @@
       "heading": "Flowering Plants",
       "tagline": "Colour and fragrance, delivered",
       "banner": "/images/products/rose-plant-white-colour-90cm.jpg",
-      "count": 3
+      "count": 2
     }
   ],
   "careGuide": {
@@ -1367,7 +1517,7 @@
     }
   ],
   "stats": {
-    "totalProducts": 76,
-    "maxDiscount": 31
+    "maxDiscount": 31,
+    "totalProducts": 75
   }
 }

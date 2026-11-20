@@ -94,12 +94,15 @@
           totalMatching++;
           if (shownCount < visibleLimit) {
             if (card.style.display !== '') card.style.display = '';
+            card.classList.remove('hidden');
             shownCount++;
           } else {
             if (card.style.display !== 'none') card.style.display = 'none';
+            card.classList.add('hidden');
           }
         } else {
           if (card.style.display !== 'none') card.style.display = 'none';
+          card.classList.add('hidden');
         }
       });
 
@@ -160,6 +163,121 @@
         applyCatalogFilters();
       });
     }
+
+    // Dynamic Catalog Sync (queries Spring Boot REST API, falls back to Supabase)
+    function syncCatalogWithBackend() {
+      if (window.SangoAPI) {
+        window.SangoAPI.getProducts().then(function (dbProducts) {
+          if (dbProducts && dbProducts.length > 0) {
+            updateCatalogDOM(dbProducts);
+            return;
+          }
+          syncCatalogWithSupabase();
+        }).catch(function () {
+          syncCatalogWithSupabase();
+        });
+      } else {
+        syncCatalogWithSupabase();
+      }
+    }
+
+    function updateCatalogDOM(dbProducts) {
+      var dbSlugsMap = {};
+      dbProducts.forEach(function (p) { dbSlugsMap[p.slug] = p; });
+
+      var cards = Array.prototype.slice.call(grid.children);
+
+      // 1. Update existing cards (stock, sold-out, price changes)
+      cards.forEach(function (card) {
+        var btn = card.querySelector('[data-add-to-cart]');
+        var slug = btn ? btn.dataset.slug : null;
+        if (slug && !dbSlugsMap[slug]) {
+          card.remove(); // Removed in backend
+        } else if (slug && dbSlugsMap[slug]) {
+          var dbP = dbSlugsMap[slug];
+          var soldOutBadge = card.querySelector('.sold-out-badge');
+          var isSold = dbP.isSoldOut || dbP.is_sold_out;
+
+          if (isSold) {
+            if (!soldOutBadge) {
+              var badge = document.createElement('span');
+              badge.className = 'sold-out-badge absolute top-3 left-3 bg-red-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-sm z-10';
+              badge.textContent = 'SOLD OUT';
+              var imgLink = card.querySelector('a');
+              if (imgLink) imgLink.appendChild(badge);
+            }
+            if (btn) {
+              btn.disabled = true;
+              btn.textContent = 'Sold Out';
+              btn.className = 'bg-gray-200 text-gray-400 cursor-not-allowed text-xs font-bold px-3.5 py-1.5 rounded-full shrink-0 shadow-sm';
+            }
+          } else {
+            if (soldOutBadge) soldOutBadge.remove();
+            if (btn) {
+              btn.disabled = false;
+              btn.textContent = 'Add +';
+              btn.className = 'bg-amber-gold hover:bg-amber-400 text-deep-forest text-xs font-bold px-3.5 py-1.5 rounded-full transition-colors shrink-0 shadow-sm';
+            }
+          }
+        }
+      });
+
+      // 2. Add newly created products from backend
+      var existingSlugs = Array.prototype.slice.call(grid.children).map(function (card) {
+        var btn = card.querySelector('[data-add-to-cart]');
+        return btn ? btn.dataset.slug : null;
+      }).filter(Boolean);
+
+      var fragment = document.createDocumentFragment();
+      var addedCount = 0;
+
+      dbProducts.forEach(function (p) {
+        if (existingSlugs.indexOf(p.slug) === -1 && p.isActive !== false) {
+          var article = document.createElement('article');
+          article.className = 'product-card group bg-white rounded-2xl overflow-hidden border border-outline-variant/30 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col relative';
+          article.dataset.category = p.category;
+          article.dataset.price = p.price;
+          article.dataset.rating = p.rating || 4.8;
+          article.dataset.discount = p.discount || 0;
+          article.dataset.name = p.name;
+
+          var isSold = p.isSoldOut || p.is_sold_out;
+
+          article.innerHTML =
+            '<a href="/products/' + p.slug + '/" class="relative block aspect-square overflow-hidden bg-surface-container">' +
+              '<img src="' + p.image + '" alt="' + escapeHTML(p.name) + '" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">' +
+              (isSold ? '<span class="sold-out-badge absolute top-3 left-3 bg-red-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-sm z-10">SOLD OUT</span>' :
+                (p.discount ? '<span class="absolute top-3 left-3 bg-red-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-sm">SAVE ' + p.discount + '%</span>' : '')) +
+            '</a>' +
+            '<button type="button" aria-label="Add to wishlist" data-wishlist-btn data-slug="' + p.slug + '" data-name="' + escapeHTML(p.name) + '" data-category="' + p.category + '" data-size="' + p.size + '" data-price="' + p.price + '" data-mrp="' + p.mrp + '" data-image="' + p.image + '" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur border border-outline-variant/30 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors shadow-sm z-10">' +
+              '<span class="material-symbols-outlined text-sm">favorite</span>' +
+            '</button>' +
+            '<div class="p-4 flex flex-col flex-1">' +
+              '<p class="text-[11px] font-semibold text-deep-forest/80 uppercase tracking-wider mb-1">' + escapeHTML(p.category) + ' · ' + escapeHTML(p.size) + '</p>' +
+              '<a href="/products/' + p.slug + '/" class="font-headline-sm font-bold text-gray-900 leading-snug hover:text-deep-forest transition-colors text-sm line-clamp-1">' + escapeHTML(p.name) + '</a>' +
+              '<div class="flex items-center gap-1 mt-1.5"><span class="text-amber-gold text-xs">★★★★★</span><span class="text-[11px] text-on-surface-variant font-medium">' + (p.rating || 4.8) + ' (' + (p.reviews || 12) + ')</span></div>' +
+              '<div class="mt-auto pt-3 flex items-end justify-between gap-2">' +
+                '<div><span class="text-base font-bold text-deep-forest">₹' + p.price + '</span>' + (p.mrp > p.price ? '<span class="ml-1 text-xs text-gray-400 line-through">₹' + p.mrp + '</span>' : '') + '</div>' +
+                (isSold ?
+                  '<button type="button" disabled class="bg-gray-200 text-gray-400 cursor-not-allowed text-xs font-bold px-3.5 py-1.5 rounded-full shrink-0 shadow-sm">Sold Out</button>' :
+                  '<button type="button" data-add-to-cart data-slug="' + p.slug + '" data-name="' + escapeHTML(p.name) + '" data-variant="' + (p.variant || '') + '" data-category="' + p.category + '" data-size="' + p.size + '" data-price="' + p.price + '" data-mrp="' + p.mrp + '" data-image="' + p.image + '" class="bg-amber-gold hover:bg-amber-400 text-deep-forest text-xs font-bold px-3.5 py-1.5 rounded-full transition-colors shrink-0 shadow-sm">Add +</button>') +
+              '</div>' +
+            '</div>';
+
+          fragment.appendChild(article);
+          addedCount++;
+        }
+      });
+
+      if (addedCount > 0) {
+        grid.appendChild(fragment);
+      }
+
+      applyCatalogFilters();
+    }
+
+    // Run dynamic sync after page loads
+    setTimeout(syncCatalogWithBackend, 400);
 
     // Dynamic Supabase Sync (safely updates catalog if configured, non-blocking)
     function syncCatalogWithSupabase() {

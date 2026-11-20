@@ -63,6 +63,42 @@
           message: formData.get('message')
         });
 
+        // Auto-sync contact details to Supabase contact_inquiries table
+        if (window.SangoSupabase) {
+          window.SangoSupabase.from('contact_inquiries').insert([{
+            ticket_id: record.ticketId,
+            name: record.name,
+            phone: record.phone,
+            email: record.email,
+            topic: record.topic,
+            message: record.message,
+            status: record.status
+          }]).then(function () {}).catch(function (sbErr) {
+            console.warn('[Inquiry] Supabase inquiry notice:', sbErr);
+          });
+        }
+
+        // Auto-sync contact details to the Contact Inquiries Spreadsheet
+        try {
+          fetch('http://localhost:8080/api/spreadsheet/contact', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ticketId: record.ticketId,
+              name: record.name,
+              phone: record.phone,
+              email: record.email,
+              topic: record.topic,
+              message: record.message,
+              status: record.status
+            })
+          }).catch(function (err) {
+            console.warn('[Inquiry] Could not sync to spreadsheet endpoint:', err.message);
+          });
+        } catch (e) {
+          console.warn('[Inquiry] Spreadsheet sync exception:', e);
+        }
+
         if (window.showToast) {
           window.showToast('Ticket ' + record.ticketId + ' created! Our plant team will contact you within 24h 🌿');
         }

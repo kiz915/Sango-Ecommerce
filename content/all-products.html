@@ -7,27 +7,10 @@ permalink: /products/
 
 <main class="pt-[80px]">
   
-  <!-- Hero Banner (Matching Landing & About Page Design) -->
-  <section class="relative w-full h-[45vh] min-h-[340px] flex items-center justify-center overflow-hidden">
-    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat w-full h-full" 
-         style="background-image: url('https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=1600&auto=format&fit=crop')"></div>
-    <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
-    <div class="relative z-10 text-center px-margin-mobile md:px-margin-desktop max-w-4xl mx-auto flex flex-col items-center">
-      <span class="text-amber-gold font-label-md uppercase tracking-widest mb-3">Handcrafted Collection · Pot Included</span>
-      <h1 class="font-display-lg-mobile md:font-display-lg text-on-primary mb-4 drop-shadow-md">Shop All Plants</h1>
-      <p class="font-body-lg text-body-lg text-on-primary/90 max-w-2xl drop-shadow-sm mb-6">
-        Explore <span id="product-count" class="font-bold text-amber-gold">{{ plants.products.length }}</span> lifelike artificial plants &amp; trees designed for modern Indian homes.
-      </p>
-
-      <!-- Quick Search inside catalog -->
-      <div class="w-full max-w-md mx-auto">
-        <div class="relative">
-          <input type="text" id="catalog-search" placeholder="Search plants by name..."
-            class="w-full bg-white/20 backdrop-blur-md border border-white/30 rounded-full py-3.5 pl-12 pr-6 text-sm text-white placeholder-white/70 focus:outline-none focus:bg-white focus:text-deep-forest focus:placeholder-gray-400 transition-all shadow-lg">
-          <span class="material-symbols-outlined absolute left-4 top-3.5 text-white/80 pointer-events-none text-xl">search</span>
-        </div>
-      </div>
-    </div>
+  <!-- ProductOrbitCarousel Section (Pinning GSAP Orbit) -->
+  <section class="relative w-full border-b border-stone-200/80 bg-[#FAF8F5]" id="orbit-carousel-container">
+    <!-- Rendered and pinned by ProductOrbitCarousel GSAP script -->
+    <div id="product-orbit-root" class="w-full"></div>
   </section>
 
   <!-- Sticky Filter & Sorting Toolbar -->
@@ -63,7 +46,7 @@ permalink: /products/
   </section>
 
   <!-- Products Grid -->
-  <section class="max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop py-12">
+  <section id="product-grid" class="max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop py-12">
     <div id="all-products-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
       {% for p in plants.products %}
         {% set isAboveFold = loop.index <= 8 %}
@@ -72,10 +55,8 @@ permalink: /products/
     </div>
 
     <!-- Load More Button -->
-    <div id="load-more-wrap" class="text-center mt-12 hidden">
-      <button type="button" id="load-more-btn" class="bg-deep-forest text-on-primary px-8 py-3.5 rounded font-label-md text-label-md uppercase tracking-wider hover:bg-primary-container transition-colors shadow-md">
-        Load More Products (<span id="load-more-count">0</span> remaining)
-      </button>
+    <div id="load-more-wrap" class="text-center mt-12 mb-12 hidden">
+      <button type="button" id="load-more-btn" class="w-full max-w-[459px] h-14 bg-[#1b5e20] hover:bg-[#154a1a] text-white rounded-md font-bold text-sm tracking-wider uppercase transition-all duration-200 shadow-md flex items-center justify-center active:scale-[0.99] mx-auto"><span>LOAD MORE PRODUCTS (<span id="load-more-count">0</span> REMAINING)</span></button>
     </div>
 
     <!-- Empty State -->
@@ -89,4 +70,552 @@ permalink: /products/
     </div>
   </section>
 
+  <!-- GSAP & ScrollTrigger Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+
+  <!-- Script mounting ProductOrbitCarousel with GSAP ScrollTrigger Pinning & Animations -->
+  <script>
+    (function () {
+      if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
+      gsap.registerPlugin(ScrollTrigger);
+
+      const PLANTS = [
+        {
+          title: "Handcrafted Luxury",
+          subtitle: "Fiddle Leaf Fig",
+          image: "/public/plants/fiddle-leaf-fig.webp",
+          price: "₹7,340",
+          heightCm: 180,
+          collection: "Statement Trees Collection · 180 cm",
+          eyebrow: "#1 Best Selling Statement Tree",
+          label: "Fiddle Leaf Fig\n180cm Premium Tree",
+          rating: 4.8,
+          chef: "Sango Fiora Atelier",
+          description: "Towering 180cm artificial Fiddle Leaf Fig featuring botanical-grade silk leaves, natural textured trunk, and pre-potted ceramic-look base.",
+          slug: "fiddle-leaf-fig-180cm",
+          likes: 312,
+          ingredients: ["Botanical silk leaves", "Hand-moulded natural core", "Zero watering required", "Decorative nursery pot included"],
+          accent: "#1B4332"
+        },
+        {
+          title: "Artisan Blooms",
+          subtitle: "White Rose Plant",
+          image: "/public/plants/rose-plant-white.webp",
+          price: "₹4,904",
+          heightCm: 90,
+          collection: "Everlasting Floral Series · 90 cm",
+          eyebrow: "#2 Most Loved Floral Piece",
+          label: "White Rose Plant\n90cm Decorative Pot",
+          rating: 4.9,
+          chef: "Sango Fiora Floral",
+          description: "Perpetually in bloom with delicate ivory petals, lifelike thorns, and luscious green foliage. Zero watering, infinite elegance.",
+          slug: "rose-plant-white-colour-90cm",
+          likes: 248,
+          ingredients: ["Velvet silk petals", "Bendable wired stems", "Deep emerald leaves", "Weighted decorative pot"],
+          accent: "#C5A059"
+        },
+        {
+          title: "Tropical Resort",
+          subtitle: "Fan Palm Tree",
+          image: "/public/plants/fan-palm-tree.webp",
+          price: "₹5,890",
+          heightCm: 120,
+          collection: "Exotic Palms Collection · 120 cm",
+          eyebrow: "#3 Top Resort Aesthetic",
+          label: "Fan Palm Tree\n120cm Resort Fronds",
+          rating: 4.7,
+          chef: "Sango Fiora Studio",
+          description: "Vibrant architectural fan fronds bring coastal serenity and luxury resort warmth into any living room, patio, or executive office.",
+          slug: "fan-palm-tree-120cm",
+          likes: 195,
+          ingredients: ["Wide fan foliage", "Fibrous textured bark", "High colorfastness", "Heavy stability pot"],
+          accent: "#2D6A4F"
+        },
+        {
+          title: "Architectural Foliage",
+          subtitle: "Monstera Deliciosa",
+          image: "/public/plants/monstera-deliciosa.webp",
+          price: "₹5,920",
+          heightCm: 160,
+          collection: "Tropical Foliage Collection · 160 cm",
+          eyebrow: "#4 Statement Jungle Foliage",
+          label: "Monstera Deliciosa\n160cm Split Leaf",
+          rating: 4.9,
+          chef: "Sango Fiora Studio",
+          description: "Iconic Monstera Deliciosa standing 160cm tall with perforated architectural leaves and deep rainforest green luster. Delivered in a matte white decorative pot.",
+          slug: "monstera-deliciosa-160cm",
+          likes: 368,
+          ingredients: ["Split-leaf silk blades", "Flexible wired stems", "Deep emerald luster", "Weighted modern pot"],
+          accent: "#205A44"
+        },
+        {
+          title: "Lush Architecture",
+          subtitle: "Areca Palm Tree",
+          image: "/public/plants/areca-palm-tree.webp",
+          price: "₹6,750",
+          heightCm: 190,
+          collection: "Living Room Oasis · 190 cm",
+          eyebrow: "#5 Modern Classic",
+          label: "Areca Palm Tree\n190cm Feathery Fronds",
+          rating: 4.8,
+          chef: "Sango Fiora Atelier",
+          description: "Gracefully arching feather palms that effortlessly soften modern corners, bringing organic nature and volume to your home interior.",
+          slug: "areca-palm-tree-190cm",
+          likes: 275,
+          ingredients: ["Multi-stem cane stalks", "Feathered palm blades", "Dust-repellent coating", "Minimalist matte pot"],
+          accent: "#0F291E"
+        }
+      ];
+
+      const n = PLANTS.length;
+      const loop = true;
+      const steps = Math.max(0, loop ? n : n - 1);
+      const ORBIT_X = 260;
+      const ORBIT_Y = -460;
+      const ORBIT_R = 670;
+      const SWING = 50;
+      const ITEM = 118;
+      const VISIBLE = 4;
+      const ARC_REST = [[50, 98], [46, 124], [60, 126], [40, 100], [52, 110]];
+      const ARC_SWEEP = [38, 146];
+      const HIDE_1 = "inset(0% 0% 0% 100%)";
+      const HIDE_2 = "inset(0% 100% 0% 0%)";
+      const SHOW = "inset(0% 0% 0% 0%)";
+
+      function wrapIdx(i, len) { return ((Math.round(i) % len) + len) % len; }
+      function stepDir(from, to, len) {
+        if (len <= 0) return 1;
+        const fwd = (((to - from) % len) + len) % len;
+        return fwd <= len - fwd ? 1 : -1;
+      }
+      function arcRestAngle(idx) {
+        return ARC_REST[((idx % ARC_REST.length) + ARC_REST.length) % ARC_REST.length];
+      }
+      function arcPathString(a0, a1, cx, cy, r, w, stps = 24) {
+        const outer = [];
+        const inner = [];
+        for (let i = 0; i <= stps; i++) {
+          const t = i / stps;
+          const a = ((a0 + (a1 - a0) * t) * Math.PI) / 180;
+          const h = (w / 2) * Math.pow(Math.sin(Math.PI * t), 0.45);
+          const c = Math.cos(a);
+          const s = Math.sin(a);
+          outer.push((cx + c * (r + h)).toFixed(1) + " " + (cy + s * (r + h)).toFixed(1));
+          inner.push((cx + c * (r - h)).toFixed(1) + " " + (cy + s * (r - h)).toFixed(1));
+        }
+        return "M" + outer.join("L") + "L" + inner.reverse().join("L") + "Z";
+      }
+
+      const container = document.getElementById('product-orbit-root');
+      if (!container) return;
+
+      // Render compact HTML structure (responsive, no clipping, no scroll hijacking)
+      container.innerHTML = `
+        <div class="dsh-trk" style="height: auto;">
+          <div class="dsh-root" style="height: 510px; touch-action: pan-y;" role="region" aria-roledescription="carousel" aria-label="Artificial Plants" tabindex="0">
+            <div class="dsh-canvas">
+              <svg class="dsh-arc" viewBox="0 0 1080 520" aria-hidden="true">
+                <path id="orbit-arc-path" style="opacity: 0.34; fill: ${PLANTS[0].accent};" />
+              </svg>
+
+              <div class="dsh-pager" role="tablist" aria-label="Choose a plant">
+                ${PLANTS.map((p, i) => `
+                  <button type="button" role="tab" class="dsh-btn dsh-dot ${i === 0 ? 'dsh-dot-active' : ''}" aria-selected="${i === 0}" aria-label="${p.subtitle}" data-index="${i}">
+                    <i></i>
+                  </button>
+                `).join('')}
+              </div>
+
+              <div class="dsh-plates" id="orbit-plates">
+                ${PLANTS.map((p, i) => `
+                  <div class="dsh-orbit" style="${i === 0 ? 'visibility: visible; opacity: 1;' : 'visibility: hidden; opacity: 0;'}" data-orbit="${i}">
+                    <img src="${p.image}" alt="${p.subtitle}" width="600" height="600" draggable="false" style="max-width: 100%; height: auto;" />
+                  </div>
+                `).join('')}
+              </div>
+
+              <div class="dsh-head" aria-live="polite">
+                ${PLANTS.map((p, i) => `
+                  <div class="dsh-hd" style="${i === 0 ? 'visibility: visible; opacity: 1;' : 'visibility: hidden; opacity: 0;'}" data-head="${i}">
+                    <p class="dsh-eye">${p.eyebrow}</p>
+                    <h2 style="margin: 0; font: inherit;">
+                      <span class="dsh-t1" style="clip-path: ${i === 0 ? SHOW : HIDE_1};">${p.title}</span>
+                      <span class="dsh-t2" style="clip-path: ${i === 0 ? SHOW : HIDE_2};">${p.subtitle}</span>
+                    </h2>
+                  </div>
+                `).join('')}
+              </div>
+
+              <div class="dsh-acts">
+                <button type="button" class="dsh-btn" id="orbit-play-btn"><svg class="dsh-ico dsh-fill" viewBox="0 0 24 24" aria-hidden="true" style="width:13px;height:13px;"><path d="M6 3.5v17l14-8.5z" /></svg> View in grid</button>
+                <a id="orbit-order-btn" href="/products/${PLANTS[0].slug}/" class="dsh-btn" style="text-decoration:none;"><svg class="dsh-ico dsh-fill" viewBox="0 0 24 24" aria-hidden="true" style="width:13px;height:13px;"><path d="M12 5 3 15h18zM3 18h18v2.5H3z" /></svg> View Plant Details</a>
+              </div>
+
+              <div class="dsh-card">
+                <div class="dsh-tabs" role="tablist">
+                  <button type="button" class="dsh-btn dsh-tab" id="orbit-tab-overview" aria-selected="true">Overview</button>
+                  <button type="button" class="dsh-btn dsh-tab" id="orbit-tab-specs" aria-selected="false">Specs</button>
+                </div>
+                <div class="dsh-bodies">
+                  ${PLANTS.map((p, i) => `
+                    <div class="dsh-body" style="${i === 0 ? 'visibility: visible; opacity: 1;' : 'visibility: hidden; opacity: 0;'}" data-body="${i}">
+                      <div class="dsh-rate">
+                        <div class="dsh-badge" style="background: ${p.accent};">
+                          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4-3.9-3.8 5.4-.8z" /></svg>
+                          <span class="dsh-num">${p.rating.toFixed(1)}</span>
+                        </div>
+                      </div>
+                      <h3 class="dsh-plant-name">${p.subtitle}</h3>
+                      <p class="dsh-plant-price" style="color: ${p.accent};">${p.price}</p>
+                      <p class="dsh-plant-col">${p.collection}</p>
+                      <p class="dsh-desc dsh-view-overview">${p.description}</p>
+                      <ul class="dsh-ing dsh-view-specs" style="display:none;">
+                        <li>UV-Resistant</li>
+                        <li>No Watering</li>
+                        <li>Pot Included</li>
+                        ${p.ingredients.map(ing => `<li>${ing}</li>`).join('')}
+                      </ul>
+                      <div class="dsh-react">
+                        <button type="button" class="dsh-btn dsh-like" data-like="${i}">
+                          <span class="dsh-ico"><svg class="dsh-ico" viewBox="0 0 24 24" aria-hidden="true" style="width:16px;height:16px;"><path d="M7 10v10H3.5V10zM7 10l4-7c1.6 0 2.6 1.2 2.2 2.8L12.6 9H19a2 2 0 0 1 2 2.3l-1.3 7A2 2 0 0 1 17.7 20H7" /></svg></span>
+                          <span class="like-count">${p.likes}</span>
+                        </button>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+
+              <div class="dsh-strip">
+                <button type="button" class="dsh-btn dsh-arrow" id="orbit-prev-arrow" aria-label="Previous plant">
+                  <svg viewBox="0 0 12 16" aria-hidden="true"><path d="M11 0v16L0 8z" /></svg>
+                </button>
+                <div class="dsh-win">
+                  <div class="dsh-track" id="orbit-strip-track">
+                    ${PLANTS.map((p, i) => `
+                      <div class="dsh-th">
+                        <button type="button" class="dsh-btn" ${i === 0 ? 'aria-current="true"' : ''} data-thumb="${i}">
+                          <img src="${p.image}" alt="" width="56" height="56" draggable="false" />
+                          <span>${p.subtitle}</span>
+                        </button>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+                <button type="button" class="dsh-btn dsh-arrow" id="orbit-next-arrow" aria-label="Next plant">
+                  <svg viewBox="0 0 12 16" aria-hidden="true"><path d="M1 0v16l11-8z" /></svg>
+                </button>
+              </div>
+
+            </div>
+            <p class="dsh-sr" id="orbit-sr" aria-live="polite">Plant 1 of ${n}: ${PLANTS[0].title} ${PLANTS[0].subtitle}</p>
+          </div>
+        </div>
+      `;
+
+      const track = container.querySelector('.dsh-trk');
+      const root = container.querySelector('.dsh-root');
+      const plates = container.querySelector('.dsh-plates');
+      const arcPath = container.querySelector('#orbit-arc-path');
+      const orderBtn = container.querySelector('#orbit-order-btn');
+      const srEl = container.querySelector('#orbit-sr');
+      const stripTrack = container.querySelector('#orbit-strip-track');
+      const dots = Array.from(container.querySelectorAll('.dsh-dot'));
+      const orbitElements = Array.from(container.querySelectorAll('.dsh-orbit'));
+      const headElements = Array.from(container.querySelectorAll('.dsh-hd'));
+      const bodyElements = Array.from(container.querySelectorAll('.dsh-body'));
+      const thumbBtns = Array.from(container.querySelectorAll('[data-thumb]'));
+
+      let currentIndex = 0;
+      let dir = 1;
+      let segCurrent = 0;
+      let tlActive = null;
+      let swayTween = null;
+      let quickX = null;
+      let quickY = null;
+      const arcState = { a0: ARC_REST[0][0], a1: ARC_REST[0][1] };
+      const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      function updateArc() {
+        if (!arcPath) return;
+        arcPath.setAttribute('d', arcPathString(arcState.a0, arcState.a1, ORBIT_X, ORBIT_Y, ORBIT_R, 118));
+      }
+      updateArc();
+
+      // Responsive canvas scaling
+      function fitCanvas() {
+        if (!root) return;
+        const w = root.clientWidth;
+        const h = root.clientHeight;
+        const s = Math.min(w / 1080, h / 510, 1.25);
+        root.style.setProperty("--dsh-s", String(s));
+      }
+      fitCanvas();
+      window.addEventListener('resize', fitCanvas);
+
+      // Animation 2: Pointer parallax on .dsh-plates (max 18px / 12px)
+      if (plates && !prefersReduced) {
+        quickX = gsap.quickTo(plates, "x", { duration: 0.6, ease: "power2.out" });
+        quickY = gsap.quickTo(plates, "y", { duration: 0.6, ease: "power2.out" });
+      }
+
+      root.addEventListener('pointermove', function (e) {
+        if (prefersReduced || !root || !quickX || !quickY) return;
+        const rect = root.getBoundingClientRect();
+        const relX = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+        const relY = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+        quickX(Math.max(-18, Math.min(18, relX * 18)));
+        quickY(Math.max(-12, Math.min(12, relY * 12)));
+      });
+
+      root.addEventListener('pointerleave', function () {
+        if (quickX && quickY) {
+          quickX(0);
+          quickY(0);
+        }
+      });
+
+      // Animation 1: Idle sway on active plant's <img> (rotates ±2.5deg, transformOrigin 50% 85%, sine.inOut, yoyo, repeat -1, 2.8s)
+      function startIdleSway(idx) {
+        if (swayTween) {
+          swayTween.kill();
+          swayTween = null;
+        }
+        if (prefersReduced) return;
+        const activeImg = orbitElements[idx]?.querySelector('img');
+        if (!activeImg) return;
+        gsap.set(activeImg, { transformOrigin: "50% 85%" });
+        swayTween = gsap.fromTo(
+          activeImg,
+          { rotation: -2.5 },
+          {
+            rotation: 2.5,
+            duration: 2.8,
+            ease: "sine.inOut",
+            yoyo: true,
+            repeat: -1
+          }
+        );
+      }
+      startIdleSway(0);
+
+      // Switch plant with GSAP animations
+      function goToPlant(to, direction = 1) {
+        const next = wrapIdx(to, n);
+        if (next === currentIndex && tlActive) return;
+        const from = currentIndex;
+        currentIndex = next;
+        dir = direction;
+
+        const curPlant = PLANTS[currentIndex];
+        const rest = arcRestAngle(currentIndex);
+        const tint = curPlant.accent;
+
+        if (orderBtn) orderBtn.href = `/products/${curPlant.slug}/`;
+        if (srEl) srEl.textContent = `Plant ${currentIndex + 1} of ${n}: ${curPlant.title} ${curPlant.subtitle}`;
+
+        // Update pager dots
+        dots.forEach((dot, i) => {
+          if (i === currentIndex) {
+            dot.setAttribute('aria-selected', 'true');
+            dot.setAttribute('aria-current', 'true');
+          } else {
+            dot.removeAttribute('aria-selected');
+            dot.removeAttribute('aria-current');
+          }
+        });
+
+        // Update thumbnail strip
+        thumbBtns.forEach((btn, i) => {
+          if (i === currentIndex) {
+            btn.setAttribute('aria-current', 'true');
+          } else {
+            btn.removeAttribute('aria-current');
+          }
+        });
+        const stripStartIdx = Math.max(0, Math.min(currentIndex - 1, n - VISIBLE));
+        if (stripTrack) {
+          stripTrack.style.transform = `translateX(${-stripStartIdx * ITEM}px)`;
+        }
+
+        // Restart idle sway
+        startIdleSway(currentIndex);
+
+        if (tlActive) tlActive.kill();
+        if (prefersReduced) {
+          orbitElements.forEach((el, i) => {
+            gsap.set(el, { autoAlpha: i === currentIndex ? 1 : 0, rotation: 0 });
+          });
+          headElements.forEach((el, i) => {
+            gsap.set(el, { autoAlpha: i === currentIndex ? 1 : 0 });
+            const t1 = el.querySelector('.dsh-t1');
+            const t2 = el.querySelector('.dsh-t2');
+            gsap.set([t1, t2], { clipPath: SHOW });
+          });
+          bodyElements.forEach((el, i) => {
+            gsap.set(el, { autoAlpha: i === currentIndex ? 1 : 0 });
+          });
+          arcState.a0 = rest[0];
+          arcState.a1 = rest[1];
+          updateArc();
+          if (arcPath) gsap.set(arcPath, { fill: tint });
+          return;
+        }
+
+        const aOrbit = orbitElements[from];
+        const bOrbit = orbitElements[next];
+        const aHead = headElements[from];
+        const bHead = headElements[next];
+        const aBody = bodyElements[from];
+        const bBody = bodyElements[next];
+
+        const aT1 = aHead?.querySelector('.dsh-t1');
+        const aT2 = aHead?.querySelector('.dsh-t2');
+        const aEye = aHead?.querySelector('.dsh-eye');
+        const bT1 = bHead?.querySelector('.dsh-t1');
+        const bT2 = bHead?.querySelector('.dsh-t2');
+        const bEye = bHead?.querySelector('.dsh-eye');
+
+        const tl = gsap.timeline({ onComplete: () => { tlActive = null; } });
+        tlActive = tl;
+
+        // Orbit rotation
+        tl.to(aOrbit, { rotation: SWING * dir, duration: 0.62, ease: "power2.in", force3D: true }, 0)
+          .set(aOrbit, { autoAlpha: 0, rotation: 0 }, 0.62)
+          .fromTo(bOrbit, { autoAlpha: 1, rotation: -SWING * dir }, { rotation: 0, duration: 0.95, ease: "power3.out", force3D: true }, 0.3);
+
+        // Title clip wipes
+        tl.to(aT1, { clipPath: HIDE_1, duration: 0.42, ease: "power2.in" }, 0)
+          .to(aT2, { clipPath: HIDE_2, duration: 0.42, ease: "power2.in" }, 0.06)
+          .to(aEye, { autoAlpha: 0, duration: 0.25 }, 0)
+          .set(aHead, { autoAlpha: 0 }, 0.5)
+          .set(bHead, { autoAlpha: 1 }, 0.5)
+          .fromTo(bEye, { autoAlpha: 0, y: 6 }, { autoAlpha: 1, y: 0, duration: 0.4, ease: "power2.out" }, 0.55)
+          .fromTo(bT1, { clipPath: HIDE_1 }, { clipPath: SHOW, duration: 0.7, ease: "power3.out" }, 0.55)
+          .fromTo(bT2, { clipPath: HIDE_2 }, { clipPath: SHOW, duration: 0.7, ease: "power3.out" }, 0.62);
+
+        // Card cross-fade
+        tl.to(aBody, { autoAlpha: 0, y: -6, duration: 0.3, ease: "power1.in" }, 0.05)
+          .set(bBody, { autoAlpha: 1, y: 0 }, 0.4);
+        if (bBody) {
+          tl.fromTo(bBody.children, { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 0.5, stagger: 0.06, ease: "power2.out" }, 0.4);
+        }
+
+        // Arc sweep and color transition
+        tl.to(arcState, { a0: ARC_SWEEP[0], a1: ARC_SWEEP[1], duration: 0.6, ease: "power2.inOut", onUpdate: updateArc }, 0)
+          .to(arcState, { a0: rest[0], a1: rest[1], duration: 0.85, ease: "power3.out", onUpdate: updateArc }, 0.6);
+        if (arcPath) tl.to(arcPath, { fill: tint, duration: 1.1, ease: "power1.inOut" }, 0.1);
+      }
+
+      // 2. Showcase scroll effect: as user scrolls down, showcase goes smaller up so all products below are visible
+      let ticking = false;
+      function onScrollCompact() {
+        if (!ticking) {
+          window.requestAnimationFrame(() => {
+            const y = window.pageYOffset || document.documentElement.scrollTop;
+            if (y <= 400) {
+              const p = Math.min(1, Math.max(0, y / 300));
+              const scale = 1 - (p * 0.08);
+              const ty = -(p * 24);
+              const op = 1 - (p * 0.25);
+              root.style.transform = `translate3d(0, ${ty}px, 0) scale(${scale})`;
+              root.style.opacity = String(op);
+            } else {
+              root.style.transform = 'translate3d(0, -24px, 0) scale(0.92)';
+              root.style.opacity = '0.75';
+            }
+            ticking = false;
+          });
+          ticking = true;
+        }
+      }
+      window.addEventListener('scroll', onScrollCompact, { passive: true });
+
+      // 3. Swipe setup on .dsh-root
+      let swipeStart = null;
+      root.addEventListener('pointerdown', (e) => {
+        swipeStart = { x: e.clientX, y: e.clientY };
+      });
+      root.addEventListener('pointerup', (e) => {
+        if (!swipeStart) return;
+        const s = swipeStart;
+        swipeStart = null;
+        const dx = e.clientX - s.x;
+        const dy = e.clientY - s.y;
+        if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+          const stepDelta = dx < 0 ? 1 : -1;
+          goToPlant(currentIndex + stepDelta, stepDelta);
+        }
+      });
+      root.addEventListener('pointercancel', () => { swipeStart = null; });
+
+      // Keyboard arrows navigation
+      root.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') goToPlant(currentIndex - 1, -1);
+        if (e.key === 'ArrowRight') goToPlant(currentIndex + 1, 1);
+      });
+
+      // Buttons
+      container.querySelector('#orbit-play-btn')?.addEventListener('click', () => {
+        document.getElementById("product-grid")?.scrollIntoView({ behavior: "smooth" });
+      });
+      container.querySelector('#orbit-prev-arrow')?.addEventListener('click', () => goToPlant(currentIndex - 1, -1));
+      container.querySelector('#orbit-next-arrow')?.addEventListener('click', () => goToPlant(currentIndex + 1, 1));
+
+      dots.forEach((dot, idx) => {
+        dot.addEventListener('click', () => goToPlant(idx, stepDir(currentIndex, idx, n)));
+      });
+
+      thumbBtns.forEach((btn, idx) => {
+        btn.addEventListener('click', () => goToPlant(idx, stepDir(currentIndex, idx, n)));
+      });
+
+      // Tabs: Overview vs Specs
+      const tabOverview = container.querySelector('#orbit-tab-overview');
+      const tabSpecs = container.querySelector('#orbit-tab-specs');
+      tabOverview?.addEventListener('click', () => {
+        tabOverview.setAttribute('aria-selected', 'true');
+        tabSpecs.setAttribute('aria-selected', 'false');
+        container.querySelectorAll('.dsh-view-overview').forEach(el => el.style.display = 'block');
+        container.querySelectorAll('.dsh-view-specs').forEach(el => el.style.display = 'none');
+      });
+      tabSpecs?.addEventListener('click', () => {
+        tabSpecs.setAttribute('aria-selected', 'true');
+        tabOverview.setAttribute('aria-selected', 'false');
+        container.querySelectorAll('.dsh-view-overview').forEach(el => el.style.display = 'none');
+        container.querySelectorAll('.dsh-view-specs').forEach(el => el.style.display = 'flex');
+      });
+      // Additional animations requested
+      if (!prefersReduced) {
+        // Page load: fade and rise the section heading, then the carousel (0.6s, power3.out)
+        gsap.fromTo(
+          "#orbit-carousel-container",
+          { opacity: 0, y: 30 },
+          { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }
+        );
+
+        // Product grid below: cards fade up with a 0.08s stagger as they enter viewport (ScrollTrigger)
+        ScrollTrigger.batch("#all-products-grid .product-card", {
+          start: "top 90%",
+          once: true,
+          onEnter: (batch) => {
+            gsap.fromTo(
+              batch,
+              { opacity: 0, y: 28 },
+              { opacity: 1, y: 0, duration: 0.5, stagger: 0.08, ease: "power2.out", overwrite: "auto" }
+            );
+          }
+        });
+
+        // "Add to cart": a short scale pulse (1 -> 1.08 -> 1)
+        document.addEventListener('click', (e) => {
+          const btn = e.target.closest('.add-to-cart-btn, #btn-add-to-cart, [data-action="add-to-cart"]');
+          if (btn) {
+            gsap.fromTo(btn, { scale: 1 }, { scale: 1.08, duration: 0.12, yoyo: true, repeat: 1, ease: "power1.inOut" });
+          }
+        });
+      }
+    })();
+  </script>
 </main>

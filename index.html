@@ -109,37 +109,76 @@ description: Buy 76+ premium artificial plants & trees online in India — palms
     </div>
   </section>
 
-  <!-- Interactive Plant Finder Widget -->
-  <section class="py-16 bg-deep-forest text-white relative overflow-hidden">
-    <div class="max-w-[1440px] mx-auto px-4 md:px-margin-desktop">
+  <!-- Interactive Botanical Collection Guide Section -->
+  <section class="py-20 bg-[#F8F7F4] border-t border-outline-variant/25 relative overflow-hidden" id="collection-guide">
+    <!-- Subtle Ambient Botanical Blur -->
+    <div class="absolute -top-32 -left-32 w-96 h-96 bg-[#1B4332]/5 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-[#2D6A4F]/5 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="max-w-[1440px] mx-auto px-4 md:px-margin-desktop relative z-10">
+      
+      <!-- Section Header Matching Sango Fiora Editorial Style -->
       <div class="max-w-3xl mx-auto text-center mb-10">
-        <span class="font-label-sm text-label-sm uppercase tracking-widest text-amber-gold">Interactive Collection Guide</span>
-        <h2 class="font-headline-lg text-3xl md:text-headline-lg mt-1 text-white">Find Your Perfect Match</h2>
-        <p class="text-white/85 text-sm sm:text-base mt-2">Filter by lighting or space requirements to get instant recommendations.</p>
-      </div>
-
-      <div class="bg-white/10 backdrop-blur border border-white/20 rounded-3xl p-6 sm:p-8 max-w-4xl mx-auto">
-        <div class="flex flex-wrap justify-center gap-3 mb-8" id="finder-filters">
-          <button type="button" data-finder="all" class="finder-chip active bg-amber-gold text-deep-forest font-bold px-5 py-2 rounded-full text-xs uppercase tracking-wider transition-all">All Recommendations</button>
-          <button type="button" data-finder="Foliage" class="finder-chip bg-white/15 text-white hover:bg-white/20 font-medium px-5 py-2 rounded-full text-xs uppercase tracking-wider transition-all">Indoor Foliage</button>
-          <button type="button" data-finder="Palms" class="finder-chip bg-white/15 text-white hover:bg-white/20 font-medium px-5 py-2 rounded-full text-xs uppercase tracking-wider transition-all">Resort Palms</button>
-          <button type="button" data-finder="Trees" class="finder-chip bg-white/15 text-white hover:bg-white/20 font-medium px-5 py-2 rounded-full text-xs uppercase tracking-wider transition-all">Statement Trees</button>
-          <button type="button" data-finder="Flowering" class="finder-chip bg-white/15 text-white hover:bg-white/20 font-medium px-5 py-2 rounded-full text-xs uppercase tracking-wider transition-all">Flowering Beauties</button>
+        <div class="inline-flex items-center gap-1.5 bg-[#1B4332]/8 text-[#1B4332] text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full border border-[#1B4332]/15 mb-3">
+          <span>🌿</span>
+          <span>Botanical Matchmaker</span>
         </div>
+        <h2 class="font-headline-lg text-3xl md:text-4xl font-bold text-deep-forest tracking-tight">
+          Find Your Perfect Match
+        </h2>
+        <div class="w-20 h-1 bg-amber-gold mx-auto my-3 rounded-full"></div>
+        <p class="text-on-surface-variant text-sm md:text-base max-w-2xl mx-auto">
+          Filter handcrafted botanicals by room aesthetic, architectural presence, and scale. Every piece includes a complimentary decorative designer pot.
+        </p>
 
-        <div id="finder-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {% for p in plants.products.slice(0, 16) %}
-          <div class="finder-card bg-white text-gray-900 rounded-2xl overflow-hidden p-3 shadow-md text-left" data-category="{{ p.category }}">
-            <a href="/products/{{ p.slug }}/" class="block aspect-square rounded-xl overflow-hidden bg-surface-container mb-2">
-              <img src="{{ p.image }}" alt="{{ p.name }}" loading="lazy" class="w-full h-full object-cover">
-            </a>
-            <p class="text-[10px] font-bold text-deep-forest uppercase tracking-wider">{{ p.category }}</p>
-            <h4 class="font-bold text-xs text-gray-900 truncate mb-1"><a href="/products/{{ p.slug }}/">{{ p.name }}</a></h4>
-            <p class="font-bold text-sm text-deep-forest">₹{{ p.price }}</p>
+        <!-- Seamless Responsive Segmented Bar (Single Row, No Awkward Wrap) -->
+        <div class="mt-8 flex justify-center w-full px-2">
+          <div class="inline-flex items-center flex-nowrap gap-1 sm:gap-1.5 p-1.5 bg-white/95 backdrop-blur-md rounded-full border border-[#1B4332]/15 shadow-sm max-w-full overflow-x-auto scrollbar-none" id="finder-filters" style="-webkit-overflow-scrolling: touch; scrollbar-width: none;">
+            <button type="button" data-finder="all" class="finder-chip active bg-[#0F291E] text-white px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-full text-xs font-bold transition-all duration-200 shadow-sm whitespace-nowrap cursor-pointer flex items-center gap-1.5 shrink-0">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <span>All Botanicals</span>
+            </button>
+            <button type="button" data-finder="Foliage" class="finder-chip bg-transparent text-gray-700 hover:text-[#0F291E] hover:bg-[#1B4332]/6 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-full text-xs font-semibold transition-all duration-200 whitespace-nowrap cursor-pointer flex items-center gap-1.5 shrink-0">
+              <svg class="w-3.5 h-3.5 text-[#1B4332]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 12 12"/></svg>
+              <span>Foliage &amp; Monsteras</span>
+            </button>
+            <button type="button" data-finder="Palms" class="finder-chip bg-transparent text-gray-700 hover:text-[#0F291E] hover:bg-[#1B4332]/6 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-full text-xs font-semibold transition-all duration-200 whitespace-nowrap cursor-pointer flex items-center gap-1.5 shrink-0">
+              <svg class="w-3.5 h-3.5 text-[#1B4332]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 8c0-2.76-2.46-5-5.5-5S2 5.24 2 8h11Z"/><path d="M13 7.14A5.82 5.82 0 0 1 16.5 6c3.04 0 5.5 2.24 5.5 5h-11"/><path d="m5.89 15.63 6.27-6.27"/><path d="m14.5 12.5 3.5 3.5"/><path d="m14 17.5 2 2"/><path d="M12 11.5V22"/></svg>
+              <span>Resort Palms</span>
+            </button>
+            <button type="button" data-finder="Trees" class="finder-chip bg-transparent text-gray-700 hover:text-[#0F291E] hover:bg-[#1B4332]/6 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-full text-xs font-semibold transition-all duration-200 whitespace-nowrap cursor-pointer flex items-center gap-1.5 shrink-0">
+              <svg class="w-3.5 h-3.5 text-[#1B4332]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19v3"/><path d="M8 19h8"/><path d="M12 2a5 5 0 0 0-4.9 6A4 4 0 0 0 4 12a4 4 0 0 0 3 3.9V19h10v-3.1A4 4 0 0 0 20 12a4 4 0 0 0-3.1-4A5 5 0 0 0 12 2Z"/></svg>
+              <span>Statement Trees</span>
+            </button>
+            <button type="button" data-finder="Flowering" class="finder-chip bg-transparent text-gray-700 hover:text-[#0F291E] hover:bg-[#1B4332]/6 px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 rounded-full text-xs font-semibold transition-all duration-200 whitespace-nowrap cursor-pointer flex items-center gap-1.5 shrink-0">
+              <svg class="w-3.5 h-3.5 text-[#1B4332]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 16.5A4.5 4.5 0 1 1 7.5 12 4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 1 1 4.5 4.5 4.5 4.5 0 1 1-4.5 4.5"/><path d="M12 7.5V3"/><path d="M7.5 12H3"/><path d="M16.5 12H21"/><path d="M12 16.5V21"/></svg>
+              <span>Flowering Blooms</span>
+            </button>
           </div>
-          {% endfor %}
         </div>
+
+        <p id="finder-summary" class="mt-3.5 text-xs text-gray-500 font-medium">
+          Showing 8 handcrafted botanicals with pot included • 100% Zero Maintenance
+        </p>
       </div>
+
+      <!-- Curated Matching Products Grid -->
+      <div id="finder-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {% for p in plants.products.slice(0, 32) %}
+        <div class="finder-item transition-all duration-300" data-category="{{ p.category }}">
+          {% include 'partials/product-card.html' %}
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Bottom Catalogue Link -->
+      <div class="text-center mt-12">
+        <a href="/products/" class="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-deep-forest border border-outline-variant/40 px-8 py-3.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all shadow-sm hover:shadow-md">
+          <span>Explore All {{ plants.products.length }}+ Handcrafted Botanical Plants</span>
+          <span>→</span>
+        </a>
+      </div>
+
     </div>
   </section>
 
@@ -148,30 +187,50 @@ description: Buy 76+ premium artificial plants & trees online in India — palms
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   var chips = document.querySelectorAll('#finder-filters .finder-chip');
-  var cards = document.querySelectorAll('#finder-grid .finder-card');
+  var items = document.querySelectorAll('#finder-grid .finder-item');
   
-  function applyFilter(val) {
+  var summaryEl = document.getElementById('finder-summary');
+  var catLabels = {
+    'all': 'All Botanicals',
+    'Foliage': 'Foliage & Monsteras',
+    'Palms': 'Resort Palms',
+    'Trees': 'Statement Trees',
+    'Flowering': 'Flowering Blooms'
+  };
+
+  function applyFilter(targetCat) {
     var count = 0;
-    cards.forEach(function(card) {
-      var cat = (card.dataset.category || '').toLowerCase();
-      var target = (val || '').toLowerCase();
-      if ((target === 'all' || cat === target) && count < 8) {
-        card.style.display = 'block';
+    var target = (targetCat || 'all').toLowerCase();
+
+    items.forEach(function(item) {
+      var cat = (item.dataset.category || '').toLowerCase();
+      var matches = (target === 'all' || cat === target);
+      if (matches && count < 8) {
+        item.style.display = 'block';
+        item.style.opacity = '0';
+        item.style.transform = 'translateY(10px)';
+        setTimeout(function() {
+          item.style.opacity = '1';
+          item.style.transform = 'translateY(0)';
+        }, 30 * count);
         count++;
       } else {
-        card.style.display = 'none';
+        item.style.display = 'none';
       }
     });
+
+    if (summaryEl) {
+      var label = catLabels[targetCat] || 'Curated';
+      summaryEl.textContent = 'Showing ' + count + ' ' + label + ' with designer pot included • 100% Zero Maintenance';
+    }
   }
 
   chips.forEach(function(chip) {
     chip.addEventListener('click', function() {
       chips.forEach(function(c) {
-        c.classList.remove('active', 'bg-amber-gold', 'text-deep-forest');
-        c.classList.add('bg-white/15', 'text-white');
+        c.className = 'finder-chip bg-transparent text-gray-700 hover:text-[#0F291E] hover:bg-[#1B4332]/6 px-4 md:px-5 py-2.5 rounded-xl md:rounded-full text-xs font-semibold transition-all duration-200 whitespace-nowrap cursor-pointer flex items-center gap-1.5 shrink-0';
       });
-      chip.classList.add('active', 'bg-amber-gold', 'text-deep-forest');
-      chip.classList.remove('bg-white/15', 'text-white');
+      chip.className = 'finder-chip active bg-[#0F291E] text-white px-4 md:px-5 py-2.5 rounded-xl md:rounded-full text-xs font-bold transition-all duration-200 shadow-sm whitespace-nowrap cursor-pointer flex items-center gap-1.5 shrink-0';
       applyFilter(chip.dataset.finder);
     });
   });

@@ -1,0 +1,456 @@
+---
+layout: base
+title: Checkout | Sango Fiora
+description: Secure checkout for premium handcrafted artificial plants & trees. Fast delivery across India with decorative pots included.
+---
+
+<main class="bg-background min-h-screen pb-16 pt-[90px]">
+  <div class="max-w-[1440px] mx-auto px-4 md:px-margin-desktop py-6">
+
+    <!-- Header & Step Indicator -->
+    <div class="bg-white rounded-3xl border border-outline-variant/30 p-6 mb-8 shadow-sm">
+      <div class="flex items-center justify-between border-b border-outline-variant/30 pb-4 mb-4">
+        <h1 class="font-headline-lg text-2xl text-deep-forest">Secure Checkout</h1>
+        <a href="/cart.html" class="text-xs font-bold text-deep-forest hover:text-amber-gold transition-colors flex items-center gap-1">
+          <span>← Back to Cart</span>
+        </a>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2.5 text-center text-xs font-label-md">
+        <div id="co-step-ind-1" class="bg-amber-gold text-deep-forest font-bold py-2.5 px-2 rounded-2xl transition-all flex items-center justify-center gap-1.5 shadow-sm">
+          <span class="w-5 h-5 rounded-full bg-deep-forest text-white text-[10px] flex items-center justify-center shrink-0 font-bold">1</span>
+          <span>Shipping Address</span>
+        </div>
+        <div id="co-step-ind-2" class="bg-surface-container-high text-on-surface-variant py-2.5 px-2 rounded-2xl transition-all flex items-center justify-center gap-1.5">
+          <span class="w-5 h-5 rounded-full bg-outline-variant text-white text-[10px] flex items-center justify-center shrink-0 font-bold">2</span>
+          <span>Payment &amp; Review</span>
+        </div>
+        <div id="co-step-ind-3" class="bg-surface-container-high text-on-surface-variant py-2.5 px-2 rounded-2xl transition-all flex items-center justify-center gap-1.5">
+          <span class="w-5 h-5 rounded-full bg-outline-variant text-white text-[10px] flex items-center justify-center shrink-0 font-bold">3</span>
+          <span>Confirmation</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty Cart Fallback -->
+    <div id="co-empty-state" class="hidden text-center py-20 bg-white rounded-3xl border border-outline-variant/30 shadow-sm max-w-xl mx-auto p-8">
+      <div class="text-6xl mb-4">🪴</div>
+      <h2 class="font-headline-lg text-2xl font-bold text-deep-forest mb-2">Your cart is empty</h2>
+      <p class="text-xs text-gray-500 mb-6 font-body-md">Add artificial plants to your cart before proceeding to checkout.</p>
+      <a href="/products/" class="px-8 py-3.5 rounded-full bg-amber-gold text-deep-forest font-bold text-xs uppercase tracking-wider inline-block shadow-md">
+        Shop Plants →
+      </a>
+    </div>
+
+    <!-- Active Checkout Grid -->
+    <div id="co-active-wrapper" class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      
+      <!-- Left: Active Form Content -->
+      <div class="lg:col-span-8 space-y-6">
+
+        <!-- STEP 1: Address Form -->
+        <div id="co-panel-1" class="bg-white rounded-3xl border border-outline-variant/30 shadow-sm p-6 sm:p-8 space-y-6">
+          <h2 class="font-headline-sm font-bold text-xl text-deep-forest border-b border-gray-100 pb-3">Delivery Address</h2>
+
+          <!-- Member Auth Gate Banner (Shown if guest) -->
+          <div id="checkout-auth-gate-banner" class="hidden flex-col sm:flex-row items-center justify-between gap-3 p-4 bg-amber-50 border border-amber-200/80 rounded-2xl text-amber-950 text-xs">
+            <div class="flex items-center gap-2.5">
+              <span class="text-xl">🔒</span>
+              <span><strong>Member Sign-In Required:</strong> Please sign in to verify your account, save your delivery address, and proceed to payment.</span>
+            </div>
+            <button type="button" id="btn-checkout-signin" class="shrink-0 bg-deep-forest hover:bg-primary-container text-white px-5 py-2 rounded-full font-bold text-xs uppercase tracking-wider transition-all shadow-sm cursor-pointer">
+              Sign In / Register →
+            </button>
+          </div>
+
+          <!-- 1-Click Checkout Returning Customer Banner -->
+          <div id="one-click-profile-banner" class="hidden items-center gap-2.5 p-3.5 bg-emerald-50 border border-emerald-200/80 rounded-2xl text-emerald-950 text-xs font-medium">
+            <span class="text-base">✨</span>
+            <span><strong>1-Click Checkout:</strong> Delivery address and contact details auto-filled from your previous order.</span>
+          </div>
+          
+          <form id="co-address-form" class="space-y-4">
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Full Name *</label>
+                <input type="text" name="name" required class="w-full bg-surface-container-low border border-outline-variant/40 rounded-xl px-4 py-2.5 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-deep-forest" placeholder="e.g. Ramesh Kumar">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Mobile Phone Number *</label>
+                <input type="tel" name="phone" required class="w-full bg-surface-container-low border border-outline-variant/40 rounded-xl px-4 py-2.5 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-deep-forest" placeholder="+91 98765 43210">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Email Address (for Receipt &amp; Tracking)</label>
+              <input type="email" name="email" class="w-full bg-surface-container-low border border-outline-variant/40 rounded-xl px-4 py-2.5 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-deep-forest" placeholder="you@example.com">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Delivery Street Address *</label>
+              <textarea name="address" required rows="2" class="w-full bg-surface-container-low border border-outline-variant/40 rounded-xl px-4 py-2.5 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-deep-forest resize-none" placeholder="Flat / House No., Building Name, Street / Road"></textarea>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Pincode *</label>
+                <input type="text" name="pincode" id="co-pincode" required maxlength="6" class="w-full bg-surface-container-low border border-outline-variant/40 rounded-xl px-4 py-2.5 text-xs font-mono font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-deep-forest" placeholder="600001">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">City *</label>
+                <input type="text" name="city" id="co-city" required class="w-full bg-surface-container-low border border-outline-variant/40 rounded-xl px-4 py-2.5 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-deep-forest" placeholder="City">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">State *</label>
+                <input type="text" name="state" id="co-state" required class="w-full bg-surface-container-low border border-outline-variant/40 rounded-xl px-4 py-2.5 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-deep-forest" placeholder="State">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Landmark</label>
+                <input type="text" name="landmark" class="w-full bg-surface-container-low border border-outline-variant/40 rounded-xl px-4 py-2.5 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-deep-forest" placeholder="Near Park">
+              </div>
+            </div>
+
+            <div class="pt-4 flex justify-end">
+              <button type="submit" class="bg-amber-gold hover:bg-amber-400 text-deep-forest font-bold px-8 py-3.5 rounded-full text-xs uppercase tracking-wider transition-all shadow-md">
+                Continue to Payment →
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- STEP 2: Payment Selection -->
+        <div id="co-panel-2" class="hidden bg-white rounded-3xl border border-outline-variant/30 shadow-sm p-6 sm:p-8 space-y-6">
+          <h2 class="font-headline-sm font-bold text-xl text-deep-forest border-b border-gray-100 pb-3">Payment Method</h2>
+
+          <div class="space-y-3">
+            <label class="flex items-center gap-4 p-4 rounded-2xl border-2 border-deep-forest bg-green-50/40 cursor-pointer transition-all">
+              <input type="radio" name="co-payment" value="STRIPE" checked class="w-4 h-4 text-deep-forest">
+              <div class="flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-sm text-gray-900 block">Stripe Global Secure Gateway</span>
+                  <span class="text-[10px] font-bold bg-[#635BFF] text-white px-2 py-0.5 rounded-full">Recommended</span>
+                </div>
+                <span class="text-xs text-gray-500">Credit/Debit Cards (Visa, Mastercard, Amex), Apple Pay, Google Pay with instant confirmation.</span>
+              </div>
+              <span class="text-xl">💳</span>
+            </label>
+
+            <label class="flex items-center gap-4 p-4 rounded-2xl border border-gray-200 hover:border-deep-forest cursor-pointer transition-all">
+              <input type="radio" name="co-payment" value="UPI" class="w-4 h-4 text-deep-forest">
+              <div class="flex-1">
+                <span class="font-bold text-sm text-gray-900 block">UPI Instant Payment</span>
+                <span class="text-xs text-gray-500">Google Pay, PhonePe, Paytm, BHIM with dynamic QR code.</span>
+              </div>
+              <span class="text-xl">📱</span>
+            </label>
+
+            <label class="flex items-center gap-4 p-4 rounded-2xl border border-gray-200 hover:border-deep-forest cursor-pointer transition-all">
+              <input type="radio" name="co-payment" value="CARD" class="w-4 h-4 text-deep-forest">
+              <div class="flex-1">
+                <span class="font-bold text-sm text-gray-900 block">Domestic Card &amp; NetBanking</span>
+                <span class="text-xs text-gray-500">Indian Debit Cards &amp; 50+ NetBanking options.</span>
+              </div>
+              <span class="text-xl">🏦</span>
+            </label>
+
+            <label class="flex items-center gap-4 p-4 rounded-2xl border border-gray-200 hover:border-deep-forest cursor-pointer transition-all">
+              <input type="radio" name="co-payment" value="COD" class="w-4 h-4 text-deep-forest">
+              <div class="flex-1">
+                <span class="font-bold text-sm text-gray-900 block">Cash on Delivery (COD)</span>
+                <span class="text-xs text-gray-500">Pay cash or scan QR code when plant arrives at your doorstep.</span>
+              </div>
+              <span class="text-xl">💵</span>
+            </label>
+          </div>
+
+          <div class="pt-4 flex items-center justify-between">
+            <button id="co-back-to-1" type="button" class="text-xs font-bold text-gray-600 hover:text-deep-forest">
+              ← Edit Address
+            </button>
+            <button id="co-submit-order" type="button" class="bg-deep-forest text-white hover:bg-primary-container font-bold px-10 py-4 rounded-full text-xs uppercase tracking-wider transition-all shadow-md">
+              Place Order Now 🌿
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right: Order Summary Sidebar -->
+      <div class="lg:col-span-4">
+        <div class="bg-white rounded-3xl border border-outline-variant/30 p-6 shadow-sm sticky top-28 space-y-4">
+          <h3 class="font-headline-sm font-bold text-base text-deep-forest border-b border-gray-100 pb-3">Order Summary</h3>
+
+          <div id="co-items-preview" class="divide-y divide-gray-100 max-h-56 overflow-y-auto space-y-2 text-xs">
+            <!-- Populated via JS -->
+          </div>
+
+          <!-- Coupon Input -->
+          <div class="pt-2">
+            <div class="flex gap-2">
+              <input type="text" id="co-coupon-input" placeholder="Promo code (e.g. WELCOME10)" class="flex-1 bg-surface-container-low border border-outline-variant/40 rounded-xl px-3 py-2 text-xs uppercase font-bold focus:bg-white focus:outline-none">
+              <button id="co-apply-coupon" class="bg-amber-gold hover:bg-amber-400 text-deep-forest px-4 py-2 rounded-xl text-xs font-bold transition-all">Apply</button>
+            </div>
+            <p id="co-coupon-status" class="text-[11px] mt-1 font-semibold text-gray-500"></p>
+          </div>
+
+          <!-- Totals -->
+          <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-2 text-xs">
+            <div class="flex justify-between text-gray-600"><span>Subtotal</span><span id="co-subtotal" class="font-bold text-gray-900">₹0</span></div>
+            <div id="co-volume-row" class="hidden justify-between text-emerald-700 font-semibold">
+              <span id="co-volume-label">Bulk Volume Discount</span>
+              <span id="co-volume-discount">-₹0</span>
+            </div>
+            <div class="flex justify-between text-gray-600"><span>Coupon Discount</span><span id="co-discount" class="font-bold text-green-700">-₹0</span></div>
+            <div class="flex justify-between text-gray-600"><span>Delivery</span><span id="co-delivery" class="font-bold text-deep-forest">FREE</span></div>
+            <div class="flex justify-between text-gray-600"><span>GST (Included)</span><span id="co-gst" class="font-bold text-gray-700">₹0</span></div>
+            <hr class="border-gray-200 my-2">
+            <div class="flex justify-between text-sm font-bold text-gray-900">
+              <span>Total Payable</span>
+              <span id="co-net-total" class="text-deep-forest text-lg">₹0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var addressForm = document.getElementById('co-address-form');
+  var panel1 = document.getElementById('co-panel-1');
+  var panel2 = document.getElementById('co-panel-2');
+  var ind1 = document.getElementById('co-step-ind-1');
+  var ind2 = document.getElementById('co-step-ind-2');
+  var ind3 = document.getElementById('co-step-ind-3');
+  var backBtn = document.getElementById('co-back-to-1');
+  var submitBtn = document.getElementById('co-submit-order');
+  var emptyState = document.getElementById('co-empty-state');
+  var activeWrapper = document.getElementById('co-active-wrapper');
+
+  var itemsWrap = document.getElementById('co-items-preview');
+  var subtotalEl = document.getElementById('co-subtotal');
+  var discountEl = document.getElementById('co-discount');
+  var deliveryEl = document.getElementById('co-delivery');
+  var gstEl = document.getElementById('co-gst');
+  var netTotalEl = document.getElementById('co-net-total');
+  var volRow = document.getElementById('co-volume-row');
+  var volLabel = document.getElementById('co-volume-label');
+  var volDiscount = document.getElementById('co-volume-discount');
+
+  var couponInput = document.getElementById('co-coupon-input');
+  var couponBtn = document.getElementById('co-apply-coupon');
+  var couponStatus = document.getElementById('co-coupon-status');
+
+  var customerData = {};
+
+  // 1-Click Checkout: Auto-fill from returning customer profile
+  function autoFillCustomerProfile() {
+    var user = window.SangoAuth && window.SangoAuth.getUser ? window.SangoAuth.getUser() : null;
+    if (!user || !user.email) return;
+
+    var emailInput = addressForm.querySelector('input[name="email"]');
+    if (emailInput && !emailInput.value) emailInput.value = user.email;
+
+    fetch('http://localhost:8080/api/customer/profile?email=' + encodeURIComponent(user.email))
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data && data.shippingAddress) {
+          var banner = document.getElementById('one-click-profile-banner');
+          if (banner) banner.classList.remove('hidden');
+
+          var nameInput = addressForm.querySelector('input[name="name"]');
+          var phoneInput = addressForm.querySelector('input[name="phone"]');
+          var addrInput = addressForm.querySelector('textarea[name="address"]');
+          var pinInput = addressForm.querySelector('input[name="pincode"]');
+          var cityInput = addressForm.querySelector('input[name="city"]');
+          var stateInput = addressForm.querySelector('input[name="state"]');
+          var lmkInput = addressForm.querySelector('input[name="landmark"]');
+
+          if (nameInput && !nameInput.value && data.fullName) nameInput.value = data.fullName;
+          if (phoneInput && !phoneInput.value && data.phone) phoneInput.value = data.phone;
+          if (addrInput && !addrInput.value && data.shippingAddress) addrInput.value = data.shippingAddress;
+          if (pinInput && !pinInput.value && data.pincode) pinInput.value = data.pincode;
+          if (cityInput && !cityInput.value && data.city) cityInput.value = data.city;
+          if (stateInput && !stateInput.value && data.state) stateInput.value = data.state;
+          if (lmkInput && !lmkInput.value && data.landmark) lmkInput.value = data.landmark;
+        }
+      }).catch(function () {});
+  }
+
+  function renderSidebar() {
+    var items = window.CartEngine ? window.CartEngine.getItems() : [];
+    var totals = window.CartEngine ? window.CartEngine.getTotals() : { count: 0, subtotal: 0, netTotal: 0 };
+
+    if (!items.length) {
+      if (activeWrapper) activeWrapper.classList.add('hidden');
+      if (emptyState) emptyState.classList.remove('hidden');
+      return;
+    }
+    if (activeWrapper) activeWrapper.classList.remove('hidden');
+    if (emptyState) emptyState.classList.add('hidden');
+
+    if (itemsWrap) {
+      itemsWrap.innerHTML = items.map(function (it) {
+        return '<div class="flex items-center justify-between py-2 text-xs">' +
+               '<div class="flex items-center gap-2">' +
+               (it.image ? '<img src="' + it.image + '" class="w-8 h-8 rounded-lg object-cover">' : '') +
+               '<div><span class="font-bold text-gray-800 block truncate max-w-[140px]">' + it.name + '</span>' +
+               '<span class="text-gray-400 text-[10px]">Qty: ' + it.qty + '</span></div>' +
+               '</div>' +
+               '<span class="font-bold text-gray-900">₹' + Number(it.price * it.qty).toLocaleString('en-IN') + '</span>' +
+               '</div>';
+      }).join('');
+    }
+
+    if (subtotalEl) subtotalEl.textContent = '₹' + Number(totals.subtotal || 0).toLocaleString('en-IN');
+    
+    // Multi-Item Volume Tier Discount
+    if (volRow) {
+      if (totals.volumeDiscount > 0) {
+        volRow.classList.remove('hidden');
+        volRow.classList.add('flex');
+        if (volLabel) volLabel.textContent = totals.volumeLabel || 'Bulk Volume Discount';
+        if (volDiscount) volDiscount.textContent = '-₹' + Number(totals.volumeDiscount).toLocaleString('en-IN');
+      } else {
+        volRow.classList.add('hidden');
+        volRow.classList.remove('flex');
+      }
+    }
+
+    if (discountEl) discountEl.textContent = '-₹' + Number(totals.couponDiscount || 0).toLocaleString('en-IN');
+    if (deliveryEl) deliveryEl.textContent = totals.deliveryFee > 0 ? ('₹' + totals.deliveryFee) : 'FREE';
+    if (gstEl) gstEl.textContent = '₹' + Number(totals.gstAmount || 0).toLocaleString('en-IN');
+    if (netTotalEl) netTotalEl.textContent = '₹' + Number(totals.netTotal || 0).toLocaleString('en-IN');
+
+    if (totals.couponCode && couponStatus) {
+      couponStatus.textContent = '✓ ' + totals.couponCode + ' applied!';
+      couponStatus.className = 'text-[11px] mt-1 font-semibold text-green-700';
+    }
+  }
+
+  // Address submit -> goTo Payment
+  if (addressForm) {
+    addressForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      var isAuthed = window.SangoAuth && window.SangoAuth.isLoggedIn && window.SangoAuth.isLoggedIn();
+      if (!isAuthed) {
+        if (window.openAuthModal) {
+          window.openAuthModal('signin', '🔒 Please sign in or register to complete your order.');
+        } else {
+          location.href = '/login/?redirect=/checkout/';
+        }
+        if (window.showToast) window.showToast('⚠️ Member sign-in required to continue to payment.');
+        return;
+      }
+
+      var fd = new FormData(addressForm);
+      customerData = {
+        name: fd.get('name'),
+        phone: fd.get('phone'),
+        email: fd.get('email'),
+        address: fd.get('address'),
+        landmark: fd.get('landmark'),
+        pincode: fd.get('pincode'),
+        city: fd.get('city') || 'City',
+        state: fd.get('state') || 'State'
+      };
+
+      panel1.classList.add('hidden');
+      panel2.classList.remove('hidden');
+
+      ind1.className = 'bg-surface-container-high text-on-surface-variant py-2.5 px-2 rounded-2xl transition-all flex items-center justify-center gap-1.5';
+      ind2.className = 'bg-amber-gold text-deep-forest font-bold py-2.5 px-2 rounded-2xl transition-all flex items-center justify-center gap-1.5 shadow-sm';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+
+  if (backBtn) {
+    backBtn.addEventListener('click', function () {
+      panel2.classList.add('hidden');
+      panel1.classList.remove('hidden');
+      ind2.className = 'bg-surface-container-high text-on-surface-variant py-2.5 px-2 rounded-2xl transition-all flex items-center justify-center gap-1.5';
+      ind1.className = 'bg-amber-gold text-deep-forest font-bold py-2.5 px-2 rounded-2xl transition-all flex items-center justify-center gap-1.5 shadow-sm';
+    });
+  }
+
+  // Apply Coupon with asynchronous server verification
+  if (couponBtn && couponInput) {
+    couponBtn.addEventListener('click', function () {
+      var code = couponInput.value.trim();
+      if (!code) return;
+      if (couponStatus) {
+        couponStatus.textContent = 'Verifying promo with botanical server...';
+        couponStatus.className = 'text-[11px] mt-1 font-semibold text-gray-500';
+      }
+      if (window.CartEngine) {
+        window.CartEngine.applyCoupon(code, function (res) {
+          if (couponStatus) {
+            couponStatus.textContent = res.message;
+            couponStatus.className = res.success ? 'text-[11px] mt-1 font-semibold text-green-700' : 'text-[11px] mt-1 font-semibold text-red-600';
+          }
+          renderSidebar();
+        });
+      }
+    });
+  }
+
+  // Submit Order via CheckoutEngine & API
+  if (submitBtn) {
+    submitBtn.addEventListener('click', function () {
+      var selected = document.querySelector('input[name="co-payment"]:checked');
+      var method = selected ? selected.value : 'COD';
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="inline-block animate-spin mr-2">🌿</span> Securing Order & Processing Payment...';
+
+      window.CheckoutEngine.createOrderAsync(customerData, { method: method })
+        .then(function (order) {
+          if (method !== 'COD') {
+            location.href = '/payment/?orderId=' + encodeURIComponent(order.orderId) + '&method=' + encodeURIComponent(method.toLowerCase());
+          } else {
+            location.href = '/order-success/?orderId=' + encodeURIComponent(order.orderId);
+          }
+        })
+        .catch(function (err) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Place Order Now 🌿';
+          if (window.showToast) window.showToast(err.message || 'Error creating order');
+        });
+    });
+  }
+
+  function updateAuthGate() {
+    var isAuthed = window.SangoAuth && window.SangoAuth.isLoggedIn && window.SangoAuth.isLoggedIn();
+    var gateBanner = document.getElementById('checkout-auth-gate-banner');
+    if (gateBanner) {
+      if (!isAuthed) {
+        gateBanner.classList.remove('hidden');
+        gateBanner.classList.add('flex');
+      } else {
+        gateBanner.classList.add('hidden');
+        gateBanner.classList.remove('flex');
+      }
+    }
+  }
+
+  var btnCheckoutSignin = document.getElementById('btn-checkout-signin');
+  if (btnCheckoutSignin) {
+    btnCheckoutSignin.addEventListener('click', function () {
+      if (window.openAuthModal) window.openAuthModal('signin', '🔒 Sign in to proceed with checkout.');
+    });
+  }
+
+  renderSidebar();
+  updateAuthGate();
+  autoFillCustomerProfile();
+  if (window.AppEvent) {
+    window.AppEvent.on('auth:changed', function () {
+      updateAuthGate();
+      autoFillCustomerProfile();
+    });
+  }
+});
+</script>

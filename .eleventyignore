@@ -1,0 +1,12 @@
+node_modules/
+backend/
+.gemini/
+_site/
+.git/
+.vscode/
+.agents/
+.agent/
+.gsd/
+stitch_assets/
+*.md
+**/*.md

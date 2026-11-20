@@ -1,0 +1,223 @@
+---
+title: Page Not Found
+permalink: 404.html
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sango Fiora — Botanical Studio</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+</head>
+<body class="bg-background text-on-background antialiased flex flex-col min-h-screen">
+  {% include 'partials/header.html' %}
+
+  <main id="dynamic-host" class="flex-1 min-h-[70vh] flex items-center justify-center pt-24 pb-16 px-4">
+    <!-- Default 404 view (replaced dynamically if the URL is a dynamic product) -->
+    <div id="standard-404" class="text-center max-w-md mx-auto py-12">
+      <div class="w-20 h-20 mx-auto rounded-full bg-[#1B4332]/10 text-[#1B4332] flex items-center justify-center text-3xl font-bold mb-4">🪴</div>
+      <span class="inline-block px-3 py-1 bg-amber-50 text-amber-800 text-[11px] font-bold rounded-full border border-amber-200 mb-3 uppercase tracking-wider">Botanical Studio</span>
+      <h1 class="text-3xl font-bold text-[#0F291E] font-headline-lg mb-2">Botanical Not Found</h1>
+      <p class="text-gray-600 text-sm mb-6 leading-relaxed">
+        This specific plant or page has moved or is currently flourishing in a different corner of our greenhouse.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a href="/products/" class="bg-[#0F291E] hover:bg-[#1B4332] text-white px-6 py-3 rounded-full text-xs font-bold transition-all shadow-md">
+          Explore All Plants 🌿
+        </a>
+        <a href="/" class="bg-white border border-[#1B4332]/25 text-[#1B4332] px-6 py-3 rounded-full text-xs font-bold hover:bg-gray-50 transition-all">
+          Return to Home
+        </a>
+      </div>
+    </div>
+
+    <!-- Dynamic Product Render Target -->
+    <div id="dynamic-pdp-container" class="hidden w-full max-w-[1440px] mx-auto px-4 md:px-margin-desktop py-6"></div>
+  </main>
+
+  {% include 'partials/footer.html' %}
+  {% include 'partials/auth-modal.html' %}
+
+  <script src="/js/api-client.js"></script>
+  <script src="/js/supabase-client.js"></script>
+  <script src="/js/supabase-auth.js"></script>
+  <script src="/js/event-bus.js"></script>
+  <script src="/js/cart.js"></script>
+  <script src="/js/wishlist.js"></script>
+  <script src="/js/orders-tracker.js"></script>
+  <script src="/js/search.js"></script>
+
+  <script>
+    (function () {
+      var pathname = window.location.pathname;
+      var match = pathname.match(/\/products\/([^\/]+)\/?$/);
+      if (!match || !match[1]) return;
+
+      var slug = match[1];
+      var standard404 = document.getElementById('standard-404');
+      var pdpContainer = document.getElementById('dynamic-pdp-container');
+
+      // Show temporary loading indicator
+      if (standard404) {
+        standard404.innerHTML = 
+          '<div class="py-16 text-center">' +
+            '<div class="w-12 h-12 border-3 border-[#1B4332] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>' +
+            '<p class="text-[#1B4332] font-bold text-sm">Locating botanical in Sango studio...</p>' +
+          '</div>';
+      }
+
+      function loadProduct() {
+        var apiUrl = (window.SangoAPI && window.SangoAPI.getBaseUrl ? window.SangoAPI.getBaseUrl() : 'http://localhost:8080/api') + '/products/' + encodeURIComponent(slug);
+        fetch(apiUrl)
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (product) {
+            if (!product || !product.name) {
+              if (standard404) {
+                standard404.innerHTML =
+                  '<div class="w-20 h-20 mx-auto rounded-full bg-[#1B4332]/10 text-[#1B4332] flex items-center justify-center text-3xl font-bold mb-4">🪴</div>' +
+                  '<h1 class="text-3xl font-bold text-[#0F291E] font-headline-lg mb-2">Botanical Not Found</h1>' +
+                  '<p class="text-gray-600 text-sm mb-6">This item is not currently active in our studio inventory.</p>' +
+                  '<a href="/products/" class="bg-[#0F291E] text-white px-6 py-3 rounded-full text-xs font-bold">Explore All Plants 🌿</a>';
+              }
+              return;
+            }
+
+            document.title = product.name + ' (' + (product.size || '') + ') | Sango Fiora';
+            if (standard404) standard404.classList.add('hidden');
+            if (pdpContainer) {
+              pdpContainer.classList.remove('hidden');
+              renderPDP(product, pdpContainer);
+            }
+          })
+          .catch(function () {
+            if (standard404) {
+              standard404.innerHTML =
+                '<div class="w-20 h-20 mx-auto rounded-full bg-[#1B4332]/10 text-[#1B4332] flex items-center justify-center text-3xl font-bold mb-4">🪴</div>' +
+                '<h1 class="text-3xl font-bold text-[#0F291E] font-headline-lg mb-2">Botanical Not Found</h1>' +
+                '<p class="text-gray-600 text-sm mb-6">Could not load this plant details.</p>' +
+                '<a href="/products/" class="bg-[#0F291E] text-white px-6 py-3 rounded-full text-xs font-bold">Explore All Plants 🌿</a>';
+            }
+          });
+      }
+
+      function renderPDP(p, target) {
+        var stock = p.stock || 15;
+        var isSold = p.isSoldOut || p.is_sold_out;
+
+        target.innerHTML =
+          '<div class="grid grid-cols-1 lg:grid-cols-12 gap-10">' +
+            '<!-- Media -->' +
+            '<div class="lg:col-span-6">' +
+              '<div class="relative rounded-3xl overflow-hidden bg-white border border-gray-200 aspect-square shadow-sm">' +
+                '<img src="' + p.image + '" alt="' + p.name + '" class="w-full h-full object-cover">' +
+                (isSold ? '<span class="absolute top-4 left-4 bg-red-600 text-white text-xs font-bold px-3.5 py-1.5 rounded-full shadow-md">SOLD OUT</span>' :
+                  (p.discount ? '<span class="absolute top-4 left-4 bg-red-600 text-white text-xs font-bold px-3.5 py-1.5 rounded-full shadow-md">SAVE ' + p.discount + '%</span>' : '')) +
+                '<button type="button" aria-label="Add to wishlist" data-wishlist-btn data-slug="' + p.slug + '" data-name="' + p.name + '" data-category="' + p.category + '" data-size="' + p.size + '" data-price="' + p.price + '" data-mrp="' + p.mrp + '" data-image="' + p.image + '" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur border border-gray-200 flex items-center justify-center text-gray-500 hover:text-red-500 transition-colors shadow-md z-10">' +
+                  '<span class="text-lg">❤️</span>' +
+                '</button>' +
+              '</div>' +
+            '</div>' +
+
+            '<!-- Details -->' +
+            '<div class="lg:col-span-6 flex flex-col justify-center space-y-5 bg-white p-8 rounded-3xl border border-gray-200 shadow-sm">' +
+              '<div>' +
+                '<span class="inline-block text-xs font-bold uppercase tracking-wider text-[#1B4332] bg-[#1B4332]/10 px-3.5 py-1 rounded-full mb-2">' + p.category + ' · ' + (p.variant || 'Natural Foliage') + '</span>' +
+                '<h1 class="text-3xl font-bold text-[#0F291E] font-headline-lg">' + p.name + '</h1>' +
+                '<div class="flex items-center gap-2 mt-2 text-xs text-gray-600">' +
+                  '<span class="text-amber-500 font-bold">★ ' + (p.rating || 4.8) + '</span>' +
+                  '<span>(' + (p.reviews || 24) + ' verified reviews)</span>' +
+                '</div>' +
+              '</div>' +
+
+              '<div class="border-y border-gray-100 py-4 flex items-baseline gap-3">' +
+                '<span class="text-4xl font-bold text-[#0F291E]">₹' + p.price + '</span>' +
+                (p.mrp > p.price ? '<span class="text-lg text-gray-400 line-through">₹' + p.mrp + '</span><span class="bg-red-50 text-red-600 text-xs font-bold px-2 py-0.5 rounded">Save ₹' + (p.mrp - p.price) + '</span>' : '') +
+              '</div>' +
+
+              '<p class="text-gray-600 text-sm leading-relaxed">' + (p.description || 'Artisanal lifelike botanical piece curated for timeless botanical interiors. 100% zero maintenance with designer pot included.') + '</p>' +
+
+              (stock <= 4 ?
+                '<div class="p-3 bg-amber-50 border border-amber-200 rounded-2xl text-amber-900 text-xs font-bold flex items-center gap-2">' +
+                  '<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>' +
+                  '<span>Only ' + stock + ' left in stock — order soon!</span>' +
+                '</div>' : '') +
+
+              '<div class="space-y-3 pt-2">' +
+                '<div class="flex items-center gap-3">' +
+                  '<div class="flex items-center border border-gray-200 rounded-2xl overflow-hidden">' +
+                    '<button type="button" id="dyn-minus" class="w-10 h-12 text-lg font-bold hover:bg-gray-100">−</button>' +
+                    '<input type="number" id="dyn-qty" value="1" min="1" max="' + stock + '" class="w-12 h-12 text-center font-bold bg-transparent border-x border-gray-200">' +
+                    '<button type="button" id="dyn-plus" class="w-10 h-12 text-lg font-bold hover:bg-gray-100">+</button>' +
+                  '</div>' +
+                  (isSold ?
+                    '<button type="button" disabled class="flex-1 bg-gray-200 text-gray-400 py-3.5 rounded-2xl font-bold text-sm cursor-not-allowed">Sold Out</button>' :
+                    '<button type="button" id="dyn-add-cart" class="flex-1 bg-[#0F291E] hover:bg-[#1B4332] text-white py-3.5 rounded-2xl font-bold text-sm transition-all shadow-md cursor-pointer">Add to Cart 🛍️</button>') +
+                '</div>' +
+                (!isSold ?
+                  '<button type="button" id="dyn-buy-now" class="w-full bg-amber-gold hover:bg-amber-400 text-deep-forest py-3.5 rounded-2xl font-bold text-base transition-all shadow-md cursor-pointer">Buy Now &amp; Checkout ⚡</button>' : '') +
+              '</div>' +
+            '</div>' +
+          '</div>';
+
+        var qtyInput = document.getElementById('dyn-qty');
+        var minusBtn = document.getElementById('dyn-minus');
+        var plusBtn = document.getElementById('dyn-plus');
+        var addBtn = document.getElementById('dyn-add-cart');
+        var buyBtn = document.getElementById('dyn-buy-now');
+
+        if (minusBtn && qtyInput) {
+          minusBtn.addEventListener('click', function () {
+            var val = parseInt(qtyInput.value, 10) || 1;
+            if (val > 1) qtyInput.value = val - 1;
+          });
+        }
+        if (plusBtn && qtyInput) {
+          plusBtn.addEventListener('click', function () {
+            var val = parseInt(qtyInput.value, 10) || 1;
+            if (val < stock) qtyInput.value = val + 1;
+          });
+        }
+        if (addBtn && window.CartEngine) {
+          addBtn.addEventListener('click', function () {
+            var qty = parseInt(qtyInput.value, 10) || 1;
+            window.CartEngine.addToCart({
+              slug: p.slug,
+              name: p.name,
+              category: p.category,
+              size: p.size,
+              price: p.price,
+              mrp: p.mrp,
+              image: p.image,
+              stock: stock
+            }, qty);
+          });
+        }
+        if (buyBtn && window.CartEngine) {
+          buyBtn.addEventListener('click', function () {
+            var qty = parseInt(qtyInput.value, 10) || 1;
+            window.CartEngine.addToCart({
+              slug: p.slug,
+              name: p.name,
+              category: p.category,
+              size: p.size,
+              price: p.price,
+              mrp: p.mrp,
+              image: p.image,
+              stock: stock
+            }, qty);
+            window.location.href = '/payment/?orderId=pending';
+          });
+        }
+      }
+
+      loadProduct();
+    })();
+  </script>
+</body>
+</html>

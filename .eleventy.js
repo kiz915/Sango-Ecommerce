@@ -3,12 +3,22 @@ module.exports = function(eleventyConfig) {
   eleventyConfig.addPassthroughCopy('js');
   eleventyConfig.addPassthroughCopy('images');
   eleventyConfig.addPassthroughCopy({ 'src/images': 'images' });
+  eleventyConfig.addPassthroughCopy('public');
+  eleventyConfig.addPassthroughCopy({ 'public/plants': 'plants' });
   eleventyConfig.addPassthroughCopy('admin');
+  eleventyConfig.ignores.add('backend/**');
+  eleventyConfig.ignores.add('node_modules/**');
+  eleventyConfig.ignores.add('.gemini/**');
+  eleventyConfig.ignores.add('_site/**');
   eleventyConfig.ignores.add('layouts/**');
   eleventyConfig.ignores.add('scripts/**');
   eleventyConfig.ignores.add('_xlsx-media/**');
   eleventyConfig.ignores.add('stitch_assets/**');
   eleventyConfig.ignores.add('.agents/**');
+  eleventyConfig.ignores.add('.agent/**');
+  eleventyConfig.ignores.add('.gsd/**');
+  eleventyConfig.ignores.add('*.md');
+  eleventyConfig.ignores.add('**/*.md');
   eleventyConfig.ignores.add('agent/**');
   eleventyConfig.ignores.add('data/**');
   eleventyConfig.ignores.add('.claude/**');
@@ -40,7 +50,7 @@ module.exports = function(eleventyConfig) {
       layouts: 'layouts',
       includes: 'partials'
     },
-    templateFormats: ['html', 'md', 'json', 'njk'],
+    templateFormats: ['html', 'json', 'njk'],
     htmlTemplateEngine: 'njk',
     markdownTemplateEngine: 'njk'
   };

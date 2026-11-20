@@ -1,0 +1,109 @@
+---
+layout: base
+title: My Wishlist | Sango Fiora
+description: View and manage your saved artificial plants and luxury statement trees.
+---
+
+<main class="min-h-screen bg-background pt-[100px] pb-16">
+  <div class="max-w-[1440px] mx-auto px-4 md:px-margin-desktop">
+
+    <div class="flex items-center justify-between border-b border-outline-variant/30 pb-4 mb-8">
+      <div>
+        <h1 class="font-headline-lg text-2xl md:text-3xl font-bold text-deep-forest">My Botanical Wishlist</h1>
+        <p class="text-xs text-gray-500 mt-1">Items saved for your interior decor spaces.</p>
+      </div>
+      <a href="/products/" class="text-xs font-bold text-amber-700 hover:underline">Explore All Plants →</a>
+    </div>
+
+    <!-- Empty Wishlist State -->
+    <div id="wishlist-empty" class="hidden text-center py-20 bg-white rounded-3xl border border-outline-variant/30 p-8 shadow-sm max-w-xl mx-auto">
+      <div class="text-6xl mb-4">🌿</div>
+      <h2 class="font-headline-lg text-xl font-bold text-deep-forest mb-2">Your Wishlist is Empty</h2>
+      <p class="text-xs text-gray-500 mb-6 font-body-md">Tap the heart icon on any plant card to save it to your wishlist.</p>
+      <a href="/products/" class="px-6 py-3 rounded-full bg-amber-gold text-deep-forest font-bold text-xs uppercase tracking-wider inline-block shadow-md">
+        Browse Collection
+      </a>
+    </div>
+
+    <!-- Wishlist Grid -->
+    <div id="wishlist-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+
+  </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var grid = document.getElementById('wishlist-grid');
+  var emptyState = document.getElementById('wishlist-empty');
+
+  function renderWishlist() {
+    var items = window.WishlistEngine ? window.WishlistEngine.getItems() : [];
+    if (!items.length) {
+      if (grid) grid.innerHTML = '';
+      if (emptyState) emptyState.classList.remove('hidden');
+      return;
+    }
+    if (emptyState) emptyState.classList.add('hidden');
+
+    var html = '';
+    items.forEach(function (p) {
+      html += '<div class="bg-white rounded-3xl border border-outline-variant/30 overflow-hidden shadow-sm flex flex-col group">' +
+        '<div class="relative aspect-square overflow-hidden bg-gray-50">' +
+        '<img src="' + p.image + '" alt="' + p.name + '" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">' +
+        '<button type="button" data-wishlist-remove="' + p.slug + '" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur text-pink-600 flex items-center justify-center shadow-md text-sm hover:scale-110 transition-transform">' +
+        '✕' +
+        '</button>' +
+        '</div>' +
+        '<div class="p-5 flex-1 flex flex-col justify-between space-y-3">' +
+        '<div>' +
+        '<span class="text-[10px] font-bold text-amber-700 uppercase tracking-wider">' + (p.category || 'Plant') + '</span>' +
+        '<h3 class="font-headline-sm font-bold text-sm text-deep-forest mt-0.5">' + p.name + '</h3>' +
+        '<p class="text-xs text-gray-500">' + (p.size || '') + ' · Pot Included</p>' +
+        '</div>' +
+        '<div class="flex items-center justify-between pt-2 border-t border-gray-100">' +
+        '<div><span class="text-base font-bold text-deep-forest">₹' + Number(p.price).toLocaleString('en-IN') + '</span>' +
+        (p.mrp ? ' <del class="text-xs text-gray-400">₹' + Number(p.mrp).toLocaleString('en-IN') + '</del>' : '') +
+        '</div>' +
+        '<button type="button" data-move-to-cart="' + p.slug + '" class="px-4 py-2 rounded-full bg-deep-forest text-white text-xs font-bold hover:bg-primary-container transition-colors shadow-sm">' +
+        'Add to Cart' +
+        '</button>' +
+        '</div>' +
+        '</div>' +
+        '</div>';
+    });
+
+    grid.innerHTML = html;
+  }
+
+  // Event delegation for Remove and Move to Cart
+  document.addEventListener('click', function (e) {
+    var removeBtn = e.target.closest('[data-wishlist-remove]');
+    if (removeBtn) {
+      var slug = removeBtn.getAttribute('data-wishlist-remove');
+      if (window.WishlistEngine) {
+        window.WishlistEngine.remove(slug);
+        renderWishlist();
+      }
+      return;
+    }
+
+    var moveBtn = e.target.closest('[data-move-to-cart]');
+    if (moveBtn) {
+      var moveSlug = moveBtn.getAttribute('data-move-to-cart');
+      var items = window.WishlistEngine ? window.WishlistEngine.getItems() : [];
+      var found = items.find(function (i) { return i.slug === moveSlug; });
+      if (found && window.CartEngine) {
+        window.CartEngine.addToCart(found, 1);
+        window.WishlistEngine.remove(moveSlug);
+        renderWishlist();
+      }
+    }
+  });
+
+  if (window.AppEvent) {
+    window.AppEvent.on('wishlist:updated', renderWishlist);
+  }
+
+  renderWishlist();
+});
+</script>

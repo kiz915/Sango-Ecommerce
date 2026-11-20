@@ -1,0 +1,270 @@
+---
+layout: base
+title: Order Placed Successfully | Sango Fiora
+description: Thank you for shopping with Sango Fiora. Your handcrafted artificial plants order is confirmed.
+---
+
+<main class="min-h-screen bg-background pt-[100px] pb-16">
+  <div class="max-w-3xl mx-auto px-4 md:px-margin-desktop">
+
+    <!-- Success Card -->
+    <div class="bg-white rounded-3xl border border-outline-variant/30 shadow-xl overflow-hidden mb-8">
+      
+      <!-- Card Header Banner -->
+      <div class="bg-deep-forest text-white p-8 text-center relative overflow-hidden">
+        <div class="absolute -right-8 -bottom-8 opacity-10 text-9xl">🪴</div>
+        <div class="w-16 h-16 rounded-full bg-amber-gold/20 text-amber-gold flex items-center justify-center text-3xl mx-auto mb-4 border border-amber-gold/40 shadow-inner">
+          ✓
+        </div>
+        <h1 class="font-headline-lg text-2xl md:text-3xl font-bold mb-2">Order Confirmed!</h1>
+        <p class="text-white/80 text-sm max-w-md mx-auto font-body-md">
+          Thank you for choosing Sango Fiora. Your premium plants are being carefully prepared for dispatch.
+        </p>
+      </div>
+
+      <!-- Order Summary Meta -->
+      <div class="p-6 md:p-8 space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-outline-variant/30">
+          <div>
+            <p class="text-xs uppercase tracking-wider text-gray-500 font-label-sm">Order Reference</p>
+            <p id="success-order-id" class="text-xl font-bold font-mono text-deep-forest mt-0.5">Loading...</p>
+          </div>
+          <div>
+            <p class="text-xs uppercase tracking-wider text-gray-500 font-label-sm">Estimated Delivery</p>
+            <p id="success-delivery-date" class="text-base font-bold text-gray-800 mt-0.5">4 Business Days</p>
+          </div>
+          <div>
+            <p class="text-xs uppercase tracking-wider text-gray-500 font-label-sm">Payment Status</p>
+            <span id="success-payment-badge" class="inline-block mt-0.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">Pending</span>
+          </div>
+          <div id="success-txn-box" class="hidden">
+            <p class="text-xs uppercase tracking-wider text-gray-500 font-label-sm">Transaction Ref</p>
+            <p id="success-txn-id" class="text-xs font-mono font-bold text-deep-forest mt-1 bg-surface-container-high px-2.5 py-1 rounded-lg">TXN</p>
+          </div>
+        </div>
+
+        <!-- 5-Stage Live Fulfillment Pipeline -->
+        <div>
+          <h2 class="text-sm font-bold text-deep-forest uppercase tracking-wider mb-4 font-label-md">Delivery Progress</h2>
+          <div class="grid grid-cols-5 gap-1.5 text-center text-[10px] md:text-xs">
+            <div id="step-1" class="p-2.5 rounded-xl bg-amber-gold text-deep-forest font-bold shadow-sm">
+              <span class="block text-base mb-1">📝</span>
+              <span>1. Placed</span>
+            </div>
+            <div id="step-2" class="p-2.5 rounded-xl bg-gray-100 text-gray-500 font-medium">
+              <span class="block text-base mb-1">🔍</span>
+              <span>2. Inspection</span>
+            </div>
+            <div id="step-3" class="p-2.5 rounded-xl bg-gray-100 text-gray-500 font-medium">
+              <span class="block text-base mb-1">📦</span>
+              <span>3. Packed</span>
+            </div>
+            <div id="step-4" class="p-2.5 rounded-xl bg-gray-100 text-gray-500 font-medium">
+              <span class="block text-base mb-1">🚚</span>
+              <span>4. Dispatched</span>
+            </div>
+            <div id="step-5" class="p-2.5 rounded-xl bg-gray-100 text-gray-500 font-medium">
+              <span class="block text-base mb-1">🏡</span>
+              <span>5. Delivered</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ordered Items List -->
+        <div>
+          <h2 class="text-sm font-bold text-deep-forest uppercase tracking-wider mb-3 font-label-md">Ordered Plants</h2>
+          <div id="success-items-list" class="divide-y divide-gray-100 border border-gray-100 rounded-2xl p-4 bg-surface-container-low max-h-60 overflow-y-auto">
+            <p class="text-xs text-gray-500">Loading order items...</p>
+          </div>
+        </div>
+
+        <!-- Totals & Price Breakdown -->
+        <div class="bg-gray-50 p-5 rounded-2xl border border-gray-100 space-y-2 text-xs">
+          <div class="flex justify-between text-gray-600"><span>Subtotal</span><span id="success-subtotal" class="font-semibold text-gray-900">₹0</span></div>
+          <div class="flex justify-between text-gray-600"><span>Coupon Savings</span><span id="success-discount" class="font-semibold text-green-700">₹0</span></div>
+          <div class="flex justify-between text-gray-600"><span>Shipping</span><span id="success-delivery" class="font-semibold text-deep-forest">FREE</span></div>
+          <div class="flex justify-between text-gray-600"><span>GST (Included)</span><span id="success-gst" class="font-semibold text-gray-700">₹0</span></div>
+          <hr class="border-gray-200 my-2">
+          <div class="flex justify-between text-base font-bold text-gray-900">
+            <span>Net Total Paid / Due</span>
+            <span id="success-net-total" class="text-deep-forest text-xl">₹0</span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-outline-variant/30">
+          <button onclick="window.print()" class="px-5 py-2.5 rounded-full border border-gray-300 text-gray-700 text-xs font-bold hover:bg-gray-50 flex items-center gap-1.5 transition-colors">
+            <span class="material-symbols-outlined text-sm">print</span>
+            <span>Print Invoice</span>
+          </button>
+
+          <div class="flex gap-3">
+            <a id="track-link-btn" href="/track/" class="px-5 py-2.5 rounded-full bg-surface-container-high text-deep-forest text-xs font-bold hover:bg-gray-200 transition-colors">
+              Track Status
+            </a>
+            <a href="/products/" class="px-6 py-2.5 rounded-full bg-deep-forest text-white text-xs font-bold hover:bg-primary-container transition-colors shadow-md">
+              Continue Shopping →
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var params = new URLSearchParams(window.location.search);
+  var orderId = params.get('orderId');
+
+  var idEl = document.getElementById('success-order-id');
+  var dateEl = document.getElementById('success-delivery-date');
+  var badgeEl = document.getElementById('success-payment-badge');
+  var itemsEl = document.getElementById('success-items-list');
+  var subEl = document.getElementById('success-subtotal');
+  var discEl = document.getElementById('success-discount');
+  var delEl = document.getElementById('success-delivery');
+  var gstEl = document.getElementById('success-gst');
+  var netEl = document.getElementById('success-net-total');
+  var trackLink = document.getElementById('track-link-btn');
+
+  function renderOrder(order) {
+    if (!order) return;
+    if (idEl) idEl.textContent = order.orderId;
+    if (dateEl) dateEl.textContent = order.estDeliveryDate || '4 Business Days';
+    if (badgeEl) {
+      badgeEl.textContent = order.paymentStatus || 'Pending';
+      if ((order.paymentStatus || '').indexOf('Paid') !== -1) {
+        badgeEl.className = 'inline-block mt-0.5 px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800';
+      }
+    }
+    var txnBox = document.getElementById('success-txn-box');
+    var txnEl = document.getElementById('success-txn-id');
+    var paymentIdParam = params.get('paymentId');
+    var activeTxn = paymentIdParam || order.txnId || (order.payment && order.payment.txnId);
+    if (activeTxn && txnBox && txnEl) {
+      txnBox.classList.remove('hidden');
+      txnEl.textContent = activeTxn;
+    }
+
+    // Update steps
+    var step = order.statusStep || 1;
+    for (var s = 1; s <= 5; s++) {
+      var stepEl = document.getElementById('step-' + s);
+      if (stepEl) {
+        if (s <= step) {
+          stepEl.className = 'p-2.5 rounded-xl bg-amber-gold text-deep-forest font-bold shadow-sm';
+        } else {
+          stepEl.className = 'p-2.5 rounded-xl bg-gray-100 text-gray-500 font-medium';
+        }
+      }
+    }
+
+    // Render line items
+    if (itemsEl && order.items) {
+      var html = '';
+      order.items.forEach(function (it) {
+        html += '<div class="flex items-center justify-between py-2 text-xs">' +
+                '<div class="flex items-center gap-3">' +
+                (it.productImage || it.image ? '<img src="' + (it.productImage || it.image) + '" class="w-10 h-10 object-cover rounded-lg">' : '') +
+                '<div><p class="font-bold text-gray-800">' + (it.productName || it.name) + '</p>' +
+                '<p class="text-gray-500">' + (it.size || '') + ' · Qty: ' + it.qty + '</p></div>' +
+                '</div>' +
+                '<span class="font-bold text-gray-900">₹' + Number((it.price || 0) * it.qty).toLocaleString('en-IN') + '</span>' +
+                '</div>';
+      });
+      itemsEl.innerHTML = html;
+    }
+
+    var t = order.totals || {};
+    var sub = order.subtotal || t.subtotal || 0;
+    if (!sub && order.items && order.items.length > 0) {
+      sub = order.items.reduce(function (sum, it) { return sum + ((it.price || 0) * (it.qty || it.quantity || 1)); }, 0);
+    }
+    var disc = order.couponDiscount || t.couponDiscount || 0;
+    var net = order.netTotal || t.netTotal || order.total || Math.max(0, sub - disc);
+    var gst = order.gstAmount || t.gstAmount || Math.round(net * 0.18 / 1.18);
+
+    if (subEl) subEl.textContent = '₹' + Number(sub).toLocaleString('en-IN');
+    if (discEl) discEl.textContent = '-₹' + Number(disc).toLocaleString('en-IN');
+    if (delEl) delEl.textContent = (order.deliveryFee > 0 || (t.deliveryFee > 0)) ? ('₹' + (order.deliveryFee || t.deliveryFee)) : 'FREE';
+    if (gstEl) gstEl.textContent = '₹' + Number(gst).toLocaleString('en-IN');
+    if (netEl) netEl.textContent = '₹' + Number(net).toLocaleString('en-IN');
+
+    // Payment Status badge
+    if (badgeEl) {
+      var paymentIdVal = params.get('paymentId');
+      var isPaid = (paymentIdVal && paymentIdVal.indexOf('PAY-') === 0) || (order.payment && order.payment.status === 'Paid') || order.payment_status === 'Paid';
+      if (isPaid) {
+        badgeEl.textContent = 'Paid (Verified)';
+        badgeEl.className = 'inline-block mt-0.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800';
+      }
+    }
+    if (trackLink && order.orderId) {
+      trackLink.href = '/track/?orderId=' + encodeURIComponent(order.orderId);
+    }
+  }
+
+  // 1. Try to fetch from Spring Boot REST API
+  if (orderId && window.SangoAPI) {
+    window.SangoAPI.getOrderById(orderId).then(function (order) {
+      renderOrder(order);
+    }).catch(function () {
+      fetchFromSupabaseOrLocal();
+    });
+  } else {
+    fetchFromSupabaseOrLocal();
+  }
+
+  function fetchFromSupabaseOrLocal() {
+    if (orderId && window.SangoSupabase) {
+      window.SangoSupabase.from('orders').select('*, order_items(*)').eq('order_id', orderId).single().then(function (res) {
+        if (res.data) {
+          var d = res.data;
+          var mapped = {
+            orderId: d.order_id,
+            estDeliveryDate: d.est_delivery_date || '4 Business Days',
+            paymentStatus: d.payment_status,
+            txnId: d.txn_id,
+            statusStep: d.status_step || 1,
+            subtotal: d.subtotal,
+            couponDiscount: d.coupon_discount,
+            deliveryFee: d.delivery_fee,
+            gstAmount: d.gst_amount,
+            netTotal: d.net_total,
+            items: (d.order_items || []).map(function (it) {
+              return {
+                productName: it.product_name,
+                size: it.size,
+                qty: it.qty,
+                price: it.price,
+                productImage: it.product_image
+              };
+            })
+          };
+          renderOrder(mapped);
+          return;
+        }
+        fallbackToLocalStorage();
+      }).catch(function () {
+        fallbackToLocalStorage();
+      });
+    } else {
+      fallbackToLocalStorage();
+    }
+  }
+
+  function fallbackToLocalStorage() {
+    try {
+      var orders = JSON.parse(localStorage.getItem('sango-orders-v1')) || [];
+      var match = orderId ? orders.find(function (o) { return o.orderId === orderId; }) : orders[0];
+      if (match) renderOrder(match);
+      else if (idEl) idEl.textContent = orderId || 'Not Found';
+    } catch (e) {
+      if (idEl) idEl.textContent = 'Error loading';
+    }
+  }
+});
+</script>

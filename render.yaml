@@ -1,6 +1,25 @@
 services:
+  # 1. Frontend Static Website (Eleventy + Tailwind)
   - type: web
-    name: sango-fiora
+    name: sango-fiora-frontend
     env: static
-    buildCommand: npm run build
+    buildCommand: npm install && npm run build
     staticPublishPath: ./_site
+
+  # 2. Enterprise Spring Boot REST API Backend
+  - type: web
+    name: sango-fiora-backend
+    runtime: java
+    rootDir: backend
+    buildCommand: chmod +x mvnw && ./mvnw clean package -DskipTests
+    startCommand: java -jar target/backend-0.0.1-SNAPSHOT.jar
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false

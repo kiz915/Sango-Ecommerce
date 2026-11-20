@@ -11,9 +11,33 @@
     return div.innerHTML;
   }
 
+  var cachedProducts = window.SANGO_PRODUCTS || [];
+
+  function loadCatalogForSearch() {
+    if (window.SangoAPI) {
+      window.SangoAPI.getProducts().then(function (data) {
+        if (data && data.length) cachedProducts = data;
+      }).catch(function () {
+        fetchSearchJson();
+      });
+    } else {
+      fetchSearchJson();
+    }
+  }
+
+  function fetchSearchJson() {
+    fetch('/search.json').then(function (res) {
+      return res.json();
+    }).then(function (data) {
+      if (data && data.length) cachedProducts = data;
+    }).catch(function () {});
+  }
+
+  document.addEventListener('DOMContentLoaded', loadCatalogForSearch);
+
   function getProducts() {
-    var all = window.SANGO_PRODUCTS || [];
-    var deletedSlugs = JSON.parse(localStorage.getItem('sango_deleted_slugs') || '["calathea-orbifolia-120cm"]');
+    var all = cachedProducts;
+    var deletedSlugs = JSON.parse(localStorage.getItem('sango_deleted_slugs') || '[]');
     return all.filter(function (p) {
       return deletedSlugs.indexOf(p.slug) === -1;
     });

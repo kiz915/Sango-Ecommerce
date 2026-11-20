@@ -52,6 +52,15 @@
       return readWishlist().some(function (i) { return i.slug === slug; });
     },
     toggle: function (item) {
+      // Business Logic: Require login to save wishlist to user's botanical account
+      var isAuthed = window.SangoAuth && window.SangoAuth.isLoggedIn && window.SangoAuth.isLoggedIn();
+      if (!isAuthed) {
+        if (window.openAuthModal) {
+          window.openAuthModal('signup', '🔒 Please sign in to save botanical favorites to your wishlist.');
+        }
+        return false;
+      }
+
       var list = readWishlist();
       var idx = list.findIndex(function (i) { return i.slug === item.slug; });
       var added = false;

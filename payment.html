@@ -1,0 +1,909 @@
+---
+layout: base
+title: Secure Payment Gateway | Sango Fiora
+description: 256-bit encrypted botanical payment gateway for Sango Fiora handcrafted artificial plants and trees.
+---
+
+<script src="https://js.stripe.com/v3/"></script>
+
+<main class="bg-background min-h-screen pb-16 pt-[90px]">
+  <div class="max-w-[1280px] mx-auto px-4 md:px-margin-desktop py-6">
+
+    <!-- Security Gateway Header matching Figma Artboard 2 -->
+    <div class="bg-white rounded-2xl border border-outline-variant/30 px-6 py-4 mb-8 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-[#1B4332]/10 border border-[#1B4332]/20 flex items-center justify-center text-xl text-[#1B4332] shrink-0">
+          🔒
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-headline-sm text-base md:text-lg font-bold text-deep-forest">256-Bit SSL Encrypted Botanical Payment Gateway</h1>
+            <span class="inline-flex items-center gap-1 text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/80 px-2 py-0.5 rounded-full shrink-0">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              Live Verified
+            </span>
+          </div>
+          <p class="text-xs text-on-surface-variant font-body-md mt-0.5">
+            Merchant: <strong>Sango Fiora Botanicals Pvt Ltd</strong> • Verified Botanical Studio
+          </p>
+        </div>
+      </div>
+
+      <!-- Payment Session Timer -->
+      <div class="flex items-center gap-2 bg-surface-container-low px-4 py-2 rounded-xl border border-outline-variant/40 shrink-0">
+        <span class="text-xs text-on-surface-variant">⏱ Expires in:</span>
+        <span id="payment-timer" class="font-mono font-bold text-sm text-deep-forest">14:59</span>
+      </div>
+    </div>
+
+    <!-- Payment Main Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      
+      <!-- Left Column: Payment Methods UI -->
+      <div class="lg:col-span-8 space-y-6">
+
+        <div id="payment-methods-stage" class="bg-white rounded-3xl border border-outline-variant/30 shadow-sm p-6 sm:p-8 space-y-6">
+          
+          <!-- Payment Tabs Navigation matching Figma -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 border-b border-outline-variant/30 pb-6">
+            <button type="button" data-pay-tab="stripe" class="pay-tab-btn active flex items-center justify-center gap-2 p-3.5 rounded-2xl border-2 border-deep-forest bg-[#1B4332] text-white font-bold text-xs transition-all cursor-pointer shadow-sm">
+              <span>💳</span>
+              <span>Stripe Elements (Active)</span>
+            </button>
+            <button type="button" data-pay-tab="upi" class="pay-tab-btn flex items-center justify-center gap-2 p-3.5 rounded-2xl border-2 border-outline-variant/40 hover:border-deep-forest/40 text-on-surface-variant font-bold text-xs transition-all cursor-pointer">
+              <span>📱</span>
+              <span>UPI Instant</span>
+            </button>
+            <button type="button" data-pay-tab="netbanking" class="pay-tab-btn flex items-center justify-center gap-2 p-3.5 rounded-2xl border-2 border-outline-variant/40 hover:border-deep-forest/40 text-on-surface-variant font-bold text-xs transition-all cursor-pointer">
+              <span>🏛️</span>
+              <span>Net Banking</span>
+            </button>
+            <button type="button" data-pay-tab="cod" class="pay-tab-btn flex items-center justify-center gap-2 p-3.5 rounded-2xl border-2 border-outline-variant/40 hover:border-deep-forest/40 text-on-surface-variant font-bold text-xs transition-all cursor-pointer">
+              <span>💵</span>
+              <span>Cash on Delivery</span>
+            </button>
+          </div>
+
+          <!-- TAB 1: Stripe Global Elements Payment (Matching Figma Artboard 2) -->
+          <div id="tab-content-stripe" class="pay-tab-panel space-y-6">
+            <div>
+              <h2 class="font-headline-sm text-xl font-bold text-deep-forest">Stripe Global Secure Checkout</h2>
+              <p class="text-xs text-on-surface-variant mt-1">Accepts all major international cards (Visa, Mastercard, Amex, RuPay) &amp; Apple/Google Pay</p>
+            </div>
+
+            <!-- Sandbox Preset Alert Card matching Figma -->
+            <div class="bg-emerald-50/80 border border-emerald-300/80 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-emerald-950">
+              <div class="flex items-center gap-2 text-xs font-semibold">
+                <span>⚡</span>
+                <span><strong>Stripe Sandbox Mode:</strong> Click card preset 4242 • 4242 • 4242 • 4242 (Instant Success)</span>
+              </div>
+              <div class="flex flex-wrap gap-2 text-xs shrink-0">
+                <button type="button" id="btn-stripe-preset-success" class="px-3 py-1.5 rounded-xl bg-white text-deep-forest hover:bg-emerald-100 font-bold text-[11px] border border-emerald-300 shadow-sm transition-all cursor-pointer">
+                  ✓ Quick-Fill 4242
+                </button>
+                <button type="button" id="btn-stripe-preset-3ds" class="px-3 py-1.5 rounded-xl bg-white text-deep-forest hover:bg-amber-100 font-bold text-[11px] border border-amber-300 shadow-sm transition-all cursor-pointer">
+                  🛡️ Test 3D Secure
+                </button>
+                <button type="button" id="btn-stripe-preset-decline" class="px-3 py-1.5 rounded-xl bg-white text-rose-800 hover:bg-rose-100 font-bold text-[11px] border border-rose-300 shadow-sm transition-all cursor-pointer">
+                  ⚠️ Decline Test
+                </button>
+              </div>
+            </div>
+
+            <!-- Stripe Card Form matching Figma Artboard 2 -->
+            <form id="stripe-form" class="space-y-4 text-xs pt-1">
+              <div>
+                <label for="stripe-card-name" class="block font-bold text-gray-700 mb-1.5">Cardholder Name</label>
+                <input type="text" id="stripe-card-name" placeholder="Kishore V" required
+                  class="w-full uppercase font-mono bg-surface-container-low border border-outline-variant/60 rounded-xl px-4 py-3 text-xs text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-deep-forest transition-colors">
+              </div>
+
+              <div>
+                <div class="flex justify-between items-center mb-1.5">
+                  <label for="stripe-card-number" class="block font-bold text-gray-700">Card Number</label>
+                  <span id="stripe-card-brand-badge" class="font-bold text-[11px] bg-gray-100 px-2 py-0.5 rounded text-deep-forest">VISA</span>
+                </div>
+                <div class="relative">
+                  <input type="text" id="stripe-card-number" placeholder="4242 •••• •••• 4242 (Visa Test)" maxlength="19" required
+                    class="w-full font-mono bg-surface-container-low border border-outline-variant/60 rounded-xl px-4 py-3 pl-11 text-xs text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-deep-forest transition-colors">
+                  <span class="absolute left-4 top-3 text-sm text-gray-400">💳</span>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label for="stripe-card-exp" class="block font-bold text-gray-700 mb-1.5">Expiration Date</label>
+                  <input type="text" id="stripe-card-exp" placeholder="12 / 28" maxlength="5" required
+                    class="w-full font-mono bg-surface-container-low border border-outline-variant/60 rounded-xl px-4 py-3 text-xs text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-deep-forest transition-colors">
+                </div>
+                <div>
+                  <label for="stripe-card-cvc" class="block font-bold text-gray-700 mb-1.5">Security Code (CVC)</label>
+                  <input type="password" id="stripe-card-cvc" placeholder="•••" maxlength="4" required
+                    class="w-full font-mono bg-surface-container-low border border-outline-variant/60 rounded-xl px-4 py-3 text-xs text-gray-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-deep-forest transition-colors">
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2 pt-1">
+                <input type="checkbox" id="stripe-save-card" checked class="w-4 h-4 rounded text-deep-forest cursor-pointer">
+                <label for="stripe-save-card" class="text-gray-600 text-[11px] cursor-pointer">
+                  Save card securely for 1-click express reorders
+                </label>
+              </div>
+
+              <div id="stripe-error-msg" class="hidden p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-[11px] font-medium"></div>
+
+              <!-- Solid Dark Forest Button matching Figma Artboard 2 -->
+              <button type="submit" id="btn-submit-stripe" class="w-full btn-animated bg-[#1B4332] hover:bg-[#133826] text-white font-bold py-4 px-6 rounded-2xl text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-all mt-4">
+                <span>Pay</span>
+                <span id="stripe-pay-btn-amount" class="font-mono">₹0</span>
+                <span>via Stripe Secure Gateway →</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- TAB 2: UPI Instant Payment -->
+          <div id="tab-content-upi" class="pay-tab-panel space-y-6 hidden">
+            <div>
+              <h2 class="font-headline-sm text-xl font-bold text-deep-forest">UPI Instant Payment</h2>
+              <p class="text-xs text-on-surface-variant mt-1">Instant 0% fee clearing via Google Pay, PhonePe, Paytm, BHIM</p>
+            </div>
+
+            <div class="flex flex-col md:flex-row items-center gap-8 bg-surface-container-low p-6 rounded-3xl border border-outline-variant/40">
+              
+              <!-- Dynamic QR Code Card -->
+              <div class="bg-white p-5 rounded-2xl border border-outline-variant/50 shadow-md text-center shrink-0">
+                <div class="relative w-44 h-44 mx-auto bg-white p-2 rounded-xl flex items-center justify-center">
+                  <svg id="upi-qr-svg" class="w-full h-full" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="100" height="100" fill="white"/>
+                    <rect x="5" y="5" width="26" height="26" rx="4" fill="#0F291E"/>
+                    <rect x="9" y="9" width="18" height="18" fill="white"/>
+                    <rect x="13" y="13" width="10" height="10" rx="2" fill="#0F291E"/>
+                    <rect x="69" y="5" width="26" height="26" rx="4" fill="#0F291E"/>
+                    <rect x="73" y="9" width="18" height="18" fill="white"/>
+                    <rect x="77" y="13" width="10" height="10" rx="2" fill="#0F291E"/>
+                    <rect x="5" y="69" width="26" height="26" rx="4" fill="#0F291E"/>
+                    <rect x="9" y="73" width="18" height="18" fill="white"/>
+                    <rect x="13" y="77" width="10" height="10" rx="2" fill="#0F291E"/>
+                    <rect x="36" y="8" width="5" height="5" fill="#1B4332"/>
+                    <rect x="46" y="8" width="5" height="5" fill="#1B4332"/>
+                    <rect x="56" y="8" width="5" height="5" fill="#1B4332"/>
+                    <rect x="36" y="18" width="5" height="5" fill="#1B4332"/>
+                    <rect x="46" y="24" width="5" height="5" fill="#1B4332"/>
+                    <rect x="56" y="18" width="5" height="5" fill="#1B4332"/>
+                    <rect x="8" y="36" width="5" height="5" fill="#1B4332"/>
+                    <rect x="18" y="46" width="5" height="5" fill="#1B4332"/>
+                    <rect x="24" y="36" width="5" height="5" fill="#1B4332"/>
+                    <rect x="36" y="36" width="8" height="8" rx="2" fill="#D4A373"/>
+                    <rect x="56" y="36" width="8" height="8" rx="2" fill="#D4A373"/>
+                    <rect x="46" y="46" width="8" height="8" rx="2" fill="#0F291E"/>
+                    <rect x="36" y="56" width="8" height="8" rx="2" fill="#D4A373"/>
+                    <rect x="56" y="56" width="8" height="8" rx="2" fill="#D4A373"/>
+                    <rect x="69" y="36" width="5" height="5" fill="#1B4332"/>
+                    <rect x="79" y="46" width="5" height="5" fill="#1B4332"/>
+                    <rect x="89" y="36" width="5" height="5" fill="#1B4332"/>
+                    <rect x="36" y="69" width="5" height="5" fill="#1B4332"/>
+                    <rect x="46" y="79" width="5" height="5" fill="#1B4332"/>
+                    <rect x="56" y="69" width="5" height="5" fill="#1B4332"/>
+                    <rect x="69" y="69" width="5" height="5" fill="#1B4332"/>
+                    <rect x="79" y="79" width="5" height="5" fill="#1B4332"/>
+                    <rect x="89" y="89" width="5" height="5" fill="#1B4332"/>
+                    <circle cx="50" cy="50" r="10" fill="#0F291E" stroke="white" stroke-width="2"/>
+                    <text x="50" y="54" font-size="9" text-anchor="middle" fill="#D4A373">🌿</text>
+                  </svg>
+                </div>
+                <p class="text-[11px] font-bold text-gray-500 mt-2">Scan with any UPI App</p>
+              </div>
+
+              <!-- UPI Details & Input -->
+              <div class="flex-1 space-y-4 text-xs">
+                <div>
+                  <span class="text-gray-500 uppercase tracking-wider text-[10px] font-bold">Official Merchant VPA</span>
+                  <div class="flex items-center gap-2 mt-1">
+                    <code class="bg-white border border-outline-variant/60 px-3.5 py-2.5 rounded-xl text-deep-forest font-bold font-mono text-sm">pay@sangofiora</code>
+                    <button type="button" id="btn-copy-vpa" class="bg-deep-forest text-white px-3.5 py-2.5 rounded-xl font-semibold hover:bg-primary-container transition-all cursor-pointer">
+                      Copy
+                    </button>
+                  </div>
+                </div>
+
+                <div class="pt-2 border-t border-outline-variant/30">
+                  <label for="upi-vpa-input" class="block font-bold text-gray-700 mb-1.5">Or Enter Your VPA / UPI ID</label>
+                  <div class="flex gap-2">
+                    <input type="text" id="upi-vpa-input" placeholder="yourname@okhdfcbank"
+                      class="flex-1 bg-white border border-outline-variant/60 rounded-xl px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:ring-2 focus:ring-deep-forest">
+                    <button type="button" id="btn-verify-vpa" class="bg-amber-gold hover:bg-amber-500 text-deep-forest font-bold px-4 py-2.5 rounded-xl transition-all cursor-pointer">
+                      Verify
+                    </button>
+                  </div>
+                </div>
+
+                <div class="pt-2">
+                  <button type="button" id="btn-simulate-upi-success" class="w-full btn-animated bg-[#1B4332] hover:bg-[#133826] text-white font-bold py-3.5 px-6 rounded-2xl text-xs uppercase tracking-wider shadow-md cursor-pointer transition-all">
+                    Pay Now via UPI Instant →
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- TAB 3: Net Banking -->
+          <div id="tab-content-netbanking" class="pay-tab-panel space-y-6 hidden text-xs">
+            <div>
+              <h2 class="font-headline-sm text-xl font-bold text-deep-forest">Net Banking Direct Gateway</h2>
+              <p class="text-xs text-on-surface-variant mt-1">Support for all 50+ major retail and commercial Indian banks</p>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <button type="button" data-bank="HDFC Bank" class="bank-pill p-3.5 rounded-2xl border border-outline-variant/60 hover:border-deep-forest bg-surface-container-low hover:bg-white font-bold text-deep-forest text-center transition-all cursor-pointer">
+                🏛️ HDFC Bank
+              </button>
+              <button type="button" data-bank="State Bank of India" class="bank-pill p-3.5 rounded-2xl border border-outline-variant/60 hover:border-deep-forest bg-surface-container-low hover:bg-white font-bold text-deep-forest text-center transition-all cursor-pointer">
+                🏛️ SBI
+              </button>
+              <button type="button" data-bank="ICICI Bank" class="bank-pill p-3.5 rounded-2xl border border-outline-variant/60 hover:border-deep-forest bg-surface-container-low hover:bg-white font-bold text-deep-forest text-center transition-all cursor-pointer">
+                🏛️ ICICI Bank
+              </button>
+              <button type="button" data-bank="Axis Bank" class="bank-pill p-3.5 rounded-2xl border border-outline-variant/60 hover:border-deep-forest bg-surface-container-low hover:bg-white font-bold text-deep-forest text-center transition-all cursor-pointer">
+                🏛️ Axis Bank
+              </button>
+              <button type="button" data-bank="Kotak Mahindra" class="bank-pill p-3.5 rounded-2xl border border-outline-variant/60 hover:border-deep-forest bg-surface-container-low hover:bg-white font-bold text-deep-forest text-center transition-all cursor-pointer">
+                🏛️ Kotak Bank
+              </button>
+              <button type="button" data-bank="Punjab National Bank" class="bank-pill p-3.5 rounded-2xl border border-outline-variant/60 hover:border-deep-forest bg-surface-container-low hover:bg-white font-bold text-deep-forest text-center transition-all cursor-pointer">
+                🏛️ PNB
+              </button>
+            </div>
+
+            <div class="pt-2 border-t border-outline-variant/30">
+              <label for="select-all-banks" class="block font-bold text-gray-700 mb-1.5">Or Choose from All 50+ Banks:</label>
+              <select id="select-all-banks" class="w-full bg-surface-container-low border border-outline-variant/60 rounded-xl px-4 py-3 text-xs text-gray-800 focus:bg-white focus:outline-none">
+                <option value="">-- Choose Your Bank --</option>
+                <option value="Bank of Baroda">Bank of Baroda</option>
+                <option value="Canara Bank">Canara Bank</option>
+                <option value="Union Bank of India">Union Bank of India</option>
+                <option value="IndusInd Bank">IndusInd Bank</option>
+                <option value="Federal Bank">Federal Bank</option>
+                <option value="Yes Bank">Yes Bank</option>
+                <option value="IDBI Bank">IDBI Bank</option>
+              </select>
+            </div>
+
+            <button type="button" id="btn-submit-bank" class="w-full btn-animated bg-[#1B4332] hover:bg-[#133826] text-white font-bold py-4 rounded-2xl text-xs uppercase tracking-wider shadow-md cursor-pointer transition-all mt-2">
+              Proceed to Net Banking Gateway →
+            </button>
+          </div>
+
+          <!-- TAB 4: Cash on Delivery Guard -->
+          <div id="tab-content-cod" class="pay-tab-panel space-y-6 hidden text-xs">
+            <div>
+              <h2 class="font-headline-sm text-xl font-bold text-deep-forest">Cash on Delivery (Doorstep Verification)</h2>
+              <p class="text-xs text-on-surface-variant mt-1">Pay with cash or scan QR code when your botanical crate arrives</p>
+            </div>
+
+            <div class="bg-amber-50 border border-amber-200 p-5 rounded-2xl space-y-2 text-amber-900">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">🛡️</span>
+                <span class="font-bold text-sm">Anti-Fraud Doorstep Handover</span>
+              </div>
+              <p>Our white-glove logistics team will confirm transit progress before dispatch. You will inspect your custom planter crate and botanical foliage prior to handover.</p>
+            </div>
+
+            <div class="space-y-4 max-w-md mx-auto pt-2">
+              <div class="flex items-center gap-3 bg-surface-container-low p-4 rounded-2xl border border-outline-variant/40">
+                <input type="checkbox" id="cod-human-check" class="w-5 h-5 rounded text-deep-forest focus:ring-deep-forest cursor-pointer">
+                <label for="cod-human-check" class="text-gray-800 font-semibold cursor-pointer select-none">
+                  I confirm that I will inspect and pay the courier upon safe crate delivery.
+                </label>
+              </div>
+              
+              <button type="button" id="btn-confirm-cod" class="w-full btn-animated bg-[#1B4332] hover:bg-[#133826] text-white font-bold py-4 px-6 rounded-2xl text-xs uppercase tracking-wider shadow-md cursor-pointer transition-all">
+                Confirm Cash on Delivery Order →
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Right Column: Sticky Verified Order Summary & Delivery Destination matching Figma Artboard 2 -->
+      <aside class="lg:col-span-4">
+        <div class="bg-white rounded-3xl border border-outline-variant/30 shadow-sm p-6 space-y-5 sticky top-28">
+          
+          <div class="flex justify-between items-center border-b border-outline-variant/30 pb-3">
+            <h3 id="summary-heading" class="font-headline-sm font-bold text-base text-deep-forest">Order Summary</h3>
+            <span id="pay-order-ref" class="text-xs font-mono font-bold bg-gray-100 text-deep-forest px-2.5 py-1 rounded-lg">Loading...</span>
+          </div>
+
+          <!-- Items Mini List -->
+          <div id="pay-items-list" class="divide-y divide-gray-100 max-h-56 overflow-y-auto space-y-2 text-xs">
+            <p class="text-gray-400 py-3 text-center">Fetching order items...</p>
+          </div>
+
+          <!-- Totals Breakdown matching Figma Artboard 2 -->
+          <div class="bg-gray-50/80 p-5 rounded-2xl border border-gray-100 space-y-2.5 text-xs">
+            <div class="flex justify-between text-gray-600">
+              <span>Subtotal</span>
+              <span id="pay-subtotal" class="font-bold text-gray-900">₹0</span>
+            </div>
+            <div id="pay-volume-row" class="hidden justify-between text-emerald-700 font-semibold">
+              <span>Bulk Styling Discount</span>
+              <span id="pay-volume-discount">-₹0</span>
+            </div>
+            <div id="pay-coupon-row" class="hidden justify-between text-emerald-700 font-semibold">
+              <span id="pay-coupon-label">Coupon Discount</span>
+              <span id="pay-coupon-discount">-₹0</span>
+            </div>
+            <div class="flex justify-between text-gray-600">
+              <span>White-Glove Shipping</span>
+              <span class="font-bold text-deep-forest">FREE</span>
+            </div>
+            <div class="flex justify-between text-gray-600">
+              <span>GST 18% (Included in total)</span>
+              <span id="pay-gst" class="font-bold text-gray-700">₹0</span>
+            </div>
+            <hr class="border-gray-200 my-2">
+            <div class="flex justify-between items-baseline pt-1">
+              <span class="font-bold text-sm text-gray-900">Total Payable</span>
+              <span id="pay-net-total" class="text-deep-forest text-2xl font-bold">₹0</span>
+            </div>
+          </div>
+
+          <!-- Delivery Destination Card in Sidebar (Eliminates redundant 2nd form) -->
+          <div class="bg-surface-container-low p-4 rounded-2xl border border-outline-variant/40 space-y-2 text-xs">
+            <div class="flex items-center justify-between border-b border-outline-variant/30 pb-2">
+              <span class="font-bold text-deep-forest flex items-center gap-1.5">
+                <span>📍</span> Destination Details
+              </span>
+              <span class="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+                Checkout Confirmed
+              </span>
+            </div>
+            <p class="font-bold text-gray-900" id="dest-cust-name">Loading customer...</p>
+            <p class="text-gray-600 text-[11px]" id="dest-cust-phone">Loading phone...</p>
+            <p class="text-gray-600 text-[11px] leading-relaxed" id="dest-cust-address">Loading address...</p>
+          </div>
+
+          <div class="pt-1 text-center text-[11px] text-gray-400 space-y-1">
+            <p class="font-semibold text-deep-forest">🌿 Sango Fiora Direct Guarantee</p>
+            <p>100% money-back safe plant delivery guarantee.</p>
+          </div>
+
+        </div>
+      </aside>
+
+    </div>
+
+  </div>
+</main>
+
+<!-- 3D Secure 2.0 OTP Modal Simulation -->
+<div id="otp-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300 flex items-center justify-center p-4">
+  <div class="bg-white rounded-3xl border border-outline-variant/40 shadow-2xl p-6 sm:p-8 max-w-sm w-full space-y-4">
+    <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">🏦</span>
+        <span class="font-bold text-sm text-gray-900 font-mono">Bank 3D-Secure 2.0</span>
+      </div>
+      <button id="btn-close-otp" class="text-gray-400 hover:text-gray-700 text-xl font-bold cursor-pointer">&times;</button>
+    </div>
+
+    <div class="bg-amber-gold/15 p-3 rounded-2xl text-xs text-deep-forest font-medium">
+      <p>A one-time password has been sent to your registered mobile number ending in <strong>••98</strong>.</p>
+      <p class="text-[11px] mt-1 font-bold text-amber-800">Demo Sandbox OTP: <code class="bg-white px-1.5 py-0.5 rounded font-mono">123456</code></p>
+    </div>
+
+    <div>
+      <label for="otp-input" class="block text-xs font-bold text-gray-700 mb-1">Enter 6-Digit OTP</label>
+      <input type="text" id="otp-input" placeholder="123456" maxlength="6"
+        class="w-full text-center font-mono font-bold text-xl tracking-widest bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:bg-white focus:outline-none focus:ring-2 focus:ring-deep-forest">
+    </div>
+
+    <button type="button" id="btn-submit-otp" class="w-full btn-animated bg-[#1B4332] hover:bg-[#133826] text-white font-bold py-3.5 rounded-full text-xs uppercase tracking-wider shadow-md cursor-pointer">
+      Confirm &amp; Authorize Payment →
+    </button>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var urlParams = new URLSearchParams(window.location.search);
+  var orderId = urlParams.get('orderId');
+
+  if (!orderId) {
+    var orders = window.CheckoutEngine ? window.CheckoutEngine.getOrders() : [];
+    if (orders.length > 0) orderId = orders[0].orderId;
+    else orderId = 'SANGO-DEMO-' + Math.floor(10000 + Math.random() * 90000);
+  }
+
+  var currentOrder = null;
+  var currentPaymentId = null;
+  var currentGatewayOrderId = null;
+  var currentMethod = (urlParams.get('method') || 'STRIPE').toUpperCase();
+
+  // Tab elements
+  var tabs = document.querySelectorAll('.pay-tab-btn');
+  var panels = document.querySelectorAll('.pay-tab-panel');
+
+  // Auto-select tab if specified in URL
+  var initialTab = (urlParams.get('method') || 'stripe').toLowerCase();
+  var matchingTabBtn = document.querySelector('.pay-tab-btn[data-pay-tab="' + initialTab + '"]');
+  if (matchingTabBtn) {
+    tabs.forEach(function (t) {
+      t.classList.remove('active', 'border-deep-forest', 'bg-[#1B4332]', 'text-white');
+      t.classList.add('border-outline-variant/40', 'text-on-surface-variant');
+    });
+    matchingTabBtn.classList.add('active', 'border-deep-forest', 'bg-[#1B4332]', 'text-white');
+    matchingTabBtn.classList.remove('border-outline-variant/40', 'text-on-surface-variant');
+    panels.forEach(function (p) { p.classList.add('hidden'); });
+    var targetPanel = document.getElementById('tab-content-' + initialTab);
+    if (targetPanel) targetPanel.classList.remove('hidden');
+  }
+
+  // 15-Minute Session Timer matching Figma
+  var timeLeft = 15 * 60;
+  var timerEl = document.getElementById('payment-timer');
+  var timerInterval = setInterval(function () {
+    timeLeft--;
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      if (timerEl) timerEl.textContent = 'EXPIRED';
+      alert('Your payment session has expired for security. Returning to catalog.');
+      window.location.href = '/products/';
+      return;
+    }
+    var m = Math.floor(timeLeft / 60);
+    var s = timeLeft % 60;
+    if (timerEl) timerEl.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  }, 1000);
+
+  // Tab switching
+  tabs.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var target = btn.dataset.payTab;
+      currentMethod = target.toUpperCase();
+
+      tabs.forEach(function (t) {
+        t.classList.remove('active', 'border-deep-forest', 'bg-[#1B4332]', 'text-white');
+        t.classList.add('border-outline-variant/40', 'text-on-surface-variant');
+      });
+      btn.classList.add('active', 'border-deep-forest', 'bg-[#1B4332]', 'text-white');
+      btn.classList.remove('border-outline-variant/40', 'text-on-surface-variant');
+
+      panels.forEach(function (p) { p.classList.add('hidden'); });
+      var activePanel = document.getElementById('tab-content-' + target);
+      if (activePanel) activePanel.classList.remove('hidden');
+    });
+  });
+
+  // Populate Order Summary & Delivery Destination
+  function loadOrderDetails() {
+    var orderRef = document.getElementById('pay-order-ref');
+    if (orderRef) orderRef.textContent = orderId;
+
+    if (window.SangoAPI) {
+      window.SangoAPI.getOrder(orderId)
+        .then(function (order) {
+          currentOrder = order;
+          renderOrderSummary(order);
+          createPaymentIntent(order);
+        })
+        .catch(function () {
+          fallbackLocalOrder();
+        });
+    } else {
+      fallbackLocalOrder();
+    }
+  }
+
+  function fallbackLocalOrder() {
+    var orders = window.CheckoutEngine ? window.CheckoutEngine.getOrders() : [];
+    var found = orders.find(function (o) { return o.orderId === orderId; });
+    if (!found && window.CartEngine) {
+      var cartItems = window.CartEngine.getItems();
+      var totals = window.CartEngine.getTotals();
+      var custData = {};
+      try {
+        var lastOrder = orders[0];
+        if (lastOrder && lastOrder.customer) custData = lastOrder.customer;
+      } catch (e) {}
+
+      found = {
+        orderId: orderId,
+        items: cartItems,
+        subtotal: totals.subtotal,
+        volumeDiscount: totals.volumeDiscount,
+        couponDiscount: totals.couponDiscount,
+        couponCode: totals.couponCode,
+        deliveryFee: totals.deliveryFee,
+        gstAmount: totals.gstAmount,
+        netTotal: totals.netTotal,
+        customer: custData
+      };
+    }
+    currentOrder = found || {
+      orderId: orderId,
+      items: [
+        { name: 'Fiddle Leaf Fig (180cm)', price: 7340, quantity: 1 }
+      ],
+      subtotal: 7340,
+      volumeDiscount: 0,
+      couponDiscount: 734,
+      couponCode: 'SANGO10',
+      deliveryFee: 0,
+      gstAmount: 1008,
+      netTotal: 6606,
+      customer: {
+        name: 'Kishore V',
+        phone: '+91 98765 43210',
+        address: 'Flat 4B, Emerald Heights, Botanical Garden Road',
+        city: 'Bangalore',
+        state: 'Karnataka',
+        pincode: '560001'
+      }
+    };
+    renderOrderSummary(currentOrder);
+  }
+
+  function renderOrderSummary(order) {
+    var itemsList = document.getElementById('pay-items-list');
+    var subtotalEl = document.getElementById('pay-subtotal');
+    var volRow = document.getElementById('pay-volume-row');
+    var volEl = document.getElementById('pay-volume-discount');
+    var cpnRow = document.getElementById('pay-coupon-row');
+    var cpnEl = document.getElementById('pay-coupon-discount');
+    var cpnLabel = document.getElementById('pay-coupon-label');
+    var gstEl = document.getElementById('pay-gst');
+    var netEl = document.getElementById('pay-net-total');
+    var headingEl = document.getElementById('summary-heading');
+
+    var itemCount = (order.items && order.items.length) || 1;
+    if (headingEl) headingEl.textContent = 'Order Summary (' + itemCount + ' Item' + (itemCount > 1 ? 's' : '') + ')';
+
+    if (itemsList && order.items && order.items.length > 0) {
+      itemsList.innerHTML = order.items.map(function (item) {
+        var qty = item.quantity || item.qty || 1;
+        var pr = item.price || 0;
+        return '<div class="flex items-center justify-between py-2">' +
+          '<div class="flex items-center gap-2.5 truncate">' +
+          '<span class="w-2 h-2 rounded-full bg-emerald-600 shrink-0"></span>' +
+          '<span class="font-medium text-gray-800 truncate">' + (item.name || 'Botanical Item') + '</span>' +
+          '<span class="text-gray-400 font-mono">×' + qty + '</span>' +
+          '</div>' +
+          '<span class="font-bold text-gray-900 shrink-0">₹' + (pr * qty).toLocaleString('en-IN') + '</span>' +
+          '</div>';
+      }).join('');
+    } else if (itemsList) {
+      itemsList.innerHTML = '<p class="text-gray-400 py-2">Handcrafted Botanical Collection Items</p>';
+    }
+
+    var t = order.totals || {};
+    var sub = order.subtotal || t.subtotal || 0;
+    if (!sub && order.items && order.items.length > 0) {
+      sub = order.items.reduce(function (sum, it) { return sum + ((it.price || 0) * (it.quantity || it.qty || 1)); }, 0);
+    }
+    var vol = order.volumeDiscount || t.volumeDiscount || 0;
+    var cpn = order.couponDiscount || t.couponDiscount || 0;
+    var cpnCode = order.couponCode || t.couponCode || '';
+    var net = order.netTotal || order.total || t.netTotal || t.total || Math.max(0, sub - vol - cpn);
+    var gst = order.gstAmount || t.gstAmount || Math.round(net * 0.18 / 1.18);
+
+    if (subtotalEl) subtotalEl.textContent = '₹' + sub.toLocaleString('en-IN');
+    if (volRow && vol > 0) {
+      volRow.classList.remove('hidden');
+      volRow.classList.add('flex');
+      if (volEl) volEl.textContent = '-₹' + vol.toLocaleString('en-IN');
+    }
+    if (cpnRow && cpn > 0) {
+      cpnRow.classList.remove('hidden');
+      cpnRow.classList.add('flex');
+      if (cpnLabel && cpnCode) cpnLabel.textContent = 'Coupon Discount (' + cpnCode + ')';
+      if (cpnEl) cpnEl.textContent = '-₹' + cpn.toLocaleString('en-IN');
+    }
+    if (gstEl) gstEl.textContent = '₹' + gst.toLocaleString('en-IN');
+    if (netEl) netEl.textContent = '₹' + net.toLocaleString('en-IN');
+    
+    var stripePayBtnAmt = document.getElementById('stripe-pay-btn-amount');
+    if (stripePayBtnAmt) stripePayBtnAmt.textContent = '₹' + Number(net).toLocaleString('en-IN');
+
+    // Populate Delivery Destination Card in Sidebar
+    var cust = order.customer || {};
+    var user = window.SangoAuth ? window.SangoAuth.getUser() : null;
+    var profile = window.SangoAuth ? window.SangoAuth.getProfile() : null;
+
+    var destName = document.getElementById('dest-cust-name');
+    var destPhone = document.getElementById('dest-cust-phone');
+    var destAddr = document.getElementById('dest-cust-address');
+
+    var cName = cust.name || (profile && profile.full_name) || (user && user.user_metadata && user.user_metadata.full_name) || 'Kishore V';
+    var cPhone = cust.phone || (profile && profile.phone) || '+91 98765 43210';
+    var cStreet = cust.address || (profile && profile.shipping_address) || 'Flat 4B, Emerald Heights, Botanical Garden Road';
+    var cCity = cust.city || (profile && profile.city) || 'Bangalore';
+    var cState = cust.state || (profile && profile.state) || 'Karnataka';
+    var cPin = cust.pincode || (profile && profile.pincode) || '560001';
+
+    if (destName) destName.textContent = cName;
+    if (destPhone) destPhone.textContent = '📞 ' + cPhone;
+    if (destAddr) destAddr.textContent = cStreet + ', ' + cCity + ', ' + cState + ' - ' + cPin;
+  }
+
+  function createPaymentIntent(order) {
+    if (!window.SangoAPI) return;
+    window.SangoAPI.createPaymentIntent({
+      orderId: order.orderId,
+      amount: order.netTotal,
+      currency: 'INR',
+      paymentMethod: currentMethod
+    }).then(function (res) {
+      currentPaymentId = res.paymentId;
+      currentGatewayOrderId = res.gatewayOrderId;
+    }).catch(function (err) {
+      console.warn('Payment Intent creation note:', err.message);
+    });
+  }
+
+  // Copy VPA
+  var copyBtn = document.getElementById('btn-copy-vpa');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', function () {
+      navigator.clipboard.writeText('pay@sangofiora').then(function () {
+        copyBtn.textContent = 'Copied!';
+        setTimeout(function () { copyBtn.textContent = 'Copy'; }, 1500);
+      });
+    });
+  }
+
+  // Complete Payment and Seamlessly Redirect to /order-success/ (Eliminating redundant 2nd form)
+  function finalizePaymentAndRedirect(payId, txnRef, cardLast4, cardBrand) {
+    payId = payId || ('PAY-' + Math.floor(100000 + Math.random() * 900000));
+    txnRef = txnRef || ('pi_stripe_' + Math.floor(10000000 + Math.random() * 90000000));
+
+    // Update Supabase Database
+    if (window.SangoSupabase) {
+      window.SangoSupabase.from('orders')
+        .update({
+          payment_status: 'Paid',
+          payment_method: currentMethod,
+          status: 'Order Placed',
+          txn_id: txnRef
+        })
+        .ilike('order_id', orderId).then(function () {});
+
+      window.SangoSupabase.from('payments').insert([{
+        payment_id: payId,
+        order_id: orderId,
+        amount: (currentOrder && currentOrder.netTotal) || 0,
+        currency: 'INR',
+        payment_method: currentMethod,
+        payment_gateway: 'STRIPE',
+        gateway_payment_id: txnRef,
+        card_last4: cardLast4 || '4242',
+        card_network: cardBrand || 'VISA',
+        status: 'COMPLETED',
+        verified_at: new Date().toISOString()
+      }]).then(function () {});
+    }
+
+    // Sync to Backend Delivery Spreadsheet / Log
+    var cust = (currentOrder && currentOrder.customer) || {};
+    var deliveryPayload = {
+      orderId: orderId,
+      paymentId: payId,
+      customerName: cust.name || 'Kishore V',
+      phone: cust.phone || '+91 98765 43210',
+      email: cust.email || 'customer@sangofiora.com',
+      address: cust.address || 'Emerald Heights',
+      city: cust.city || 'Bangalore',
+      state: cust.state || 'Karnataka',
+      pincode: cust.pincode || '560001',
+      instructions: cust.landmark || '',
+      items: (currentOrder && currentOrder.items) ? currentOrder.items.length + ' items' : 'Botanicals',
+      total: (currentOrder && currentOrder.netTotal) || 0,
+      paymentMethod: currentMethod,
+      paymentStatus: 'PAID'
+    };
+
+    fetch('http://localhost:8080/api/spreadsheet/delivery', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(deliveryPayload)
+    }).catch(function () {});
+
+    // Clear CartEngine
+    if (window.CartEngine) window.CartEngine.clearCart();
+
+    // Redirect to Order Success Page
+    setTimeout(function () {
+      window.location.href = '/order-success/?orderId=' + encodeURIComponent(orderId) + '&paymentId=' + encodeURIComponent(payId);
+    }, 600);
+  }
+
+  // ─── Stripe Global Gateway Handler ───
+  var stripeForm = document.getElementById('stripe-form');
+  var stripeCardName = document.getElementById('stripe-card-name');
+  var stripeCardNum = document.getElementById('stripe-card-number');
+  var stripeCardExp = document.getElementById('stripe-card-exp');
+  var stripeCardCvc = document.getElementById('stripe-card-cvc');
+  var stripeBrandBadge = document.getElementById('stripe-card-brand-badge');
+  var stripeErrorMsg = document.getElementById('stripe-error-msg');
+  var btnSubmitStripe = document.getElementById('btn-submit-stripe');
+  var otpModal = document.getElementById('otp-modal');
+  var btnCloseOtp = document.getElementById('btn-close-otp');
+  var btnSubmitOtp = document.getElementById('btn-submit-otp');
+
+  // Stripe card number formatting & brand detection
+  if (stripeCardNum) {
+    stripeCardNum.addEventListener('input', function () {
+      var val = stripeCardNum.value.replace(/\D/g, '').substring(0, 16);
+      var formatted = val.match(/.{1,4}/g)?.join(' ') || val;
+      stripeCardNum.value = formatted;
+      if (stripeBrandBadge) {
+        if (val.startsWith('4')) stripeBrandBadge.textContent = 'VISA';
+        else if (val.startsWith('5') || val.startsWith('2')) stripeBrandBadge.textContent = 'MASTERCARD';
+        else if (val.startsWith('3')) stripeBrandBadge.textContent = 'AMEX';
+        else if (val.startsWith('6')) stripeBrandBadge.textContent = 'RUPAY';
+        else stripeBrandBadge.textContent = 'CARD';
+      }
+    });
+  }
+
+  // Stripe expiration formatting (MM/YY)
+  if (stripeCardExp) {
+    stripeCardExp.addEventListener('input', function () {
+      var val = stripeCardExp.value.replace(/\D/g, '').substring(0, 4);
+      if (val.length >= 2) val = val.substring(0, 2) + ' / ' + val.substring(2);
+      stripeCardExp.value = val;
+    });
+  }
+
+  // Sandbox Presets
+  var presetSuccess = document.getElementById('btn-stripe-preset-success');
+  var preset3ds = document.getElementById('btn-stripe-preset-3ds');
+  var presetDecline = document.getElementById('btn-stripe-preset-decline');
+
+  if (presetSuccess) {
+    presetSuccess.addEventListener('click', function () {
+      if (stripeCardName) stripeCardName.value = 'Kishore V';
+      if (stripeCardNum) { stripeCardNum.value = '4242 4242 4242 4242'; stripeCardNum.dispatchEvent(new Event('input')); }
+      if (stripeCardExp) { stripeCardExp.value = '12 / 28'; }
+      if (stripeCardCvc) stripeCardCvc.value = '123';
+      if (stripeErrorMsg) stripeErrorMsg.classList.add('hidden');
+    });
+  }
+
+  if (preset3ds) {
+    preset3ds.addEventListener('click', function () {
+      if (stripeCardName) stripeCardName.value = 'Kishore V';
+      if (stripeCardNum) { stripeCardNum.value = '4000 0027 6000 3184'; stripeCardNum.dispatchEvent(new Event('input')); }
+      if (stripeCardExp) { stripeCardExp.value = '12 / 28'; }
+      if (stripeCardCvc) stripeCardCvc.value = '123';
+      if (stripeErrorMsg) stripeErrorMsg.classList.add('hidden');
+    });
+  }
+
+  if (presetDecline) {
+    presetDecline.addEventListener('click', function () {
+      if (stripeCardName) stripeCardName.value = 'Test Decline';
+      if (stripeCardNum) { stripeCardNum.value = '4000 0000 0000 0002'; stripeCardNum.dispatchEvent(new Event('input')); }
+      if (stripeCardExp) { stripeCardExp.value = '12 / 28'; }
+      if (stripeCardCvc) stripeCardCvc.value = '999';
+      if (stripeErrorMsg) stripeErrorMsg.classList.add('hidden');
+    });
+  }
+
+  // Stripe Form Submit
+  if (stripeForm) {
+    stripeForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var rawNum = (stripeCardNum ? stripeCardNum.value : '').replace(/\s+/g, '');
+      if (rawNum.length < 15) {
+        if (stripeErrorMsg) {
+          stripeErrorMsg.textContent = 'Please enter a valid 16-digit card number.';
+          stripeErrorMsg.classList.remove('hidden');
+        }
+        return;
+      }
+
+      // Simulate declined test card
+      if (rawNum.startsWith('4000000000000002')) {
+        if (stripeErrorMsg) {
+          stripeErrorMsg.textContent = '❌ Card Declined: Your card was declined by the issuer (Stripe code: generic_decline). Please use another card.';
+          stripeErrorMsg.classList.remove('hidden');
+        }
+        return;
+      }
+
+      // Simulate 3DS OTP modal
+      if (rawNum.startsWith('4000002760003184')) {
+        if (otpModal) {
+          otpModal.classList.remove('hidden');
+          setTimeout(function () { otpModal.classList.remove('opacity-0'); }, 10);
+        }
+        return;
+      }
+
+      if (btnSubmitStripe) {
+        btnSubmitStripe.disabled = true;
+        btnSubmitStripe.innerHTML = '<span class="inline-block animate-spin mr-2">🌿</span> Authorizing with Stripe Payment Network...';
+      }
+
+      var cardLast4 = rawNum.slice(-4);
+      var brand = (stripeBrandBadge ? stripeBrandBadge.textContent : 'VISA') || 'VISA';
+      var payId = 'PAY-STRIPE-' + Math.floor(100000 + Math.random() * 900000);
+      var txnRef = 'ch_stripe_' + Math.floor(10000000 + Math.random() * 90000000);
+
+      currentMethod = 'STRIPE';
+      finalizePaymentAndRedirect(payId, txnRef, cardLast4, brand);
+    });
+  }
+
+  // OTP Modal handlers
+  if (btnCloseOtp && otpModal) {
+    btnCloseOtp.addEventListener('click', function () {
+      otpModal.classList.add('opacity-0');
+      setTimeout(function () { otpModal.classList.add('hidden'); }, 300);
+    });
+  }
+
+  if (btnSubmitOtp) {
+    btnSubmitOtp.addEventListener('click', function () {
+      btnSubmitOtp.disabled = true;
+      btnSubmitOtp.innerHTML = '<span class="inline-block animate-spin mr-2">🌿</span> Authorizing 3D-Secure 2.0...';
+      setTimeout(function () {
+        if (otpModal) otpModal.classList.add('hidden');
+        var payId = 'PAY-STRIPE-3DS-' + Math.floor(100000 + Math.random() * 900000);
+        var txnRef = 'ch_stripe_3ds_' + Math.floor(10000000 + Math.random() * 90000000);
+        currentMethod = 'STRIPE';
+        finalizePaymentAndRedirect(payId, txnRef, '3184', 'VISA');
+      }, 800);
+    });
+  }
+
+  // UPI Simulate button
+  var upiBtn = document.getElementById('btn-simulate-upi-success');
+  if (upiBtn) {
+    upiBtn.addEventListener('click', function () {
+      upiBtn.disabled = true;
+      upiBtn.innerHTML = '<span class="inline-block animate-spin mr-2">🌿</span> Authorizing UPI Instant Payment...';
+      setTimeout(function () {
+        currentMethod = 'UPI';
+        finalizePaymentAndRedirect('PAY-UPI-' + Math.floor(100000 + Math.random() * 900000), 'upi_txn_' + Date.now(), null, 'UPI');
+      }, 700);
+    });
+  }
+
+  // NetBanking button
+  var bankBtn = document.getElementById('btn-submit-bank');
+  if (bankBtn) {
+    bankBtn.addEventListener('click', function () {
+      bankBtn.disabled = true;
+      bankBtn.innerHTML = '<span class="inline-block animate-spin mr-2">🌿</span> Routing to Banking Gateway...';
+      setTimeout(function () {
+        currentMethod = 'NETBANKING';
+        finalizePaymentAndRedirect('PAY-NET-' + Math.floor(100000 + Math.random() * 900000), 'nb_txn_' + Date.now(), null, 'NETBANKING');
+      }, 700);
+    });
+  }
+
+  // Cash on Delivery button
+  var codBtn = document.getElementById('btn-confirm-cod');
+  var codCheck = document.getElementById('cod-human-check');
+  if (codBtn) {
+    codBtn.addEventListener('click', function () {
+      if (codCheck && !codCheck.checked) {
+        alert('Please check the verification box confirming inspection upon delivery.');
+        return;
+      }
+      codBtn.disabled = true;
+      codBtn.innerHTML = '<span class="inline-block animate-spin mr-2">🌿</span> Confirming Order...';
+      setTimeout(function () {
+        currentMethod = 'COD';
+        finalizePaymentAndRedirect('PAY-COD-' + Math.floor(100000 + Math.random() * 900000), 'cod_verified', null, 'COD');
+      }, 500);
+    });
+  }
+
+  loadOrderDetails();
+});
+</script>

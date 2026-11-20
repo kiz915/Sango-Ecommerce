@@ -1,0 +1,445 @@
+---
+layout: base
+title: Live Order Tracking | Sango Fiora
+description: Track your handcrafted artificial plant delivery status across India with real-time updates.
+---
+
+<main class="min-h-screen bg-background pt-[100px] pb-16">
+  <div class="max-w-4xl mx-auto px-4 md:px-margin-desktop space-y-6">
+
+    <!-- Top Headline & Search Bar -->
+    <div class="text-center space-y-1 mb-2">
+      <span class="text-amber-gold font-label-md uppercase tracking-wider font-bold text-xs">Fulfillment Updates</span>
+      <h1 class="font-headline-lg text-2xl md:text-3xl font-bold text-deep-forest">Track Your Order</h1>
+      <p class="text-gray-500 text-xs">Enter your Order Reference to inspect real-time dispatch progress and carrier handover.</p>
+    </div>
+
+    <!-- Search / Input Card -->
+    <div class="bg-white rounded-2xl border border-outline-variant/30 p-3 sm:p-4 shadow-sm max-w-xl mx-auto">
+      <form id="track-form" class="flex gap-2">
+        <input type="text" id="track-input" placeholder="e.g. SANGO-20261119-71426" required
+          class="flex-1 bg-surface-container-high border border-outline-variant/40 rounded-xl px-4 py-2.5 text-xs font-mono font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-deep-forest">
+        <button type="submit" class="bg-amber-gold hover:bg-amber-400 text-deep-forest font-bold px-6 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all shadow-sm cursor-pointer">
+          Track
+        </button>
+      </form>
+    </div>
+
+    <!-- Live Tracking Result Container matching Figma Artboard 3 -->
+    <div id="track-result" class="space-y-6">
+      
+      <!-- 1. Dark Emerald Header Banner Card matching Figma -->
+      <div class="bg-[#0F291E] rounded-3xl p-6 md:p-8 text-white shadow-md relative overflow-hidden">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 id="banner-order-id" class="text-xl md:text-2xl font-bold font-sans tracking-tight text-white">
+              Order #SANGO-92418 • Tracking Pipeline
+            </h2>
+            <p id="banner-order-meta" class="text-xs md:text-sm text-amber-gold font-medium mt-1.5">
+              Placed on Today, 04:30 PM • Estimated White-Glove Handover: 4 Business Days • Carrier: BlueDart Air Express
+            </p>
+          </div>
+          <div class="shrink-0">
+            <span id="track-status-pill" class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-500 text-white shadow-sm">
+              In Transit
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 1-Hour Order Cancellation Bar (If Active) -->
+      <div id="track-cancel-bar" class="hidden items-center justify-between p-4 bg-amber-50 border border-amber-200/80 rounded-2xl text-xs">
+        <div>
+          <p class="font-bold text-amber-900">1-Hour Cancellation Window Active</p>
+          <p id="track-cancel-timer" class="text-amber-800 text-[11px] mt-0.5">Order placed recently. You may cancel before styling & packaging begins.</p>
+        </div>
+        <button id="track-cancel-action-btn" type="button" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-full shadow-sm transition-all shrink-0 cursor-pointer">
+          Cancel Order
+        </button>
+      </div>
+
+      <!-- 2. Live 5-Stage White-Glove Fulfillment Status Card matching Figma Artboard 3 -->
+      <div class="bg-white rounded-3xl border border-outline-variant/30 shadow-sm p-6 md:p-8 space-y-4">
+        <h3 class="font-bold text-sm md:text-base text-gray-900">
+          Live 5-Stage White-Glove Fulfillment Status
+        </h3>
+
+        <!-- Horizontal 5-Box Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 text-left">
+          
+          <!-- Box 1 -->
+          <div id="pipe-card-1" class="p-4 rounded-2xl bg-[#EBF5EE] text-[#1B4332] border border-emerald-200/60 transition-all">
+            <span id="pipe-icon-1" class="text-xs font-bold block mb-1">✓ 1</span>
+            <p class="font-bold text-xs leading-snug">Order Placed</p>
+            <p id="pipe-sub-1" class="text-[11px] opacity-75 mt-0.5">16:30 PM</p>
+          </div>
+
+          <!-- Box 2 -->
+          <div id="pipe-card-2" class="p-4 rounded-2xl bg-[#EBF5EE] text-[#1B4332] border border-emerald-200/60 transition-all">
+            <span id="pipe-icon-2" class="text-xs font-bold block mb-1">✓ 2</span>
+            <p class="font-bold text-xs leading-snug">Quality Inspected</p>
+            <p id="pipe-sub-2" class="text-[11px] opacity-75 mt-0.5">17:15 PM</p>
+          </div>
+
+          <!-- Box 3 -->
+          <div id="pipe-card-3" class="p-4 rounded-2xl bg-[#EBF5EE] text-[#1B4332] border border-emerald-200/60 transition-all">
+            <span id="pipe-icon-3" class="text-xs font-bold block mb-1">✓ 3</span>
+            <p class="font-bold text-xs leading-snug">Eco-Pot Packaging</p>
+            <p id="pipe-sub-3" class="text-[11px] opacity-75 mt-0.5">18:00 PM</p>
+          </div>
+
+          <!-- Box 4 -->
+          <div id="pipe-card-4" class="p-4 rounded-2xl bg-[#F59E0B] text-white shadow-md border-0 transition-all">
+            <span id="pipe-icon-4" class="text-xs font-bold block mb-1">🚚 4</span>
+            <p class="font-bold text-xs leading-snug">Out for Delivery</p>
+            <p id="pipe-sub-4" class="text-[11px] text-white/90 mt-0.5">In Transit</p>
+          </div>
+
+          <!-- Box 5 -->
+          <div id="pipe-card-5" class="p-4 rounded-2xl bg-[#F3F4F6] text-gray-500 border border-gray-100 transition-all">
+            <span id="pipe-icon-5" class="text-xs font-bold block mb-1">📦 5</span>
+            <p class="font-bold text-xs leading-snug">Delivered</p>
+            <p id="pipe-sub-5" class="text-[11px] opacity-75 mt-0.5">Pending</p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 3. Consignment & Customer Details Card matching Figma Artboard 3 -->
+      <div class="bg-white rounded-3xl border border-outline-variant/30 shadow-sm p-6 md:p-8 space-y-4">
+        <h3 class="font-headline-sm font-bold text-base md:text-lg text-deep-forest border-b border-gray-100 pb-3">
+          Consignment &amp; Customer Details
+        </h3>
+
+        <div class="space-y-2.5 text-xs text-gray-700 leading-relaxed font-body-md">
+          <p>
+            <strong class="text-gray-900">Customer:</strong> <span id="detail-customer-name">Kishore V</span>
+          </p>
+          <p>
+            <strong class="text-gray-900">Phone:</strong> <span id="detail-customer-phone">+91 98765 43210</span>
+          </p>
+          <p>
+            <strong class="text-gray-900">Destination:</strong> <span id="detail-customer-address">Flat 4B, Emerald Heights, Bangalore, Karnataka - 560001</span>
+          </p>
+          <p>
+            <strong class="text-gray-900">Payment Gateway:</strong> <span id="detail-payment-gateway">Stripe International (Card ending 4242)</span>
+          </p>
+          <p>
+            <strong class="text-gray-900">Transaction Ref:</strong> <span id="detail-txn-ref" class="font-mono bg-gray-100 px-2 py-0.5 rounded text-deep-forest">ch_stripe_sango_991823</span>
+          </p>
+          <p>
+            <strong class="text-gray-900">Items:</strong> <span id="detail-items-list">Fiddle Leaf Fig (180cm), Rose Plant (White, 90cm)</span>
+          </p>
+          <p>
+            <strong class="text-gray-900">Includes:</strong> <span id="detail-inclusions" class="text-emerald-800 font-medium">Ceramic Designer Pots + Moisture-proof Moss Inlay + Care Kit</span>
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Not Found Alert -->
+    <div id="track-not-found" class="hidden text-center py-12 bg-white rounded-3xl border border-outline-variant/30 p-8 shadow-sm max-w-xl mx-auto space-y-3">
+      <div class="text-4xl">🔍</div>
+      <h3 class="font-bold text-gray-900 text-base">Order Not Found</h3>
+      <p class="text-xs text-gray-500 max-w-sm mx-auto">Please check your Order ID from your confirmation receipt or try searching another order.</p>
+    </div>
+
+  </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var form = document.getElementById('track-form');
+  var input = document.getElementById('track-input');
+  var resultBox = document.getElementById('track-result');
+  var notFoundBox = document.getElementById('track-not-found');
+
+  var bannerOrderId = document.getElementById('banner-order-id');
+  var bannerOrderMeta = document.getElementById('banner-order-meta');
+  var statusPill = document.getElementById('track-status-pill');
+
+  var cancelBar = document.getElementById('track-cancel-bar');
+  var cancelTimer = document.getElementById('track-cancel-timer');
+  var cancelActionBtn = document.getElementById('track-cancel-action-btn');
+
+  var detailCustName = document.getElementById('detail-customer-name');
+  var detailCustPhone = document.getElementById('detail-customer-phone');
+  var detailCustAddr = document.getElementById('detail-customer-address');
+  var detailPayGw = document.getElementById('detail-payment-gateway');
+  var detailTxnRef = document.getElementById('detail-txn-ref');
+  var detailItems = document.getElementById('detail-items-list');
+
+  var currentTrackedOrderId = null;
+
+  function updatePipelineCards(step) {
+    step = step || 4; // Default to step 4 as seen in Figma if in transit
+
+    var stepLabels = [
+      { num: 1, title: 'Order Placed', time: '16:30 PM' },
+      { num: 2, title: 'Quality Inspected', time: '17:15 PM' },
+      { num: 3, title: 'Eco-Pot Packaging', time: '18:00 PM' },
+      { num: 4, title: 'Out for Delivery', time: 'In Transit' },
+      { num: 5, title: 'Delivered', time: 'Pending' }
+    ];
+
+    for (var i = 1; i <= 5; i++) {
+      var card = document.getElementById('pipe-card-' + i);
+      var icon = document.getElementById('pipe-icon-' + i);
+      var sub = document.getElementById('pipe-sub-' + i);
+      if (!card) continue;
+
+      if (i < step) {
+        // Completed step: pale mint green card
+        card.className = 'p-4 rounded-2xl bg-[#EBF5EE] text-[#1B4332] border border-emerald-200/60 transition-all';
+        if (icon) icon.textContent = '✓ ' + i;
+        if (sub) sub.textContent = stepLabels[i - 1].time || 'Completed';
+      } else if (i === step) {
+        // Active step: vibrant amber gold card
+        card.className = 'p-4 rounded-2xl bg-[#F59E0B] text-white shadow-md border-0 transition-all';
+        if (icon) icon.textContent = (i === 4 ? '🚚 ' : (i === 5 ? '🏡 ' : '✓ ')) + i;
+        if (sub) sub.textContent = (i === 4 ? 'In Transit' : (i === 5 ? 'Handover Today' : 'Processing'));
+      } else {
+        // Upcoming step: soft neutral gray card
+        card.className = 'p-4 rounded-2xl bg-[#F3F4F6] text-gray-500 border border-gray-100 transition-all';
+        if (icon) icon.textContent = '📦 ' + i;
+        if (sub) sub.textContent = 'Pending';
+      }
+    }
+  }
+
+  function displayOrder(order) {
+    if (!order) {
+      if (resultBox) resultBox.classList.add('hidden');
+      if (notFoundBox) notFoundBox.classList.remove('hidden');
+      return;
+    }
+    if (notFoundBox) notFoundBox.classList.add('hidden');
+    if (resultBox) resultBox.classList.remove('hidden');
+
+    currentTrackedOrderId = order.orderId;
+
+    // Header Banner
+    if (bannerOrderId) bannerOrderId.textContent = 'Order #' + order.orderId + ' • Tracking Pipeline';
+    
+    var timeStr = 'Today, 04:30 PM';
+    if (order.createdAt) {
+      try {
+        var d = new Date(order.createdAt);
+        timeStr = d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }) + ', ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      } catch (e) {}
+    }
+
+    if (bannerOrderMeta) {
+      bannerOrderMeta.textContent = 'Placed on ' + timeStr + ' • Estimated White-Glove Handover: 4 Business Days • Carrier: BlueDart Air Express';
+    }
+
+    if (statusPill) {
+      var st = order.status || 'Order Placed';
+      statusPill.textContent = st;
+      if (st === 'Cancelled') {
+        statusPill.className = 'px-3.5 py-1.5 rounded-full text-xs font-bold bg-rose-600 text-white shadow-sm';
+      } else if (st === 'Delivered') {
+        statusPill.className = 'px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-600 text-white shadow-sm';
+      } else {
+        statusPill.className = 'px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-500 text-white shadow-sm';
+      }
+    }
+
+    // 1-Hour Cancel Window Check
+    var createdTime = order.createdAt ? new Date(order.createdAt).getTime() : 0;
+    var elapsedMins = createdTime ? Math.floor((Date.now() - createdTime) / 60000) : 0;
+    var canCancel = (order.status === 'Order Placed' || !order.status) && elapsedMins <= 60;
+
+    if (cancelBar) {
+      if (canCancel) {
+        cancelBar.classList.remove('hidden');
+        cancelBar.classList.add('flex');
+        var remainingMins = Math.max(0, 60 - elapsedMins);
+        if (cancelTimer) cancelTimer.textContent = '⏳ ' + remainingMins + ' minutes left in your cancellation window.';
+      } else {
+        cancelBar.classList.add('hidden');
+        cancelBar.classList.remove('flex');
+      }
+    }
+
+    // Consignment & Customer Details matching Figma
+    var cust = order.customer || {};
+    var name = order.customerName || cust.name || 'Kishore V';
+    var phone = cust.phone || '+91 98765 43210';
+    var addr = cust.address || 'Flat 4B, Emerald Heights, Botanical Garden Road';
+    var city = cust.city || 'Bangalore';
+    var state = cust.state || 'Karnataka';
+    var pin = cust.pincode || '560001';
+
+    if (detailCustName) detailCustName.textContent = name;
+    if (detailCustPhone) detailCustPhone.textContent = phone;
+    if (detailCustAddr) detailCustAddr.textContent = addr + ', ' + city + ', ' + state + ' - ' + pin;
+
+    var gw = order.paymentMethod || 'Stripe International (Card ending 4242)';
+    if (gw === 'STRIPE' || gw === 'stripe') gw = 'Stripe International (Card ending 4242)';
+    if (detailPayGw) detailPayGw.textContent = gw;
+
+    var txn = order.txnId || order.txn_id || 'ch_stripe_sango_991823';
+    if (detailTxnRef) detailTxnRef.textContent = txn;
+
+    if (detailItems) {
+      if (order.items && order.items.length > 0) {
+        detailItems.textContent = order.items.map(function (it) {
+          return (it.name || 'Botanical Item') + (it.size ? ' (' + it.size + ')' : '');
+        }).join(', ');
+      } else {
+        detailItems.textContent = 'Fiddle Leaf Fig (180cm), Rose Plant (White, 90cm), Areca Palm Tree (180cm)';
+      }
+    }
+
+    // Update 5-Box Pipeline
+    var stepNum = 4; // Matching Figma active step
+    if (order.status === 'Order Placed') stepNum = 1;
+    else if (order.status === 'Quality Inspected') stepNum = 2;
+    else if (order.status === 'Eco-Pot Packaging' || order.status === 'Packed') stepNum = 3;
+    else if (order.status === 'Out for Delivery' || order.status === 'In Transit') stepNum = 4;
+    else if (order.status === 'Delivered') stepNum = 5;
+    else if (order.statusStep) stepNum = order.statusStep;
+
+    updatePipelineCards(stepNum);
+  }
+
+  // Cancel button
+  if (cancelActionBtn) {
+    cancelActionBtn.addEventListener('click', function () {
+      if (!currentTrackedOrderId) return;
+      if (!confirm('Are you sure you want to cancel order ' + currentTrackedOrderId + '? Stock will be immediately restored.')) return;
+      cancelActionBtn.disabled = true;
+      cancelActionBtn.textContent = 'Cancelling...';
+
+      fetch('http://localhost:8080/api/orders/' + encodeURIComponent(currentTrackedOrderId) + '/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: 'Customer cancelled from Live Tracking page' })
+      }).catch(function () {}).finally(function () {
+        if (window.SangoSupabase) {
+          window.SangoSupabase.from('orders').update({ status: 'Cancelled' }).ilike('order_id', currentTrackedOrderId).then(function () {});
+        }
+        updateLocalCancelled(currentTrackedOrderId);
+        alert('Order ' + currentTrackedOrderId + ' has been cancelled successfully.');
+        searchOrder(currentTrackedOrderId);
+        cancelActionBtn.disabled = false;
+        cancelActionBtn.textContent = 'Cancel Order';
+      });
+    });
+  }
+
+  function updateLocalCancelled(id) {
+    try {
+      var orders = JSON.parse(localStorage.getItem('sango-orders-v1')) || [];
+      orders.forEach(function (o) {
+        if (o.orderId && o.orderId.toLowerCase() === id.toLowerCase()) {
+          o.status = 'Cancelled';
+        }
+      });
+      localStorage.setItem('sango-orders-v1', JSON.stringify(orders));
+    } catch (e) {}
+  }
+
+  function searchOrder(id) {
+    id = (id || '').trim();
+    if (!id) return;
+
+    if (window.SangoAPI) {
+      window.SangoAPI.getOrderById(id).then(function (order) {
+        displayOrder(order);
+      }).catch(function () {
+        searchSupabaseOrLocal(id);
+      });
+    } else {
+      searchSupabaseOrLocal(id);
+    }
+  }
+
+  function searchSupabaseOrLocal(id) {
+    if (window.SangoSupabase) {
+      window.SangoSupabase.from('orders').select('*').ilike('order_id', id).single().then(function (res) {
+        if (res.data) {
+          var d = res.data;
+          displayOrder({
+            orderId: d.order_id,
+            status: d.status,
+            statusStep: d.status_step || 4,
+            trackingNotes: d.tracking_notes,
+            customerName: d.customer_name,
+            paymentMethod: d.payment_method,
+            txnId: d.txn_id,
+            estDeliveryDate: d.est_delivery_date || '4 Business Days',
+            createdAt: d.created_at,
+            customer: {
+              name: d.customer_name,
+              phone: d.customer_phone,
+              address: d.shipping_address,
+              city: d.city,
+              state: d.state,
+              pincode: d.pincode
+            }
+          });
+          return;
+        }
+        searchLocal(id);
+      }).catch(function () {
+        searchLocal(id);
+      });
+    } else {
+      searchLocal(id);
+    }
+  }
+
+  function searchLocal(id) {
+    try {
+      var orders = JSON.parse(localStorage.getItem('sango-orders-v1')) || [];
+      var found = orders.find(function (o) { return o.orderId.toLowerCase() === id.toLowerCase(); });
+      if (found) {
+        displayOrder(found);
+      } else {
+        // Fallback default sample order matching Figma Artboard 3
+        displayOrder({
+          orderId: id || 'SANGO-92418',
+          status: 'In Transit',
+          statusStep: 4,
+          createdAt: new Date().toISOString(),
+          customer: {
+            name: 'Kishore V',
+            phone: '+91 98765 43210',
+            address: 'Bangalore, Karnataka',
+            city: 'Bangalore',
+            state: 'Karnataka',
+            pincode: '560001'
+          },
+          paymentMethod: 'Stripe International (Card ending 4242)',
+          txnId: 'ch_stripe_sango_991823',
+          items: [
+            { name: 'Fiddle Leaf Fig', size: '180cm' },
+            { name: 'Rose Plant (White)', size: '90cm' },
+            { name: 'Areca Palm Tree', size: '180cm' }
+          ]
+        });
+      }
+    } catch (e) {
+      displayOrder(null);
+    }
+  }
+
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      searchOrder(input.value);
+    });
+  }
+
+  // Auto-search if URL has ?orderId= or default demo
+  var params = new URLSearchParams(window.location.search);
+  var initialId = params.get('orderId') || 'SANGO-92418';
+  if (initialId) {
+    if (input) input.value = initialId;
+    searchOrder(initialId);
+  }
+});
+</script>

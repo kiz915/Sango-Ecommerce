@@ -10,8 +10,8 @@
   'use strict';
 
   // ─── YOUR SUPABASE CREDENTIALS ───
-  var SUPABASE_URL = 'https://qyhimioejmuaaxrjxqpz.supabase.co';
-  var SUPABASE_ANON_KEY = 'sb_publishable_HBqVRHRbXEXKPp6FdytVAQ_jgiUr5D7';
+  var SUPABASE_URL = 'https://hyecifzfswwrhsyrrxmw.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh5ZWNpZnpmc3d3cmhzeXJyeG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTUwODg2NDIsImV4cCI6MjExMDY2NDY0Mn0.x8E0EmVsUK2SF2pa3CdPImJJe385F97bdu6RYCecN4M';
   // ─────────────────────────────────────────────────────
   // ─────────────────────────────────────────────────────
 
@@ -38,7 +38,14 @@
     return;
   }
 
-  var client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  var client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storage: window.localStorage
+    }
+  });
 
   window.SangoSupabase = client;
   window.SUPABASE_CONFIGURED = true;

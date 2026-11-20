@@ -91,6 +91,12 @@ description: Review your artificial plants selection, apply coupon codes, and pr
             <button type="button" id="btn-back-to-1" class="text-xs font-bold text-deep-forest hover:underline font-label-sm">← Back to Cart</button>
           </div>
 
+          <!-- 1-Click Returning Customer Profile Banner -->
+          <div id="one-click-profile-banner" class="hidden items-center gap-2.5 p-3.5 bg-emerald-50 border border-emerald-200/80 rounded-2xl text-emerald-950 text-xs font-medium">
+            <span class="text-base">✨</span>
+            <span><strong>1-Click Checkout:</strong> Delivery address and contact details auto-filled from your previous verified order.</span>
+          </div>
+
           <form id="shipping-address-form" class="space-y-4" novalidate>
             <div class="grid sm:grid-cols-2 gap-4">
               <div>
@@ -201,10 +207,11 @@ description: Review your artificial plants selection, apply coupon codes, and pr
             </label>
           </div>
 
-          <div class="pt-4 flex justify-between items-center">
-            <button type="button" id="btn-back-to-2-b" class="text-xs font-bold text-on-surface-variant hover:underline font-label-sm">← Back</button>
-            <button type="button" id="btn-place-order" class="btn-animated bg-amber-gold hover:bg-amber-400 text-deep-forest px-8 py-4 rounded-full font-bold text-base shadow-xl shadow-amber-gold/20">
-              ⚡ Confirm &amp; Place Order
+          <div class="pt-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <button type="button" id="btn-back-to-2-b" class="text-xs font-bold text-on-surface-variant hover:underline font-label-sm">← Back to Shipping</button>
+            <button type="button" id="btn-place-order" class="w-full sm:w-auto btn-animated bg-amber-gold hover:bg-amber-400 text-deep-forest px-10 py-4 rounded-full font-bold text-base shadow-xl shadow-amber-gold/25 flex items-center justify-center gap-3 transition-all cursor-pointer">
+              <span id="btn-place-order-text">⚡ Proceed to Pay &amp; Place Order →</span>
+              <span class="text-[11px] font-semibold bg-deep-forest text-white px-2.5 py-0.5 rounded-full">100% Secure</span>
             </button>
           </div>
         </div>
@@ -263,7 +270,7 @@ description: Review your artificial plants selection, apply coupon codes, and pr
           </div>
 
           <div class="pt-2 text-center text-[11px] text-on-surface-variant/80 border-t border-outline-variant/30 space-y-1">
-            <p class="font-bold text-deep-forest">🔒 Razorpay Secure Transaction</p>
+            <p class="font-bold text-deep-forest">🔒 Stripe &amp; SSL Secure Gateway</p>
             <p>Pan-India direct delivery guarantee</p>
           </div>
         </div>
