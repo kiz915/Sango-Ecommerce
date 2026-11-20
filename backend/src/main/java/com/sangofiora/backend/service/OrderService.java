@@ -11,6 +11,7 @@ import com.sangofiora.backend.repository.CustomerProfileRepository;
 import com.sangofiora.backend.repository.OrderRepository;
 import com.sangofiora.backend.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,12 +29,14 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OrderService {
 
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final CouponService couponService;
     private final CustomerProfileRepository customerProfileRepository;
+    private final SpreadsheetService spreadsheetService;
 
     private static final int FREE_SHIPPING_THRESHOLD = 999;
     private static final int STANDARD_DELIVERY_FEE = 99;
@@ -171,6 +175,30 @@ public class OrderService {
         }
 
         Order savedOrder = orderRepository.save(order);
+
+        // Record in live delivery spreadsheet for Admin Studio
+        try {
+            if (spreadsheetService != null) {
+                Map<String, Object> deliv = new HashMap<>();
+                deliv.put("orderId", savedOrder.getOrderId());
+                deliv.put("paymentId", savedOrder.getPaymentId() != null ? savedOrder.getPaymentId() : savedOrder.getTxnId());
+                deliv.put("customerName", savedOrder.getCustomerName());
+                deliv.put("phone", savedOrder.getCustomerPhone());
+                deliv.put("email", savedOrder.getCustomerEmail());
+                deliv.put("address", savedOrder.getShippingAddress());
+                deliv.put("city", savedOrder.getCity());
+                deliv.put("state", savedOrder.getState());
+                deliv.put("pincode", savedOrder.getPincode());
+                deliv.put("instructions", savedOrder.getDeliveryInstructions() != null ? savedOrder.getDeliveryInstructions() : "");
+                deliv.put("items", items.stream().map(i -> i.getProductName() + " (x" + i.getQty() + ")").reduce((a, b) -> a + "; " + b).orElse(""));
+                deliv.put("total", String.valueOf(savedOrder.getNetTotal()));
+                deliv.put("paymentMethod", savedOrder.getPaymentMethod() != null ? savedOrder.getPaymentMethod() : "UPI");
+                deliv.put("paymentStatus", savedOrder.getStatus());
+                spreadsheetService.recordDeliveryOrder(deliv);
+            }
+        } catch (Exception ex) {
+            log.error("Failed to record delivery order to spreadsheet", ex);
+        }
 
         // 1-Click Checkout: Auto-save shipping address to customer profile
         if (request.getCustomerEmail() != null && !request.getCustomerEmail().trim().isEmpty()) {

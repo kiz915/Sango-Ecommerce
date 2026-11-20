@@ -44,8 +44,8 @@ WORKDIR /app
 # Create non-root user for security
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-# Create uploads directory and give ownership to appuser
-RUN mkdir -p /app/uploads/plants && chown -R appuser:appgroup /app
+# Create uploads and spreadsheets directories and give ownership to appuser
+RUN mkdir -p /app/uploads/plants /app/data/spreadsheets && chown -R appuser:appgroup /app
 
 # Copy JAR from build stage
 COPY --from=backend-builder /app/target/*.jar app.jar

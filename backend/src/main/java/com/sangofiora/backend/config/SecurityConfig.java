@@ -22,9 +22,21 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/health", "/api/products/**", "/api/categories/**", "/api/contact/**", "/api/coupons/**", "/api/spreadsheet/**", "/h2-console/**", "/error").permitAll()
+                .requestMatchers(
+                    "/api/health",
+                    "/api/products/**",
+                    "/api/categories/**",
+                    "/api/contact/**",
+                    "/api/coupons/**",
+                    "/api/spreadsheet/**",
+                    "/api/orders/**",
+                    "/api/payments/**",
+                    "/uploads/**",
+                    "/h2-console/**",
+                    "/error"
+                ).permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/cart/**", "/api/orders/**", "/api/payments/**", "/api/customer/**").authenticated()
+                .requestMatchers("/api/cart/**", "/api/customer/**").authenticated()
                 .anyRequest().permitAll()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)

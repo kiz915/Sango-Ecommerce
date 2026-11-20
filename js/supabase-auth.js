@@ -14,6 +14,7 @@
   // Current user state
   var currentUser = null;
   var currentProfile = null;
+  var currentAccessToken = null;
 
   window.SangoAuth = {
     // ─── Get Current User & Auth State ───
@@ -25,10 +26,35 @@
       return ['kishorevk40@gmail.com', 'shamnaraja07@gmail.com'].indexOf(email) !== -1 || (currentProfile && currentProfile.role === 'admin');
     },
 
+    // ─── Get Current Auth Token (JWT or Admin Token) ───
+    getToken: function () {
+      if (currentAccessToken) return currentAccessToken;
+      try {
+        var saved = JSON.parse(localStorage.getItem('sango_auth_session') || '{}');
+        if (saved && saved.access_token) return saved.access_token;
+      } catch (e) {}
+      try {
+        for (var i = 0; i < localStorage.length; i++) {
+          var k = localStorage.key(i);
+          if (k && k.indexOf('sb-') === 0 && k.indexOf('-auth-token') !== -1) {
+            var raw = JSON.parse(localStorage.getItem(k));
+            if (raw && raw.access_token) return raw.access_token;
+            if (raw && raw.session && raw.session.access_token) return raw.session.access_token;
+          }
+        }
+      } catch (e) {}
+      var u = currentUser || (window.SangoAuth.getUser && window.SangoAuth.getUser());
+      if (u && u.email && window.SangoAuth.isAdmin()) {
+        return 'admin:' + u.email;
+      }
+      return null;
+    },
+
     // ─── Set Session (Programmatic & Testing Helper) ───
     setSession: function (sessionData) {
       if (!sessionData) return;
       currentUser = sessionData.user || sessionData;
+      currentAccessToken = sessionData.access_token || (sessionData.session && sessionData.session.access_token) || (currentUser.email ? ('admin:' + currentUser.email) : null);
       if (sessionData.profile) {
         currentProfile = sessionData.profile;
       } else {
@@ -42,7 +68,7 @@
         };
       }
       try {
-        localStorage.setItem('sango_auth_session', JSON.stringify({ user: currentUser, profile: currentProfile }));
+        localStorage.setItem('sango_auth_session', JSON.stringify({ user: currentUser, profile: currentProfile, access_token: currentAccessToken }));
       } catch (e) {}
       updateAuthUI();
       if (window.AppEvent) window.AppEvent.emit('auth:changed', { user: currentUser, profile: currentProfile });
@@ -168,6 +194,7 @@
         if (saved && saved.user) {
           currentUser = saved.user;
           if (saved.profile) currentProfile = saved.profile;
+          if (saved.access_token) currentAccessToken = saved.access_token;
           updateAuthUI();
         }
       } catch (e) {}
@@ -182,6 +209,7 @@
         if (event === 'SIGNED_OUT') {
           currentUser = null;
           currentProfile = null;
+          currentAccessToken = null;
           try { localStorage.removeItem('sango_auth_session'); } catch (e) {}
           updateAuthUI();
           if (window.AppEvent) window.AppEvent.emit('auth:changed', { user: null, profile: null });
@@ -190,6 +218,7 @@
 
         if (session && session.user) {
           currentUser = session.user;
+          currentAccessToken = session.access_token || null;
           if (!currentProfile) {
             var em = (currentUser.email || '').toLowerCase();
             currentProfile = {
@@ -200,13 +229,13 @@
             };
           }
           try {
-            localStorage.setItem('sango_auth_session', JSON.stringify({ user: currentUser, profile: currentProfile }));
+            localStorage.setItem('sango_auth_session', JSON.stringify({ user: currentUser, profile: currentProfile, access_token: currentAccessToken }));
           } catch (e) {}
 
           window.SangoAuth.fetchProfile().then(function (prof) {
             if (prof) currentProfile = prof;
             try {
-              localStorage.setItem('sango_auth_session', JSON.stringify({ user: currentUser, profile: currentProfile }));
+              localStorage.setItem('sango_auth_session', JSON.stringify({ user: currentUser, profile: currentProfile, access_token: currentAccessToken }));
             } catch (e) {}
             updateAuthUI();
             if (window.AppEvent) window.AppEvent.emit('auth:changed', { user: currentUser, profile: currentProfile });
@@ -218,10 +247,16 @@
       return window.SangoSupabase.auth.getSession().then(function (res) {
         if (res.data && res.data.session && res.data.session.user) {
           currentUser = res.data.session.user;
+          currentAccessToken = res.data.session.access_token || null;
           return window.SangoAuth.fetchProfile().then(function (prof) {
             if (prof) currentProfile = prof;
             try {
-              localStorage.setItem('sango_auth_session', JSON.stringify({ user: currentUser, profile: currentProfile }));
+              localStorage.setItem('sango_auth_session', JSON.stringify({ user: currentUser, profile: currentProfile, access_token: currentAccessToken }));
+            } catch (e) {}
+            updateAuthUI();
+            return currentUser;
+          });
+        }
             } catch (e) {}
             updateAuthUI();
             return currentUser;

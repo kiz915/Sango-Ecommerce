@@ -17,12 +17,41 @@
       'Accept': 'application/json'
     }, options.headers || {});
 
-    // Attach Supabase auth token if user is signed in
-    if (window.SangoAuth && window.SangoAuth.getUser()) {
-      var session = window.SangoSupabase && window.SangoSupabase.auth ? window.SangoSupabase.auth.session : null;
-      if (session && session.access_token) {
-        headers['Authorization'] = 'Bearer ' + session.access_token;
-      }
+    // Attach auth token if user/admin is signed in
+    var token = (window.SangoAuth && window.SangoAuth.getToken) ? window.SangoAuth.getToken() : null;
+    if (!token) {
+      try {
+        var saved = JSON.parse(localStorage.getItem('sango_auth_session') || '{}');
+        if (saved && saved.access_token) token = saved.access_token;
+        else if (saved && saved.user && saved.user.email) token = 'admin:' + saved.user.email;
+      } catch (e) {}
+    }
+    if (!token) {
+      try {
+        for (var i = 0; i < localStorage.length; i++) {
+          var k = localStorage.key(i);
+          if (k && k.indexOf('sb-') === 0 && k.indexOf('-auth-token') !== -1) {
+            var raw = JSON.parse(localStorage.getItem(k));
+            if (raw && raw.access_token) token = raw.access_token;
+            else if (raw && raw.session && raw.session.access_token) token = raw.session.access_token;
+          }
+        }
+      } catch (e) {}
+    }
+
+    if (token) {
+      headers['Authorization'] = 'Bearer ' + token;
+    }
+
+    var user = (window.SangoAuth && window.SangoAuth.getUser) ? window.SangoAuth.getUser() : null;
+    if (!user) {
+      try {
+        var sUser = JSON.parse(localStorage.getItem('sango_auth_session') || '{}');
+        user = sUser.user || sUser;
+      } catch (e) {}
+    }
+    if (user && user.email) {
+      headers['X-Admin-Email'] = user.email;
     }
 
     var config = {
@@ -203,12 +232,18 @@
     getAdminOrders: function () {
       return request('/admin/orders');
     },
+    adminGetOrders: function () {
+      return this.getAdminOrders();
+    },
 
     updateOrderStatus: function (orderDbId, status, step, trackingNotes) {
       return request('/admin/orders/' + encodeURIComponent(orderDbId) + '/status', {
         method: 'PATCH',
         body: { status: status, step: step, trackingNotes: trackingNotes }
       });
+    },
+    adminUpdateOrderStatus: function (orderDbId, status, step, trackingNotes) {
+      return this.updateOrderStatus(orderDbId, status, step, trackingNotes);
     },
 
     getAdminStats: function () {
@@ -220,6 +255,9 @@
         method: 'POST',
         body: product
       });
+    },
+    adminCreateProduct: function (product) {
+      return this.adminAddProduct(product);
     },
 
     adminUpdateProduct: function (id, product) {

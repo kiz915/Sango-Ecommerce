@@ -307,8 +307,35 @@
   // ═══════════════════════════════════════
   //  DASHBOARD
   // ═══════════════════════════════════════
+  function renderDashboardRecentOrders(orders) {
+    var wrap = document.getElementById('dashboard-recent-orders');
+    if (!wrap) return;
+    if (!orders || !orders.length) {
+      wrap.innerHTML = '<p class="p-8 text-center text-gray-400 text-sm">No orders yet. Customer orders will appear here automatically.</p>';
+      return;
+    }
+    wrap.innerHTML = '<table class="w-full text-xs"><thead class="bg-gray-50 border-b"><tr>' +
+      '<th class="text-left px-4 py-2 font-bold text-gray-500">Order ID</th>' +
+      '<th class="text-left px-4 py-2 font-bold text-gray-500">Customer</th>' +
+      '<th class="text-right px-4 py-2 font-bold text-gray-500">Total</th>' +
+      '<th class="text-center px-4 py-2 font-bold text-gray-500">Status</th>' +
+      '</tr></thead><tbody class="divide-y divide-gray-100">' +
+      orders.map(function (o) {
+        var oid = o.order_id || o.orderId || '';
+        var cname = o.customer_name || o.customerName || '';
+        var total = o.net_total != null ? o.net_total : (o.netTotal || 0);
+        var st = o.status || 'Order Placed';
+        return '<tr class="hover:bg-gray-50">' +
+          '<td class="px-4 py-3 font-bold mono">' + escapeHTML(oid) + '</td>' +
+          '<td class="px-4 py-3">' + escapeHTML(cname) + '</td>' +
+          '<td class="px-4 py-3 text-right font-bold">' + formatCurrency(total) + '</td>' +
+          '<td class="px-4 py-3 text-center"><span class="bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-[10px] font-bold">' + escapeHTML(st) + '</span></td>' +
+          '</tr>';
+      }).join('') + '</tbody></table>';
+  }
+
   function loadDashboard() {
-    // Attempt load from Spring Boot REST API
+    // 1. Primary: Load live metrics from Spring Boot REST API
     if (window.SangoAPI) {
       window.SangoAPI.getAdminStats().then(function (stats) {
         if (stats) {
@@ -316,15 +343,29 @@
           var sEl = document.getElementById('stat-soldout');
           var oEl = document.getElementById('stat-orders');
           var rEl = document.getElementById('stat-revenue');
-          if (pEl) pEl.textContent = stats.activeProducts;
-          if (sEl) sEl.textContent = stats.soldOutProducts;
-          if (oEl) oEl.textContent = stats.totalOrders;
-          if (rEl) rEl.textContent = formatCurrency(stats.totalRevenue);
+          if (pEl && stats.activeProducts != null) pEl.textContent = stats.activeProducts;
+          if (sEl && stats.soldOutProducts != null) sEl.textContent = stats.soldOutProducts;
+          if (oEl && stats.totalOrders != null) oEl.textContent = stats.totalOrders;
+          if (rEl && stats.totalRevenue != null) rEl.textContent = formatCurrency(stats.totalRevenue);
         }
       }).catch(function () {});
+
+      window.SangoAPI.getAdminOrders().then(function (orders) {
+        if (orders && Array.isArray(orders)) {
+          var oEl = document.getElementById('stat-orders');
+          var rEl = document.getElementById('stat-revenue');
+          if (oEl) oEl.textContent = orders.length;
+          var rev = orders.reduce(function (sum, ord) {
+            return sum + (ord.netTotal != null ? ord.netTotal : (ord.net_total || 0));
+          }, 0);
+          if (rEl) rEl.textContent = formatCurrency(rev);
+          renderDashboardRecentOrders(orders.slice(0, 5));
+        }
+      }).catch(function () {});
+      return;
     }
 
-    // Product stats
+    // 2. Fallback: Supabase client
     if (sb) {
       sb.from('products').select('id, is_sold_out, is_active', { count: 'exact' }).eq('is_active', true).then(function (res) {
         var products = res.data || [];
@@ -332,7 +373,6 @@
         document.getElementById('stat-soldout').textContent = products.filter(function (p) { return p.is_sold_out; }).length;
       });
 
-      // Order stats
       sb.from('orders').select('net_total', { count: 'exact' }).then(function (res) {
         var orders = res.data || [];
         document.getElementById('stat-orders').textContent = orders.length;
@@ -340,33 +380,11 @@
         document.getElementById('stat-revenue').textContent = formatCurrency(revenue);
       });
 
-      // Recent orders
       sb.from('orders').select('*').order('created_at', { ascending: false }).limit(5).then(function (res) {
-        var orders = res.data || [];
-        var wrap = document.getElementById('dashboard-recent-orders');
-        if (!wrap) return;
-        if (!orders.length) {
-          wrap.innerHTML = '<p class="p-8 text-center text-gray-400 text-sm">No orders yet. Orders placed by customers will appear here.</p>';
-          return;
-        }
-        wrap.innerHTML = '<table class="w-full text-xs"><thead class="bg-gray-50 border-b"><tr>' +
-          '<th class="text-left px-4 py-2 font-bold text-gray-500">Order ID</th>' +
-          '<th class="text-left px-4 py-2 font-bold text-gray-500">Customer</th>' +
-          '<th class="text-right px-4 py-2 font-bold text-gray-500">Total</th>' +
-          '<th class="text-center px-4 py-2 font-bold text-gray-500">Status</th>' +
-          '</tr></thead><tbody class="divide-y divide-gray-100">' +
-          orders.map(function (o) {
-            return '<tr class="hover:bg-gray-50">' +
-              '<td class="px-4 py-3 font-bold mono">' + escapeHTML(o.order_id) + '</td>' +
-              '<td class="px-4 py-3">' + escapeHTML(o.customer_name) + '</td>' +
-              '<td class="px-4 py-3 text-right font-bold">' + formatCurrency(o.net_total) + '</td>' +
-              '<td class="px-4 py-3 text-center"><span class="bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-[10px] font-bold">' + escapeHTML(o.status) + '</span></td>' +
-              '</tr>';
-          }).join('') + '</tbody></table>';
+        renderDashboardRecentOrders(res.data || []);
       });
     } else {
-      var wrap = document.getElementById('dashboard-recent-orders');
-      if (wrap) wrap.innerHTML = '<p class="p-8 text-center text-gray-400 text-sm">No orders yet. Customer orders will appear here in real-time.</p>';
+      renderDashboardRecentOrders([]);
     }
   }
 
@@ -669,11 +687,78 @@
   // ═══════════════════════════════════════
   var allOrders = [];
 
-  function loadOrders() {
-    sb.from('orders').select('*, order_items(*)').order('created_at', { ascending: false }).then(function (res) {
-      allOrders = res.data || [];
-      renderOrdersTable(allOrders);
+  function normalizeOrder(o) {
+    var rawItems = o.items || o.order_items || [];
+    var items = rawItems.map(function (it) {
+      return {
+        product_name: it.productName || it.product_name || 'Plant Item',
+        qty: it.qty || 1,
+        price: it.price || 0
+      };
     });
+
+    return {
+      id: o.id,
+      order_id: o.orderId || o.order_id || '',
+      orderId: o.orderId || o.order_id || '',
+      customer_name: o.customerName || o.customer_name || 'Customer',
+      customerName: o.customerName || o.customer_name || 'Customer',
+      customer_phone: o.customerPhone || o.customer_phone || '',
+      customerPhone: o.customerPhone || o.customer_phone || '',
+      customer_email: o.customerEmail || o.customer_email || '',
+      customerEmail: o.customerEmail || o.customer_email || '',
+      created_at: o.createdAt || o.created_at || new Date().toISOString(),
+      createdAt: o.createdAt || o.created_at || new Date().toISOString(),
+      net_total: o.netTotal != null ? o.netTotal : (o.net_total || 0),
+      netTotal: o.netTotal != null ? o.netTotal : (o.net_total || 0),
+      payment_status: o.paymentStatus || o.payment_status || 'Paid',
+      paymentStatus: o.paymentStatus || o.payment_status || 'Paid',
+      payment_method: o.paymentMethod || o.payment_method || 'UPI',
+      paymentMethod: o.paymentMethod || o.payment_method || 'UPI',
+      shipping_address: o.shippingAddress || o.shipping_address || '',
+      shippingAddress: o.shippingAddress || o.shipping_address || '',
+      city: o.city || '',
+      state: o.state || '',
+      pincode: o.pincode || '',
+      status: o.status || 'Order Placed',
+      status_step: o.statusStep != null ? o.statusStep : (o.status_step || 1),
+      statusStep: o.statusStep != null ? o.statusStep : (o.status_step || 1),
+      tracking_notes: o.trackingNotes || o.tracking_notes || '',
+      trackingNotes: o.trackingNotes || o.tracking_notes || '',
+      order_items: items,
+      items: items
+    };
+  }
+
+  function loadOrders() {
+    if (window.SangoAPI && window.SangoAPI.getAdminOrders) {
+      window.SangoAPI.getAdminOrders().then(function (orders) {
+        if (orders && Array.isArray(orders)) {
+          allOrders = orders.map(normalizeOrder);
+          renderOrdersTable(allOrders);
+          return;
+        }
+        fallbackOrders();
+      }).catch(function (err) {
+        console.warn('API getAdminOrders fallback:', err);
+        fallbackOrders();
+      });
+    } else {
+      fallbackOrders();
+    }
+  }
+
+  function fallbackOrders() {
+    if (sb) {
+      sb.from('orders').select('*, order_items(*)').order('created_at', { ascending: false }).then(function (res) {
+        allOrders = (res.data || []).map(normalizeOrder);
+        renderOrdersTable(allOrders);
+      }).catch(function () {
+        renderOrdersTable([]);
+      });
+    } else {
+      renderOrdersTable([]);
+    }
   }
 
   function renderOrdersTable(orders) {
@@ -684,10 +769,11 @@
       return;
     }
     tbody.innerHTML = orders.map(function (o) {
-      var statusColor = o.status_step >= 5 ? 'bg-green-100 text-green-800' :
-                        o.status_step >= 3 ? 'bg-blue-100 text-blue-800' :
+      var step = o.status_step != null ? o.status_step : 1;
+      var statusColor = step >= 5 ? 'bg-green-100 text-green-800' :
+                        step >= 3 ? 'bg-blue-100 text-blue-800' :
                         'bg-amber-100 text-amber-800';
-      var payColor = o.payment_status === 'Paid' ? 'text-green-600' : 'text-amber-600';
+      var payColor = (o.payment_status === 'Paid' || o.paymentStatus === 'Paid') ? 'text-green-600' : 'text-amber-600';
       var date = new Date(o.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' });
 
       return '<tr class="hover:bg-gray-50 transition-colors">' +
@@ -726,16 +812,16 @@
   });
 
   function openOrderModal(orderId) {
-    var order = allOrders.find(function (o) { return o.id === orderId; });
+    var order = allOrders.find(function (o) { return String(o.id) === String(orderId) || o.order_id === orderId || o.orderId === orderId; });
     if (!order) return;
-    currentOrderId = orderId;
+    currentOrderId = order.id;
 
-    document.getElementById('order-modal-title').textContent = 'Order ' + order.order_id;
+    document.getElementById('order-modal-title').textContent = 'Order ' + (order.order_id || order.orderId);
     document.getElementById('order-status-select').value = order.status_step || 1;
     document.getElementById('order-tracking-notes').value = order.tracking_notes || '';
 
     var content = document.getElementById('order-modal-content');
-    var items = order.order_items || [];
+    var items = order.order_items || order.items || [];
     content.innerHTML =
       '<div class="space-y-2 text-xs">' +
       '<div class="grid grid-cols-2 gap-2">' +
@@ -762,18 +848,30 @@
     if (!currentOrderId) return;
     var step = parseInt(document.getElementById('order-status-select').value, 10);
     var notes = document.getElementById('order-tracking-notes').value.trim();
+    var statusText = STATUS_LABELS[step] || 'Order Placed';
 
-    sb.from('orders').update({
-      status_step: step,
-      status: STATUS_LABELS[step] || 'Order Placed',
-      tracking_notes: notes
-    }).eq('id', currentOrderId).then(function (res) {
-      if (res.error) { toast('Error: ' + res.error.message); return; }
-      toast('Order status updated to "' + STATUS_LABELS[step] + '" ✅');
-      orderModal.classList.add('hidden');
-      loadOrders();
-      loadDashboard();
-    });
+    var updatePromise;
+    if (window.SangoAPI && window.SangoAPI.updateOrderStatus) {
+      updatePromise = window.SangoAPI.updateOrderStatus(currentOrderId, statusText, step, notes);
+    } else if (sb) {
+      updatePromise = sb.from('orders').update({
+        status_step: step,
+        status: statusText,
+        tracking_notes: notes
+      }).eq('id', currentOrderId);
+    }
+
+    if (updatePromise) {
+      updatePromise.then(function (res) {
+        if (res && res.error) { toast('Error: ' + res.error); return; }
+        toast('Order status updated to "' + statusText + '" ✅');
+        orderModal.classList.add('hidden');
+        loadOrders();
+        loadDashboard();
+      }).catch(function (err) {
+        toast('Error updating order: ' + (err.message || err));
+      });
+    }
   });
 
 
