@@ -1,6 +1,7 @@
 module.exports = {
   content: [
     './*.html',
+    './admin/**/*.html',
     './src/**/*.html',
     './content/**/*.html',
     './layouts/**/*.html',
@@ -11,7 +12,10 @@ module.exports = {
     extend: {
       colors: {
         'deep-forest': '#1B5E20',
+        'forest-light': '#1B4332',
         'amber-gold': '#FFBF00',
+        'amber-light': '#FCD34D',
+        'surface-low': '#F8F7F4',
         'background': '#FAF9F7',
         'on-background': '#1A1C1B',
         'surface': '#FAF9F7',

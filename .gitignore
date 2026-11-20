@@ -4,6 +4,7 @@ backend/target/
 
 # Eleventy build output
 _site/
+backend/src/main/resources/static-frontend/
 
 # Environment variables
 .env
