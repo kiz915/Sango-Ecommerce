@@ -85,20 +85,131 @@
 
 
 
-  // Live image preview in product modal
-  var pfImageInput = document.getElementById('pf-image');
+  // ─── Product Image Folder Upload & Preview Engine ───
+  var pfDropzone = document.getElementById('pf-dropzone');
+  var pfFileInput = document.getElementById('pf-file-input');
+  var pfDropzoneContent = document.getElementById('pf-dropzone-content');
+  var pfUploadSpinner = document.getElementById('pf-upload-spinner');
+  var pfPreviewCard = document.getElementById('pf-preview-card');
   var pfImgEl = document.getElementById('pf-image-preview');
-  var pfPlaceholder = document.getElementById('pf-image-placeholder');
-  if (pfImageInput && pfImgEl) {
+  var pfImageName = document.getElementById('pf-image-name');
+  var pfImageStatus = document.getElementById('pf-image-status');
+  var pfImageInput = document.getElementById('pf-image');
+  var btnChangeImage = document.getElementById('btn-change-image');
+
+  function updateImageUI(url, filename, isReady) {
+    if (pfImageInput) pfImageInput.value = url || '';
+    if (url) {
+      if (pfImgEl) pfImgEl.src = url;
+      if (pfImageName) pfImageName.textContent = filename || url.split('/').pop() || 'Product Image';
+      if (pfImageStatus) {
+        pfImageStatus.innerHTML = isReady 
+          ? '<span class="text-emerald-700 font-semibold">✓ Uploaded & ready</span>'
+          : '<span class="text-gray-500">Previewing</span>';
+      }
+      if (pfPreviewCard) pfPreviewCard.classList.remove('hidden');
+      if (pfDropzone) pfDropzone.classList.add('hidden');
+    } else {
+      if (pfPreviewCard) pfPreviewCard.classList.add('hidden');
+      if (pfDropzone) pfDropzone.classList.remove('hidden');
+    }
+  }
+
+  function handleImageFile(file) {
+    if (!file) return;
+    if (!file.type.match(/^image\//)) {
+      toast('Please select an image file (PNG, JPG, WEBP).');
+      return;
+    }
+
+    // 1. Show immediate local preview
+    var localUrl = URL.createObjectURL(file);
+    updateImageUI(localUrl, file.name, false);
+
+    // 2. Show uploading state in UI
+    if (pfUploadSpinner) pfUploadSpinner.classList.remove('hidden');
+    if (pfDropzoneContent) pfDropzoneContent.classList.add('hidden');
+    if (pfImageStatus) pfImageStatus.innerHTML = '<span class="text-amber-600 animate-pulse">⏳ Uploading to server...</span>';
+
+    // 3. Upload to backend
+    if (window.SangoAPI && window.SangoAPI.uploadProductImage) {
+      window.SangoAPI.uploadProductImage(file)
+        .then(function (res) {
+          if (pfUploadSpinner) pfUploadSpinner.classList.add('hidden');
+          if (pfDropzoneContent) pfDropzoneContent.classList.remove('hidden');
+          var publicUrl = res.url || localUrl;
+          updateImageUI(publicUrl, res.filename || file.name, true);
+          toast('Image uploaded successfully! 🌿');
+        })
+        .catch(function (err) {
+          console.warn('Backend upload failed, attempting fallback...', err);
+          // Fallback: Convert to data URL so the product still saves with this image!
+          var reader = new FileReader();
+          reader.onload = function (e) {
+            if (pfUploadSpinner) pfUploadSpinner.classList.add('hidden');
+            if (pfDropzoneContent) pfDropzoneContent.classList.remove('hidden');
+            updateImageUI(e.target.result, file.name, true);
+            toast('Image attached! 🌿');
+          };
+          reader.readAsDataURL(file);
+        });
+    } else {
+      // Fallback: read directly as DataURL
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        if (pfUploadSpinner) pfUploadSpinner.classList.add('hidden');
+        if (pfDropzoneContent) pfDropzoneContent.classList.remove('hidden');
+        updateImageUI(e.target.result, file.name, true);
+        toast('Image attached! 🌿');
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  if (pfDropzone && pfFileInput) {
+    pfDropzone.addEventListener('click', function () {
+      pfFileInput.click();
+    });
+
+    pfFileInput.addEventListener('change', function () {
+      if (pfFileInput.files && pfFileInput.files[0]) {
+        handleImageFile(pfFileInput.files[0]);
+      }
+    });
+
+    // Drag and drop support
+    pfDropzone.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      pfDropzone.classList.add('border-emerald-600', 'bg-emerald-50/50');
+    });
+
+    pfDropzone.addEventListener('dragleave', function (e) {
+      e.preventDefault();
+      pfDropzone.classList.remove('border-emerald-600', 'bg-emerald-50/50');
+    });
+
+    pfDropzone.addEventListener('drop', function (e) {
+      e.preventDefault();
+      pfDropzone.classList.remove('border-emerald-600', 'bg-emerald-50/50');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleImageFile(e.dataTransfer.files[0]);
+      }
+    });
+  }
+
+  if (btnChangeImage && pfFileInput) {
+    btnChangeImage.addEventListener('click', function () {
+      pfFileInput.click();
+    });
+  }
+
+  if (pfImageInput) {
     pfImageInput.addEventListener('input', function () {
       var url = pfImageInput.value.trim();
       if (url) {
-        pfImgEl.src = url;
-        pfImgEl.classList.remove('hidden');
-        if (pfPlaceholder) pfPlaceholder.classList.add('hidden');
+        updateImageUI(url, url.split('/').pop(), true);
       } else {
-        pfImgEl.classList.add('hidden');
-        if (pfPlaceholder) pfPlaceholder.classList.remove('hidden');
+        updateImageUI('', '', false);
       }
     });
   }
@@ -386,16 +497,26 @@
     document.getElementById('pf-price').value = product ? product.price : '';
     document.getElementById('pf-mrp').value = product ? product.mrp : '';
     document.getElementById('pf-stock').value = product ? (product.stock || 100) : 100;
-    document.getElementById('pf-image').value = product ? product.image : '';
     document.getElementById('pf-description').value = product ? (product.description || '') : '';
     document.getElementById('pf-pot-included').checked = product ? product.pot_included : true;
     document.getElementById('pf-active').checked = product ? product.is_active : true;
     document.getElementById('pf-soldout').checked = product ? product.is_sold_out : false;
+
+    // Reset or populate Image UI
+    if (pfFileInput) pfFileInput.value = '';
+    if (product && product.image) {
+      updateImageUI(product.image, product.name || 'product.webp', true);
+    } else {
+      updateImageUI('', '', false);
+    }
+
     productModal.classList.remove('hidden');
   }
 
   function closeProductModal() {
     productModal.classList.add('hidden');
+    if (pfFileInput) pfFileInput.value = '';
+    updateImageUI('', '', false);
   }
 
   // Auto-generate slug from name

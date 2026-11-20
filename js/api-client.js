@@ -79,6 +79,36 @@
       return request('/products/categories');
     },
 
+    // ─── Image Upload ───
+    uploadProductImage: function (file) {
+      var formData = new FormData();
+      formData.append('file', file);
+
+      var headers = {};
+      try {
+        var raw = localStorage.getItem('sango_auth_session');
+        if (raw) {
+          var parsed = JSON.parse(raw);
+          if (parsed && parsed.session && parsed.session.access_token) {
+            headers['Authorization'] = 'Bearer ' + parsed.session.access_token;
+          }
+        }
+      } catch (e) {}
+
+      return fetch(API_BASE + '/products/upload-image', {
+        method: 'POST',
+        headers: headers,
+        body: formData
+      }).then(function (res) {
+        if (!res.ok) {
+          return res.json().catch(function () { return { error: 'Upload failed' }; }).then(function (err) {
+            throw new Error(err.error || 'Upload failed with status ' + res.status);
+          });
+        }
+        return res.json();
+      });
+    },
+
     // ─── Coupons (Server-Side Validation) ───
     validateCoupon: function (code, subtotal) {
       return request('/coupons/validate', {

@@ -108,6 +108,20 @@ const server = http.createServer((req, res) => {
         return res.end(JSON.stringify({ valid: false, message: 'Invalid coupon code' }));
       }
 
+      if (pathname === '/api/products/upload-image' && req.method === 'POST') {
+        const uploadDir = path.join(__dirname, 'uploads', 'plants');
+        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+        const filename = 'product-' + Date.now() + '.webp';
+        const targetPath = path.join(uploadDir, filename);
+        const fileStream = fs.createWriteStream(targetPath);
+        req.pipe(fileStream);
+        fileStream.on('finish', () => {
+          res.writeHead(200);
+          res.end(JSON.stringify({ status: 'success', url: '/uploads/plants/' + filename, filename: filename }));
+        });
+        return;
+      }
+
       // Default mock 200 for other /api requests (e.g. cart sync, contact)
       res.writeHead(200);
       return res.end(JSON.stringify({ success: true, message: 'API simulated successfully' }));
@@ -115,7 +129,9 @@ const server = http.createServer((req, res) => {
 
     // Prevent directory traversal
     const safePath = path.normalize(pathname).replace(/^(\.\.[\/\\])+/, '');
-    let filePath = path.join(PUBLIC_DIR, safePath);
+    let filePath = safePath.startsWith('uploads') || safePath.startsWith('\\uploads')
+      ? path.join(__dirname, safePath)
+      : path.join(PUBLIC_DIR, safePath);
 
     // If path is a directory, look for index.html inside it
     if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {

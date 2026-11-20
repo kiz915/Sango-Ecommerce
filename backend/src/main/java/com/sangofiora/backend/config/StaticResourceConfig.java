@@ -19,13 +19,18 @@ public class StaticResourceConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // Dynamic uploaded product images from disk
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:uploads/", "file:./uploads/", "file:../uploads/");
+
         registry.addResourceHandler("/**")
                 .addResourceLocations(
                         "classpath:/static-frontend/",
                         "file:static-frontend/",
                         "file:_site/",
                         "file:../_site/",
-                        "classpath:/static/"
+                        "classpath:/static/",
+                        "file:uploads/"
                 )
                 .resourceChain(true)
                 .addResolver(new PathResourceResolver() {
