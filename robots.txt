@@ -1,7 +1,23 @@
 User-agent: *
 Allow: /
+
+# Disallow private/admin areas
 Disallow: /admin/
 Disallow: /account/
 Disallow: /order-success/
+Disallow: /payment/
+Disallow: /cart/
+Disallow: /checkout/
+Disallow: /wishlist/
+Disallow: /track/
+Disallow: /login/
+Disallow: /api/
 
-Sitemap: https://sangofiora.com/sitemap.xml
+# Crawl-delay for polite crawling
+Crawl-delay: 10
+
+# Sitemap
+Sitemap: https://sango-storefront-production.up.railway.app/sitemap.xml
+
+# Host
+Host: https://sango-storefront-production.up.railway.app

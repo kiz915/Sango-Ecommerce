@@ -26,7 +26,8 @@ Sango-Ecommerce/
 │       │   │   │   ├── GlobalExceptionHandler.java
 │       │   │   │   ├── JwtAuthFilter.java
 │       │   │   │   ├── RequestLoggingFilter.java
-│       │   │   │   └── SecurityConfig.java
+│       │   │   │   ├── SecurityConfig.java
+│       │   │   │   └── StaticResourceConfig.java
 │       │   │   ├── controller/        # REST Endpoints (Products, Orders, Payments, Cart, Admin)
 │       │   │   │   ├── AdminController.java
 │       │   │   │   ├── CartController.java
@@ -48,9 +49,10 @@ Sango-Ecommerce/
 │       │   │   │   ├── CouponRepository.java
 │       │   │   │   ├── OrderRepository.java
 │       │   │   │   └── ProductRepository.java
-│       │   │   ├── service/           # Business logic & 3P integrations (Razorpay, Stripe, Sheets)
+│       │   │   ├── service/           # Business logic & 3P integrations (Razorpay, Stripe, Sheets, Resend)
 │       │   │   │   ├── CouponService.java
 │       │   │   │   ├── DataInitializer.java
+│       │   │   │   ├── EmailService.java
 │       │   │   │   ├── OrderService.java
 │       │   │   │   ├── PaymentService.java
 │       │   │   │   ├── ProductService.java
@@ -58,6 +60,8 @@ Sango-Ecommerce/
 │       │   │   └── SangofioraBackendApplication.java
 │       │   └── resources/
 │       │       ├── application.properties # Dynamic configuration (H2 dev / PostgreSQL prod)
+│       │       ├── data/plants.json
+│       │       └── db/migration/      # Flyway SQL migrations (V1 schema, V2 product seed)
 │       │       └── data/plants.json
 │       └── test/java/com/sangofiora/backend/ # JUnit 5 Integration Test Suite
 │           ├── CouponServiceTest.java

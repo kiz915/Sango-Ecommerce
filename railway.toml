@@ -1,0 +1,35 @@
+# ===================================================================
+# Railway Deployment Configuration for Sango Fiora
+# ===================================================================
+
+[build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+healthcheckPath = "/api/health"
+healthcheckTimeout = 100
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10
+
+# Environment variables (set these in Railway dashboard)
+# SPRING_DATASOURCE_URL=postgresql://user:pass@host:5432/db
+# SPRING_DATASOURCE_USERNAME=user
+# SPRING_DATASOURCE_PASSWORD=pass
+# PAYMENT_SECRET=your-64-char-hex-secret
+# STRIPE_SECRET_KEY=sk_live_...
+# STRIPE_PUBLISHABLE_KEY=pk_live_...
+# STRIPE_WEBHOOK_SECRET=whsec_...
+# RESEND_API_KEY=re_...
+# RESEND_FROM_EMAIL=orders@yourdomain.com
+# ADMIN_EMAILS=admin1@domain.com,admin2@domain.com
+# FRONTEND_URL=https://your-frontend.railway.app
+# CORS_ALLOWED_ORIGINS=https://your-frontend.railway.app
+# JWT_ISSUER=https://your-project.supabase.co/auth/v1
+# GA4_MEASUREMENT_ID=G-XXXXXXXXXX
+# GA4_API_SECRET=...
+# META_PIXEL_ID=...
+# META_ACCESS_TOKEN=...
+
+# Optional: Custom start command (default uses Dockerfile ENTRYPOINT)
+# startCommand = "java -jar app.jar"

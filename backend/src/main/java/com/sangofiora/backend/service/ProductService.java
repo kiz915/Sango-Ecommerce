@@ -171,7 +171,7 @@ public class ProductService {
                 mapper.writerWithDefaultPrettyPrinter().writeValue(localCopy, root);
             }
 
-            if (appProperties != null && appProperties.googleSheetsWebhookUrl() != null && !appProperties.googleSheetsWebhookUrl().isBlank()) {
+            if (appProperties != null && appProperties.getGoogleSheetsWebhookUrl() != null && !appProperties.getGoogleSheetsWebhookUrl().isBlank()) {
                 triggerDeployWebhook();
             }
         } catch (Exception e) {
@@ -181,7 +181,7 @@ public class ProductService {
 
     private void triggerDeployWebhook() {
         try {
-            String webhookUrl = appProperties.googleSheetsWebhookUrl();
+            String webhookUrl = appProperties.getGoogleSheetsWebhookUrl();
             HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
             HttpRequest req = HttpRequest.newBuilder()
                     .uri(URI.create(webhookUrl))
