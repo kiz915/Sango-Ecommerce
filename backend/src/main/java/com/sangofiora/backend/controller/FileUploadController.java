@@ -29,13 +29,21 @@ public class FileUploadController {
             "image/jpeg", "image/png", "image/webp", "image/svg+xml", "image/avif"
     );
 
-    private final Path uploadDirectory = Paths.get("uploads", "plants").toAbsolutePath().normalize();
-
-    public FileUploadController() {
+    private Path resolveUploadDirectory() {
+        Path primary = Paths.get("uploads", "plants").toAbsolutePath().normalize();
         try {
-            Files.createDirectories(uploadDirectory);
-        } catch (IOException e) {
-            log.error("Could not initialize upload directory: {}", uploadDirectory, e);
+            Files.createDirectories(primary);
+            return primary;
+        } catch (Exception e) {
+            log.warn("Cannot create primary upload dir {}, falling back to temp dir: {}", primary, e.getMessage());
+            Path fallback = Paths.get(System.getProperty("java.io.tmpdir"), "uploads", "plants").toAbsolutePath().normalize();
+            try {
+                Files.createDirectories(fallback);
+                return fallback;
+            } catch (Exception ex) {
+                log.error("Failed to create fallback upload dir {}", fallback, ex);
+                return primary;
+            }
         }
     }
 
@@ -59,7 +67,7 @@ public class FileUploadController {
         }
 
         try {
-            Files.createDirectories(uploadDirectory);
+            Path targetDir = resolveUploadDirectory();
 
             String baseName = originalFilename.contains(".")
                     ? originalFilename.substring(0, originalFilename.lastIndexOf('.'))
@@ -70,7 +78,7 @@ public class FileUploadController {
             }
 
             String uniqueFilename = baseName + "-" + UUID.randomUUID().toString().substring(0, 8) + extension;
-            Path targetLocation = uploadDirectory.resolve(uniqueFilename);
+            Path targetLocation = targetDir.resolve(uniqueFilename);
 
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 

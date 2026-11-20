@@ -21,7 +21,12 @@ public class StaticResourceConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // Dynamic uploaded product images from disk
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:uploads/", "file:./uploads/", "file:../uploads/");
+                .addResourceLocations(
+                        "file:uploads/",
+                        "file:./uploads/",
+                        "file:../uploads/",
+                        "file:" + System.getProperty("java.io.tmpdir") + "/uploads/"
+                );
 
         registry.addResourceHandler("/**")
                 .addResourceLocations(
