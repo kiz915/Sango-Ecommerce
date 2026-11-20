@@ -80,23 +80,27 @@
 
         // Auto-sync contact details to the Contact Inquiries Spreadsheet
         try {
-          fetch('http://localhost:8080/api/spreadsheet/contact', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              ticketId: record.ticketId,
-              name: record.name,
-              phone: record.phone,
-              email: record.email,
-              topic: record.topic,
-              message: record.message,
-              status: record.status
-            })
-          }).catch(function (err) {
-            console.warn('[Inquiry] Could not sync to spreadsheet endpoint:', err.message);
+          var contactCall = (window.SangoAPI && window.SangoAPI.submitContact)
+            ? window.SangoAPI.submitContact({
+                ticketId: record.ticketId,
+                name: record.name,
+                phone: record.phone,
+                email: record.email,
+                topic: record.topic,
+                message: record.message,
+                status: record.status
+              })
+            : fetch('/api/spreadsheet/contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(record)
+              });
+
+          contactCall.catch(function (err) {
+            console.error('[Inquiry] Could not sync to spreadsheet endpoint:', err.message);
           });
         } catch (e) {
-          console.warn('[Inquiry] Spreadsheet sync exception:', e);
+          console.error('[Inquiry] Spreadsheet sync exception:', e);
         }
 
         if (window.showToast) {

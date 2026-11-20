@@ -1,6 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const zlib = require('zlib');
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const HOST = '0.0.0.0';
@@ -44,6 +45,13 @@ function getProductsData() {
 }
 
 const server = http.createServer((req, res) => {
+  // Security headers
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://api.stripe.com http://localhost:8080;");
+
   // Common CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -138,12 +146,32 @@ const server = http.createServer((req, res) => {
       ? 'no-cache, must-revalidate'
       : 'public, max-age=31536000, immutable';
 
-    res.writeHead(200, {
-      'Content-Type': contentType,
-      'Cache-Control': cacheControl
-    });
+    const acceptEncoding = req.headers['accept-encoding'] || '';
+    const compressible = ['.html', '.css', '.js', '.mjs', '.json', '.xml', '.txt', '.svg'].includes(ext);
 
-    const stream = fs.createReadStream(filePath);
+    let stream = fs.createReadStream(filePath);
+
+    if (compressible && acceptEncoding.includes('br')) {
+      res.writeHead(200, {
+        'Content-Type': contentType,
+        'Cache-Control': cacheControl,
+        'Content-Encoding': 'br'
+      });
+      stream = stream.pipe(zlib.createBrotliCompress());
+    } else if (compressible && acceptEncoding.includes('gzip')) {
+      res.writeHead(200, {
+        'Content-Type': contentType,
+        'Cache-Control': cacheControl,
+        'Content-Encoding': 'gzip'
+      });
+      stream = stream.pipe(zlib.createGzip());
+    } else {
+      res.writeHead(200, {
+        'Content-Type': contentType,
+        'Cache-Control': cacheControl
+      });
+    }
+
     stream.pipe(res);
     stream.on('error', (err) => {
       console.error('Stream error:', err);

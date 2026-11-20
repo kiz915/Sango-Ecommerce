@@ -12,6 +12,7 @@
   }
 
   var STORAGE_KEY = 'sango-cart-v3';
+  var STORAGE_VERSION = 3;
   var FREE_SHIP_ABOVE = 999;
   var DELIVERY_FEE = 99;
 
@@ -46,10 +47,31 @@
   function readCartData() {
     try {
       var d = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      return d || { items: [], coupon: null };
+      if (d && d.version === STORAGE_VERSION) return d;
+      return migrateCart(d);
     } catch (e) {
-      return { items: [], coupon: null };
+      return { version: STORAGE_VERSION, items: [], coupon: null };
     }
+  }
+
+  function migrateCart(oldData) {
+    var items = [];
+    if (oldData && Array.isArray(oldData.items)) items = oldData.items;
+    else if (Array.isArray(oldData)) items = oldData;
+    else {
+      try {
+        var prev = JSON.parse(localStorage.getItem('sango-cart') || localStorage.getItem('sango_cart'));
+        if (Array.isArray(prev)) items = prev;
+        else if (prev && prev.items) items = prev.items;
+      } catch (err) {}
+    }
+    var migrated = {
+      version: STORAGE_VERSION,
+      items: items || [],
+      coupon: (oldData && oldData.coupon) || null
+    };
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated)); } catch (e) {}
+    return migrated;
   }
 
   var syncTimeout = null;
@@ -80,18 +102,14 @@
         }
 
         // Spring Boot backend sync
-        if (user.email) {
-          fetch('http://localhost:8080/api/cart/sync', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email: user.email,
-              itemsJson: JSON.stringify(items),
-              itemCount: totalCount,
-              subtotal: subtotal
-            })
+        if (user.email && window.SangoAPI && window.SangoAPI.syncCart) {
+          window.SangoAPI.syncCart({
+            email: user.email,
+            itemsJson: JSON.stringify(items),
+            itemCount: totalCount,
+            subtotal: subtotal
           }).catch(function (err) {
-            console.warn('[Sango] Backend cart sync error:', err);
+            console.error('[Cart] Backend cart sync error:', err);
           });
         }
       }, 350);
@@ -127,13 +145,14 @@
                 if (window.showToast) window.showToast('🌿 Restored your saved botanical cart!');
               }
             }
-          }).catch(function () {});
+          }).catch(function (err) {
+            console.error('[Cart] Supabase user_carts error:', err);
+          });
         }
 
         // Also check Spring Boot backend
-        if (authData.user.email) {
-          fetch('http://localhost:8080/api/cart/sync?email=' + encodeURIComponent(authData.user.email))
-            .then(function (res) { return res.json(); })
+        if (authData.user.email && window.SangoAPI && window.SangoAPI.getSyncedCart) {
+          window.SangoAPI.getSyncedCart(authData.user.email)
             .then(function (data) {
               if (data && data.itemsJson) {
                 try {
@@ -144,9 +163,13 @@
                     writeCartData(current);
                     if (window.showToast) window.showToast('🌿 Restored your saved botanical cart!');
                   }
-                } catch (e) {}
+                } catch (e) {
+                  console.error('[Cart] Synced cart JSON parse error:', e);
+                }
               }
-            }).catch(function () {});
+            }).catch(function (err) {
+              console.error('[Cart] Backend cart fetch error:', err);
+            });
         }
       }
     });
@@ -168,19 +191,11 @@
       var mrpSavings = Math.max(0, mrpTotal - subtotal);
       var count = items.reduce(function (n, i) { return n + i.qty; }, 0);
 
-      // Multi-Item Volume Tier Discount (B2B / Bulk Gifting)
-      var volumeDiscountPercent = 0;
-      var volumeDiscount = 0;
-      var volumeLabel = '';
-      if (count >= 5) {
-        volumeDiscountPercent = 10;
-        volumeDiscount = Math.round(subtotal * 0.10);
-        volumeLabel = '10% Bulk Styling Discount (5+ items)';
-      } else if (count >= 3) {
-        volumeDiscountPercent = 5;
-        volumeDiscount = Math.round(subtotal * 0.05);
-        volumeLabel = '5% Volume Tier Discount (3+ items)';
-      }
+      // Multi-Item Volume Tier Discount (B2B / Bulk Gifting) via DiscountEngine
+      var discountInfo = window.DiscountEngine ? window.DiscountEngine.calculateVolumeDiscount(count, subtotal) : { percent: 0, amount: 0, label: '' };
+      var volumeDiscountPercent = discountInfo.percent;
+      var volumeDiscount = discountInfo.amount;
+      var volumeLabel = discountInfo.label;
 
       var couponDiscount = 0;
       if (data.coupon && VALID_COUPONS[data.coupon]) {
@@ -192,7 +207,7 @@
 
       var delivery = (subtotal >= FREE_SHIP_ABOVE || items.length === 0) ? 0 : DELIVERY_FEE;
       var taxableSubtotal = Math.max(0, subtotal - couponDiscount - volumeDiscount);
-      var gstAmount = Math.round(taxableSubtotal * 0.18); // 18% GST included preview
+      var gstAmount = window.DiscountEngine ? window.DiscountEngine.calculateGst(taxableSubtotal) : Math.round(taxableSubtotal * 0.18);
       var netTotal = taxableSubtotal + delivery;
 
       return {
@@ -292,14 +307,14 @@
       var user = window.SangoAuth && window.SangoAuth.getUser ? window.SangoAuth.getUser() : null;
       var userEmail = user ? (user.email || '') : '';
 
-      // Validate against Spring Boot backend with First-Time Buyer check
-      fetch('http://localhost:8080/api/coupons/validate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: c, subtotal: totals.subtotal, email: userEmail })
-      }).then(function (res) { return res.json(); }).then(function (res) {
-        if (res.valid) {
-          VALID_COUPONS[c] = { percent: res.percent, label: res.label, minSubtotal: 0 };
+      // Validate against Spring Boot backend with First-Time Buyer check via SangoAPI
+      var validateCall = (window.SangoAPI && window.SangoAPI.validateCoupon)
+        ? window.SangoAPI.validateCoupon(c, totals.subtotal)
+        : fetch('/api/coupons/validate?code=' + encodeURIComponent(c)).then(function (res) { return res.json(); });
+
+      validateCall.then(function (res) {
+        if (res && (res.valid || res.discountPercent)) {
+          VALID_COUPONS[c] = { percent: res.percent || res.discountPercent, label: res.label || 'Discount', minSubtotal: 0 };
           var d = readCartData();
           d.coupon = c;
           writeCartData(d);
@@ -311,10 +326,11 @@
             d2.coupon = null;
             writeCartData(d2);
           }
-          var errMsg = res.message || 'Invalid coupon code';
+          var errMsg = (res && res.message) || 'Invalid coupon code';
           if (callback) callback({ success: false, message: errMsg });
         }
-      }).catch(function () {
+      }).catch(function (err) {
+        console.error('[Cart] Coupon validation error:', err);
         if (VALID_COUPONS[c]) {
           var d = readCartData();
           d.coupon = c;
@@ -331,8 +347,10 @@
     clearCart: function () {
       writeCartData({ items: [], coupon: null });
       var user = window.SangoAuth && window.SangoAuth.getUser ? window.SangoAuth.getUser() : null;
-      if (user && user.email) {
-        fetch('http://localhost:8080/api/cart/sync?email=' + encodeURIComponent(user.email), { method: 'DELETE' }).catch(function () {});
+      if (user && user.email && window.SangoAPI && window.SangoAPI.deleteSyncedCart) {
+        window.SangoAPI.deleteSyncedCart(user.email).catch(function (err) {
+          console.error('[Cart] Clear synced cart notice:', err);
+        });
       }
     }
   };

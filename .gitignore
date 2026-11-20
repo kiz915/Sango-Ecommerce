@@ -1,7 +1,6 @@
 # Node dependencies
 node_modules/
 backend/target/
-backend/src/test/
 
 # Eleventy build output
 _site/

@@ -34,70 +34,21 @@
     return '₹' + Number(n || 0).toLocaleString('en-IN');
   }
 
-  // ─── Auth Gate ───
+  // ─── Admin Initialization (Backend Enforces Auth via Spring Security JWT) ───
   function checkAdminAuth() {
     var gate = document.getElementById('auth-gate');
     var main = document.getElementById('admin-main');
-    var gateMsg = document.getElementById('auth-gate-msg');
+    if (gate) gate.classList.add('hidden');
+    if (main) main.classList.remove('hidden');
 
-    function grantAdmin(user, fullName) {
-      if (gate) gate.classList.add('hidden');
-      if (main) main.classList.remove('hidden');
-      var nameEl = document.getElementById('admin-user-name');
-      if (nameEl) nameEl.textContent = fullName || user.email;
-      loadDashboard();
-      loadProducts();
-      loadOrders();
-      loadCoupons();
-    }
+    var user = window.SangoAuth && window.SangoAuth.getUser ? window.SangoAuth.getUser() : null;
+    var nameEl = document.getElementById('admin-user-name');
+    if (nameEl) nameEl.textContent = (user && user.email) || 'Admin';
 
-    // 1. Check window.SangoAuth or saved localStorage session first!
-    var savedSession = null;
-    try {
-      savedSession = JSON.parse(localStorage.getItem('sango_auth_session'));
-    } catch (e) {}
-
-    var activeUser = (window.SangoAuth && window.SangoAuth.getUser && window.SangoAuth.getUser()) || (savedSession && savedSession.user);
-    var activeProfile = (window.SangoAuth && window.SangoAuth.getProfile && window.SangoAuth.getProfile()) || (savedSession && savedSession.profile);
-
-    if (activeUser) {
-      var email = (activeUser.email || '').toLowerCase();
-      var isSuper = ['kishorevk40@gmail.com', 'shamnaraja07@gmail.com'].indexOf(email) !== -1;
-      var role = (activeProfile && activeProfile.role) || (isSuper ? 'admin' : 'customer');
-      if (isSuper || role === 'admin') {
-        grantAdmin(activeUser, (activeProfile && activeProfile.full_name) || activeUser.email);
-        return;
-      }
-    }
-
-    if (!window.SangoSupabase) {
-      if (gateMsg) gateMsg.textContent = 'Supabase not configured. Open js/supabase-client.js and add your credentials.';
-      return;
-    }
-
-    sb = window.SangoSupabase;
-
-    sb.auth.getSession().then(function (res) {
-      if (res.data && res.data.session && res.data.session.user) {
-        var user = res.data.session.user;
-        var userEmail = (user.email || '').toLowerCase();
-        var isSuperAdmin = ['kishorevk40@gmail.com', 'shamnaraja07@gmail.com'].indexOf(userEmail) !== -1;
-
-        sb.from('profiles').select('role, full_name').eq('id', user.id).single().then(function (profileRes) {
-          var role = (profileRes.data && profileRes.data.role) || (isSuperAdmin ? 'admin' : 'customer');
-          var fullName = (profileRes.data && profileRes.data.full_name) || user.email;
-
-          if (role !== 'admin' && !isSuperAdmin) {
-            if (gateMsg) gateMsg.textContent = 'Access denied. Your account (' + user.email + ') is not an admin.';
-            return;
-          }
-
-          grantAdmin(user, fullName);
-        });
-      } else if (!activeUser) {
-        if (gateMsg) gateMsg.textContent = 'You need to sign in with an admin account.';
-      }
-    });
+    loadDashboard();
+    loadProducts();
+    loadOrders();
+    loadCoupons();
   }
 
 
@@ -152,8 +103,12 @@
     var tbDeliveries = document.getElementById('tbody-deliveries-spreadsheet');
     var tbContacts = document.getElementById('tbody-contacts-spreadsheet');
 
-    fetch('http://localhost:8080/api/spreadsheet/deliveries')
-      .then(function (r) { return r.json(); })
+    var getDeliv = (window.SangoAPI && window.SangoAPI.getDeliveries)
+      ? window.SangoAPI.getDeliveries()
+      : fetch('/api/spreadsheet/deliveries').then(function (r) { return r.json(); });
+
+    getDeliv
+      .then(function (rows) {
       .then(function (rows) {
         if (!tbDeliveries) return;
         if (!rows || rows.length === 0) {
@@ -177,8 +132,12 @@
         if (tbDeliveries) tbDeliveries.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-gray-400">Delivery spreadsheet ready on server.</td></tr>';
       });
 
-    fetch('http://localhost:8080/api/spreadsheet/contacts')
-      .then(function (r) { return r.json(); })
+    var getCont = (window.SangoAPI && window.SangoAPI.getContacts)
+      ? window.SangoAPI.getContacts()
+      : fetch('/api/spreadsheet/contacts').then(function (r) { return r.json(); });
+
+    getCont
+      .then(function (rows) {
       .then(function (rows) {
         if (!tbContacts) return;
         if (!rows || rows.length === 0) {

@@ -22,6 +22,20 @@ module.exports = function(eleventyConfig) {
   eleventyConfig.ignores.add('agent/**');
   eleventyConfig.ignores.add('data/**');
   eleventyConfig.ignores.add('.claude/**');
+  const crypto = require('crypto');
+  const fs = require('fs');
+
+  eleventyConfig.addNunjucksFilter('assetHash', function(filePath) {
+    try {
+      var rawPath = filePath.startsWith('/') ? filePath.slice(1) : filePath;
+      if (fs.existsSync(rawPath)) {
+        var hash = crypto.createHash('md5').update(fs.readFileSync(rawPath)).digest('hex').substring(0, 8);
+        return filePath + '?v=' + hash;
+      }
+    } catch (e) {}
+    return filePath;
+  });
+
   eleventyConfig.addNunjucksFilter('json', function(v) { return JSON.stringify(v); });
 
   eleventyConfig.addNunjucksFilter('related', function(products, category, slug) {

@@ -164,11 +164,15 @@ document.addEventListener('DOMContentLoaded', function () {
       btn.disabled = true;
       btn.textContent = 'Cancelling...';
 
-      fetch('http://localhost:8080/api/orders/' + encodeURIComponent(orderId) + '/cancel', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason: 'Customer cancelled within 1-hour window from account dashboard' })
-      }).then(function (res) { return res.json(); }).then(function (res) {
+      var cancelCall = (window.SangoAPI && window.SangoAPI.cancelOrder)
+        ? window.SangoAPI.cancelOrder(orderId, 'Customer cancelled within 1-hour window from account dashboard')
+        : fetch('/api/orders/' + encodeURIComponent(orderId) + '/cancel', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason: 'Customer cancelled within 1-hour window from account dashboard' })
+          }).then(function (res) { return res.json(); });
+
+      cancelCall.then(function (res) {
         if (res.error) {
           alert('Could not cancel order: ' + res.error);
           btn.disabled = false;

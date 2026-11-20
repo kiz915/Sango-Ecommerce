@@ -73,7 +73,7 @@ permalink: 404.html
       }
 
       function loadProduct() {
-        var apiUrl = (window.SangoAPI && window.SangoAPI.getBaseUrl ? window.SangoAPI.getBaseUrl() : 'http://localhost:8080/api') + '/products/' + encodeURIComponent(slug);
+        var apiUrl = (window.SangoAPI && window.SangoAPI.getBaseUrl ? window.SangoAPI.getBaseUrl() : '/api') + '/products/' + encodeURIComponent(slug);
         fetch(apiUrl)
           .then(function (r) { return r.ok ? r.json() : null; })
           .then(function (product) {

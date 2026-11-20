@@ -313,11 +313,17 @@ document.addEventListener('DOMContentLoaded', function () {
       cancelActionBtn.disabled = true;
       cancelActionBtn.textContent = 'Cancelling...';
 
-      fetch('http://localhost:8080/api/orders/' + encodeURIComponent(currentTrackedOrderId) + '/cancel', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason: 'Customer cancelled from Live Tracking page' })
-      }).catch(function () {}).finally(function () {
+      var cancelCall = (window.SangoAPI && window.SangoAPI.cancelOrder)
+        ? window.SangoAPI.cancelOrder(currentTrackedOrderId, 'Customer cancelled from Live Tracking page')
+        : fetch('/api/orders/' + encodeURIComponent(currentTrackedOrderId) + '/cancel', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reason: 'Customer cancelled from Live Tracking page' })
+          });
+
+      cancelCall.catch(function (err) {
+        console.error('[Track] Cancel error:', err);
+      }).finally(function () {
         if (window.SangoSupabase) {
           window.SangoSupabase.from('orders').update({ status: 'Cancelled' }).ilike('order_id', currentTrackedOrderId).then(function () {});
         }

@@ -1,20 +1,30 @@
 package com.sangofiora.backend.service;
 
+import com.sangofiora.backend.config.AppProperties;
 import com.sangofiora.backend.model.Product;
 import com.sangofiora.backend.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final AppProperties appProperties;
 
     @Transactional(readOnly = true)
     public List<Product> getAllActiveProducts() {
@@ -144,20 +154,43 @@ public class ProductService {
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             mapper.enable(com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT);
 
-            String[] paths = new String[]{
-                "../_data/plants.json",
-                "_data/plants.json",
-                "src/main/resources/data/plants.json"
-            };
+            String targetPath = System.getenv("PLANTS_JSON_PATH");
+            if (targetPath == null || targetPath.isBlank()) {
+                targetPath = "../_data/plants.json";
+            }
 
-            for (String p : paths) {
-                java.io.File f = new java.io.File(p);
-                if (f.exists()) {
-                    mapper.writerWithDefaultPrettyPrinter().writeValue(f, root);
-                }
+            File targetFile = new File(targetPath);
+            if (targetFile.exists() || (targetFile.getParentFile() != null && targetFile.getParentFile().mkdirs())) {
+                mapper.writerWithDefaultPrettyPrinter().writeValue(targetFile, root);
+                log.info("[ProductService] Successfully synced products to {}", targetFile.getAbsolutePath());
+            }
+
+            // Also keep local fallback updated if present
+            File localCopy = new File("_data/plants.json");
+            if (localCopy.exists() && !localCopy.getAbsolutePath().equals(targetFile.getAbsolutePath())) {
+                mapper.writerWithDefaultPrettyPrinter().writeValue(localCopy, root);
+            }
+
+            if (appProperties != null && appProperties.googleSheetsWebhookUrl() != null && !appProperties.googleSheetsWebhookUrl().isBlank()) {
+                triggerDeployWebhook();
             }
         } catch (Exception e) {
-            org.slf4j.LoggerFactory.getLogger(ProductService.class).warn("Failed to sync products to plants.json: {}", e.getMessage());
+            log.warn("Failed to sync products to plants.json: {}", e.getMessage());
+        }
+    }
+
+    private void triggerDeployWebhook() {
+        try {
+            String webhookUrl = appProperties.googleSheetsWebhookUrl();
+            HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
+            HttpRequest req = HttpRequest.newBuilder()
+                    .uri(URI.create(webhookUrl))
+                    .POST(HttpRequest.BodyPublishers.noBody())
+                    .build();
+            client.sendAsync(req, HttpResponse.BodyHandlers.discarding());
+            log.info("[ProductService] Triggered deploy webhook: {}", webhookUrl);
+        } catch (Exception e) {
+            log.warn("[ProductService] Deploy webhook notification failed: {}", e.getMessage());
         }
     }
 }

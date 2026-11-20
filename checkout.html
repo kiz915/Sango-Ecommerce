@@ -254,8 +254,11 @@ document.addEventListener('DOMContentLoaded', function () {
     var emailInput = addressForm.querySelector('input[name="email"]');
     if (emailInput && !emailInput.value) emailInput.value = user.email;
 
-    fetch('http://localhost:8080/api/customer/profile?email=' + encodeURIComponent(user.email))
-      .then(function (res) { return res.json(); })
+    var profileCall = (window.SangoAPI && window.SangoAPI.getCustomerProfile)
+      ? window.SangoAPI.getCustomerProfile(user.email)
+      : fetch('/api/customer/profile?email=' + encodeURIComponent(user.email)).then(function (res) { return res.json(); });
+
+    profileCall
       .then(function (data) {
         if (data && data.shippingAddress) {
           var banner = document.getElementById('one-click-profile-banner');

@@ -220,20 +220,24 @@ public class OrderService {
         Order order = orderRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + orderId));
 
-        if (!"Order Placed".equalsIgnoreCase(order.getStatus())) {
-            throw new IllegalStateException("Order cannot be cancelled because it is already in '" + order.getStatus() + "' status.");
+        // Pessimistic lock the order row
+        Order lockedOrder = orderRepository.findByIdWithLock(order.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+
+        if (!"Order Placed".equalsIgnoreCase(lockedOrder.getStatus())) {
+            throw new IllegalStateException("Order cannot be cancelled because it is already in '" + lockedOrder.getStatus() + "' status.");
         }
 
-        if (order.getCreatedAt() != null) {
-            long elapsedMinutes = Duration.between(order.getCreatedAt(), OffsetDateTime.now()).toMinutes();
+        if (lockedOrder.getCreatedAt() != null) {
+            long elapsedMinutes = Duration.between(lockedOrder.getCreatedAt(), OffsetDateTime.now()).toMinutes();
             if (elapsedMinutes > 60) {
                 throw new IllegalStateException("The 1-hour cancellation window has expired (" + elapsedMinutes + " minutes elapsed). Please contact concierge support.");
             }
         }
 
         // Restock inventory for cancelled order items
-        if (order.getItems() != null) {
-            for (OrderItem item : order.getItems()) {
+        if (lockedOrder.getItems() != null) {
+            for (OrderItem item : lockedOrder.getItems()) {
                 if (item.getProductId() != null) {
                     productRepository.findById(item.getProductId()).ifPresent(prod -> {
                         int currentStock = prod.getStock() != null ? prod.getStock() : 0;
@@ -248,10 +252,10 @@ public class OrderService {
             }
         }
 
-        order.setStatus("Cancelled");
-        order.setStatusStep(0);
-        order.setTrackingNotes("Order cancelled by customer within 1-hour window. Reason: " + (reason != null && !reason.trim().isEmpty() ? reason.trim() : "Customer requested cancellation"));
-        return orderRepository.save(order);
+        lockedOrder.setStatus("Cancelled");
+        lockedOrder.setStatusStep(0);
+        lockedOrder.setTrackingNotes("Order cancelled by customer within 1-hour window. Reason: " + (reason != null && !reason.trim().isEmpty() ? reason.trim() : "Customer requested cancellation"));
+        return orderRepository.save(lockedOrder);
     }
 
     @Transactional

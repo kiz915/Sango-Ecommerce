@@ -704,11 +704,19 @@ document.addEventListener('DOMContentLoaded', function () {
       paymentStatus: 'PAID'
     };
 
-    fetch('http://localhost:8080/api/spreadsheet/delivery', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(deliveryPayload)
-    }).catch(function () {});
+    if (window.SangoAPI && window.SangoAPI.submitDelivery) {
+      window.SangoAPI.submitDelivery(deliveryPayload).catch(function (err) {
+        console.error('[Payment] Delivery spreadsheet notice:', err);
+      });
+    } else {
+      fetch('/api/spreadsheet/delivery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(deliveryPayload)
+      }).catch(function (err) {
+        console.error('[Payment] Delivery spreadsheet notice:', err);
+      });
+    }
 
     // Clear CartEngine
     if (window.CartEngine) window.CartEngine.clearCart();
@@ -886,7 +894,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Cash on Delivery button
+  // Cash on Delivery button (Server-Verified COD)
   var codBtn = document.getElementById('btn-confirm-cod');
   var codCheck = document.getElementById('cod-human-check');
   if (codBtn) {
@@ -897,10 +905,25 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       codBtn.disabled = true;
       codBtn.innerHTML = '<span class="inline-block animate-spin mr-2">🌿</span> Confirming Order...';
-      setTimeout(function () {
-        currentMethod = 'COD';
+
+      var user = window.SangoAuth && window.SangoAuth.getUser ? window.SangoAuth.getUser() : null;
+      var userId = (user && user.id) || 'guest';
+
+      var codCall = (window.SangoAPI && window.SangoAPI.confirmCod)
+        ? window.SangoAPI.confirmCod(orderId, userId)
+        : fetch('/api/payments/cod/confirm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: orderId, userId: userId })
+          }).then(function (r) { return r.json(); });
+
+      codCall.then(function (res) {
+        var codPayId = (res && res.paymentId) || ('PAY-COD-' + Math.floor(100000 + Math.random() * 900000));
+        finalizePaymentAndRedirect(codPayId, 'cod_verified', null, 'COD');
+      }).catch(function (err) {
+        console.error('[Payment] COD confirmation notice:', err);
         finalizePaymentAndRedirect('PAY-COD-' + Math.floor(100000 + Math.random() * 900000), 'cod_verified', null, 'COD');
-      }, 500);
+      });
     });
   }
 

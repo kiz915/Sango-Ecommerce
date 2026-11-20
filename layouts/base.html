@@ -13,7 +13,10 @@
   <link rel="preconnect" href="https://lh3.googleusercontent.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="{{ '/css/main.css' | assetHash }}">
+  <script>
+    window.SANGO_ADMIN_EMAILS = ['kishorevk40@gmail.com', 'shamnaraja07@gmail.com'];
+  </script>
 </head>
 <body class="bg-background text-on-background antialiased flex flex-col min-h-screen">
   {% include 'partials/header.html' %}
@@ -29,17 +32,19 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
 
   <!-- Global Application Scripts (Deferred for instant FCP/TBT) -->
-  <script src="/js/event-bus.js" defer></script>
-  <script src="/js/api-client.js" defer></script>
-  <script src="/js/supabase-client.js" defer></script>
-  <script src="/js/supabase-auth.js" defer></script>
-  <script src="/js/wishlist.js" defer></script>
-  <script src="/js/cart.js" defer></script>
-  <script src="/js/checkout.js" defer></script>
-  <script src="/js/orders-tracker.js" defer></script>
-  <script src="/js/catalog.js" defer></script>
-  <script src="/js/inquiry.js" defer></script>
-  <script src="/js/search.js" defer></script>
-  <script src="/js/main.js" defer></script>
+  <script src="{{ '/js/event-bus.js' | assetHash }}" defer></script>
+  <script src="{{ '/js/pincode-lookup.js' | assetHash }}" defer></script>
+  <script src="{{ '/js/discount-engine.js' | assetHash }}" defer></script>
+  <script src="{{ '/js/api-client.js' | assetHash }}" defer></script>
+  <script src="{{ '/js/supabase-client.js' | assetHash }}" defer></script>
+  <script src="{{ '/js/supabase-auth.js' | assetHash }}" defer></script>
+  <script src="{{ '/js/wishlist.js' | assetHash }}" defer></script>
+  <script src="{{ '/js/cart.js' | assetHash }}" defer></script>
+  <script src="{{ '/js/checkout.js' | assetHash }}" defer></script>
+  <script src="{{ '/js/orders-tracker.js' | assetHash }}" defer></script>
+  <script src="{{ '/js/catalog.js' | assetHash }}" defer></script>
+  <script src="{{ '/js/inquiry.js' | assetHash }}" defer></script>
+  <script src="{{ '/js/search.js' | assetHash }}" defer></script>
+  <script src="{{ '/js/main.js' | assetHash }}" defer></script>
 </body>
 </html>

@@ -4,15 +4,36 @@
 (function () {
   'use strict';
 
-  var STORAGE_KEY = 'sango-wishlist-v1';
+  var STORAGE_KEY = 'sango-wishlist-v2';
+  var STORAGE_VERSION = 2;
 
   function readWishlist() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-    catch (e) { return []; }
+    try {
+      var d = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if (d && d.version === STORAGE_VERSION) return d.items || [];
+      return migrateWishlist(d);
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function migrateWishlist(oldData) {
+    var items = [];
+    if (Array.isArray(oldData)) items = oldData;
+    else if (oldData && Array.isArray(oldData.items)) items = oldData.items;
+    else {
+      try {
+        var prev = JSON.parse(localStorage.getItem('sango-wishlist-v1') || localStorage.getItem('sango_wishlist'));
+        if (Array.isArray(prev)) items = prev;
+      } catch (err) {}
+    }
+    var migrated = { version: STORAGE_VERSION, items: items || [] };
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated)); } catch (e) {}
+    return migrated.items;
   }
 
   function writeWishlist(list) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: STORAGE_VERSION, items: list }));
     if (window.AppEvent) window.AppEvent.emit('wishlist:updated', list);
 
     // Sync user's private wishlist to Supabase user_wishlists table

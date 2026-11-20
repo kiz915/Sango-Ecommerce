@@ -1,5 +1,7 @@
 package com.sangofiora.backend.service;
 
+import com.sangofiora.backend.config.AppProperties;
+import com.sangofiora.backend.dto.CodConfirmRequest;
 import com.sangofiora.backend.dto.CreatePaymentIntentRequest;
 import com.sangofiora.backend.dto.PaymentIntentResponse;
 import com.sangofiora.backend.dto.PaymentVerificationResponse;
@@ -36,11 +38,10 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
     private final SpreadsheetService spreadsheetService;
+    private final AppProperties appProperties;
 
     private static final String HMAC_ALGORITHM = "HmacSHA256";
-    private static final String PAYMENT_SECRET = "sango_botanical_sec_9941a8dbf2e4c19a";
     private static final String MERCHANT_NAME = "Sango Fiora Botanicals Pvt Ltd";
-    private static final String MERCHANT_VPA = "pay@sangofiora";
 
     @Transactional
     public PaymentIntentResponse createPaymentIntent(CreatePaymentIntentRequest request) {
@@ -143,7 +144,7 @@ public class PaymentService {
             // Online Gateway (UPI, Card, NetBanking) Cryptographic Signature & Integrity Check
             String gatewayPaymentId = request.getGatewayPaymentId();
             if (gatewayPaymentId == null || gatewayPaymentId.trim().isEmpty()) {
-                gatewayPaymentId = "pay_sango_" + ThreadLocalRandom.current().nextLong(1000000000L, 9999999999L);
+                throw new IllegalArgumentException("Gateway payment ID is required");
             }
 
             // Verify or compute signature
@@ -346,10 +347,58 @@ public class PaymentService {
                 .build();
     }
 
+    @Transactional
+    public PaymentVerificationResponse confirmCod(CodConfirmRequest request) {
+        Order order = orderRepository.findByOrderId(request.getOrderId())
+                .orElseThrow(() -> new IllegalArgumentException("Order not found with ID: " + request.getOrderId()));
+
+        if (!"Order Placed".equalsIgnoreCase(order.getStatus())) {
+            throw new IllegalStateException("Order cannot be confirmed for COD in status: " + order.getStatus());
+        }
+
+        order.setPaymentStatus("Pending (COD)");
+        String codTxnId = "COD-" + ThreadLocalRandom.current().nextInt(100000, 999999);
+        order.setTxnId(codTxnId);
+        orderRepository.save(order);
+
+        try {
+            java.util.Map<String, Object> sheetMap = new java.util.LinkedHashMap<>();
+            sheetMap.put("orderId", order.getOrderId());
+            sheetMap.put("name", order.getCustomerName());
+            sheetMap.put("email", order.getCustomerEmail());
+            sheetMap.put("phone", order.getCustomerPhone());
+            sheetMap.put("address", order.getShippingAddress() != null ? order.getShippingAddress() : "");
+            sheetMap.put("city", order.getCity() != null ? order.getCity() : "");
+            sheetMap.put("state", order.getState() != null ? order.getState() : "");
+            sheetMap.put("pincode", order.getPincode() != null ? order.getPincode() : "");
+            sheetMap.put("items", order.getItems() != null ? order.getItems().size() + " items" : "Botanicals");
+            sheetMap.put("total", order.getNetTotal());
+            sheetMap.put("paymentMethod", "COD");
+            sheetMap.put("paymentStatus", "Pending (COD)");
+            spreadsheetService.recordDeliveryOrder(sheetMap);
+        } catch (Exception e) {
+            log.warn("[COD] Delivery record logging note: {}", e.getMessage());
+        }
+
+        return PaymentVerificationResponse.builder()
+                .success(true)
+                .orderId(order.getOrderId())
+                .paymentId(codTxnId)
+                .txnId(codTxnId)
+                .status("COMPLETED")
+                .amount(order.getNetTotal())
+                .currency("INR")
+                .paymentMethod("COD")
+                .message("Cash On Delivery confirmed.")
+                .verifiedAt(OffsetDateTime.now())
+                .build();
+    }
+
     public String calculateHmacSha256(String data) {
         try {
             Mac mac = Mac.getInstance(HMAC_ALGORITHM);
-            mac.init(new SecretKeySpec(PAYMENT_SECRET.getBytes(StandardCharsets.UTF_8), HMAC_ALGORITHM));
+            String secret = appProperties != null ? appProperties.paymentSecret() : "sango_botanical_sec_9941a8dbf2e4c19a";
+            mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), HMAC_ALGORITHM));
             byte[] hmacBytes = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
             return HexFormat.of().formatHex(hmacBytes);
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
@@ -376,7 +425,7 @@ public class PaymentService {
                 .status(p.getStatus())
                 .expiresAt(p.getExpiresAt())
                 .merchantName(MERCHANT_NAME)
-                .merchantVpa(MERCHANT_VPA)
+                .merchantVpa(appProperties != null ? appProperties.merchantVpa() : "pay@sangofiora")
                 .clientChecksum(checksum)
                 .build();
     }

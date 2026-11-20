@@ -1,5 +1,6 @@
 package com.sangofiora.backend.controller;
 
+import com.sangofiora.backend.dto.CodConfirmRequest;
 import com.sangofiora.backend.dto.CreatePaymentIntentRequest;
 import com.sangofiora.backend.dto.PaymentIntentResponse;
 import com.sangofiora.backend.dto.PaymentVerificationResponse;
@@ -137,11 +138,40 @@ public class PaymentController {
         return ResponseEntity.ok(paymentService.getPaymentsForOrder(orderId));
     }
 
+    @PostMapping("/cod/confirm")
+    public ResponseEntity<?> confirmCod(@RequestBody CodConfirmRequest request) {
+        try {
+            PaymentVerificationResponse response = paymentService.confirmCod(request);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            log.error("[Payment API] COD confirmation error: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to confirm COD order: " + e.getMessage()));
+        }
+    }
+
     @PostMapping("/webhook")
-    public ResponseEntity<?> handleGatewayWebhook(@RequestBody Map<String, Object> payload,
+    public ResponseEntity<?> handleGatewayWebhook(@RequestBody String payload,
                                                   @RequestHeader(value = "X-Razorpay-Signature", required = false) String signature) {
-        log.info("[Payment Webhook] Gateway webhook received with payload: {}", payload);
-        // Secure Webhook endpoint
-        return ResponseEntity.ok(Map.of("status", "received", "timestamp", System.currentTimeMillis()));
+        if (signature != null && !signature.isBlank()) {
+            String expected = paymentService.calculateHmacSha256(payload);
+            if (!expected.equalsIgnoreCase(signature)) {
+                log.warn("Invalid Razorpay webhook signature");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Invalid signature"));
+            }
+        }
+        log.info("[Payment Webhook] Razorpay signature verified/accepted.");
+        return ResponseEntity.ok(Map.of("status", "processed"));
+    }
+
+    @PostMapping("/webhook/stripe")
+    public ResponseEntity<?> handleStripeWebhook(@RequestBody String payload,
+                                                 @RequestHeader(value = "Stripe-Signature", required = false) String sigHeader) {
+        log.info("[Payment Webhook] Stripe webhook received.");
+        return ResponseEntity.ok(Map.of("received", true));
     }
 }

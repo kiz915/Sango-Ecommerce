@@ -311,25 +311,12 @@
       }
     }
 
-    // Smart Pincode Lookup Engine
+    // Smart Pincode Lookup Engine via PincodeLookup
     function lookupPincode(pin) {
-      if (PINCODE_DB[pin]) return PINCODE_DB[pin];
-      if (!/^\d{6}$/.test(pin)) return null;
-      var prefix = pin.substring(0, 2);
-      var p3 = pin.substring(0, 3);
-      if (prefix >= '60' && prefix <= '64') return { city: p3 === '600' ? 'Chennai' : (p3 === '641' ? 'Coimbatore' : 'Tamil Nadu City'), state: 'Tamil Nadu' };
-      if (prefix >= '56' && prefix <= '59') return { city: p3 === '560' ? 'Bengaluru' : 'Karnataka City', state: 'Karnataka' };
-      if (prefix >= '50' && prefix <= '53') return { city: p3 === '500' ? 'Hyderabad' : 'Telangana City', state: 'Telangana' };
-      if (prefix >= '40' && prefix <= '44') return { city: p3 === '400' ? 'Mumbai' : (p3 === '411' ? 'Pune' : 'Maharashtra City'), state: 'Maharashtra' };
-      if (prefix === '11') return { city: 'New Delhi', state: 'Delhi' };
-      if (prefix >= '12' && prefix <= '13') return { city: 'Gurugram', state: 'Haryana' };
-      if (prefix >= '14' && prefix <= '16') return { city: 'Chandigarh', state: 'Punjab' };
-      if (prefix >= '20' && prefix <= '28') return { city: 'Noida', state: 'Uttar Pradesh' };
-      if (prefix >= '30' && prefix <= '34') return { city: 'Jaipur', state: 'Rajasthan' };
-      if (prefix >= '36' && prefix <= '39') return { city: 'Ahmedabad', state: 'Gujarat' };
-      if (prefix >= '70' && prefix <= '74') return { city: 'Kolkata', state: 'West Bengal' };
-      if (prefix >= '67' && prefix <= '69') return { city: 'Kochi', state: 'Kerala' };
-      return { city: 'City', state: 'State' };
+      if (window.PincodeLookup && window.PincodeLookup.lookupPincode) {
+        return window.PincodeLookup.lookupPincode(pin);
+      }
+      return null;
     }
 
     // Pincode Lookup Handler
@@ -413,8 +400,11 @@
       var emailInput = shippingForm ? shippingForm.querySelector('input[name="email"]') : null;
       if (emailInput && !emailInput.value) emailInput.value = user.email;
 
-      fetch('http://localhost:8080/api/customer/profile?email=' + encodeURIComponent(user.email))
-        .then(function (res) { return res.json(); })
+      var profileCall = (window.SangoAPI && window.SangoAPI.getCustomerProfile)
+        ? window.SangoAPI.getCustomerProfile(user.email)
+        : fetch('/api/customer/profile?email=' + encodeURIComponent(user.email)).then(function (res) { return res.json(); });
+
+      profileCall
         .then(function (data) {
           if (data && data.shippingAddress) {
             var banner = document.getElementById('one-click-profile-banner');

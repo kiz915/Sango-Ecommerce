@@ -212,6 +212,57 @@
       return request('/admin/products/' + encodeURIComponent(id) + '/toggle-sold-out', {
         method: 'PATCH'
       });
+    },
+
+    // ─── Unified Cart & Customer Sync ───
+    syncCart: function (cartData) {
+      return request('/cart/sync', {
+        method: 'POST',
+        body: cartData
+      });
+    },
+
+    getSyncedCart: function (email) {
+      return request('/cart/sync?email=' + encodeURIComponent(email));
+    },
+
+    deleteSyncedCart: function (email) {
+      return request('/cart/sync?email=' + encodeURIComponent(email), {
+        method: 'DELETE'
+      });
+    },
+
+    cancelOrder: function (orderId, reason) {
+      return request('/orders/' + encodeURIComponent(orderId) + '/cancel', {
+        method: 'POST',
+        body: { reason: reason || 'Customer requested cancellation' }
+      });
+    },
+
+    getCustomerProfile: function (email) {
+      return request('/customer/profile?email=' + encodeURIComponent(email));
+    },
+
+    confirmCod: function (orderId, userId) {
+      return request('/payments/cod/confirm', {
+        method: 'POST',
+        body: { orderId: orderId, userId: userId }
+      });
+    },
+
+    getDeliveries: function (format) {
+      return request('/spreadsheet/deliveries' + (format ? '?format=' + format : ''));
+    },
+
+    getContacts: function (format) {
+      return request('/spreadsheet/contacts' + (format ? '?format=' + format : ''));
+    },
+
+    submitDelivery: function (deliveryData) {
+      return request('/spreadsheet/delivery', {
+        method: 'POST',
+        body: deliveryData
+      });
     }
   };
 
