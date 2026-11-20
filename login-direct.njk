@@ -10,7 +10,11 @@ permalink: /login.html
     var ref = document.referrer;
     var dest = '/?auth=login';
     if (ref && ref.indexOf(window.location.host) !== -1 && ref.indexOf('/login') === -1) {
-      dest = ref + (ref.indexOf('?') === -1 ? '?' : '&') + 'auth=login';
+      if (ref.indexOf('/admin') !== -1) {
+        dest = '/?auth=login&redirect=/admin/';
+      } else {
+        dest = ref + (ref.indexOf('?') === -1 ? '?' : '&') + 'auth=login';
+      }
     }
     window.location.replace(dest);
   </script>

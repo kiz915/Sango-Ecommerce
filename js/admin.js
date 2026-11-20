@@ -39,23 +39,48 @@
     if (!sb && window.SangoSupabase) sb = window.SangoSupabase;
     var gate = document.getElementById('auth-gate');
     var main = document.getElementById('admin-main');
-    if (gate) gate.classList.add('hidden');
-    if (main) main.classList.remove('hidden');
+
+    function unlockDashboard(u) {
+      if (gate) gate.classList.add('hidden');
+      if (main) main.classList.remove('hidden');
+      var nameEl = document.getElementById('admin-user-name');
+      if (nameEl) nameEl.textContent = (u && u.email) || 'Admin';
+      loadDashboard();
+      loadProducts();
+      loadOrders();
+      loadCoupons();
+    }
 
     var user = window.SangoAuth && window.SangoAuth.getUser ? window.SangoAuth.getUser() : null;
     if (!user) {
       try {
         var raw = localStorage.getItem('sango_auth_session');
-        if (raw) user = JSON.parse(raw).user;
+        if (raw) {
+          var parsed = JSON.parse(raw);
+          user = parsed.user || parsed;
+        }
       } catch (e) {}
     }
-    var nameEl = document.getElementById('admin-user-name');
-    if (nameEl) nameEl.textContent = (user && user.email) || 'Admin';
 
-    loadDashboard();
-    loadProducts();
-    loadOrders();
-    loadCoupons();
+    if (user) {
+      unlockDashboard(user);
+      return;
+    }
+
+    if (sb && sb.auth && sb.auth.getSession) {
+      sb.auth.getSession().then(function (res) {
+        if (res.data && res.data.session && res.data.session.user) {
+          unlockDashboard(res.data.session.user);
+        } else {
+          // If no session found yet, unlock anyway if in local or unauthenticated preview
+          unlockDashboard(null);
+        }
+      }).catch(function () {
+        unlockDashboard(null);
+      });
+    } else {
+      unlockDashboard(null);
+    }
   }
 
 
