@@ -64,11 +64,21 @@
       }
     });
   }
-  function waitForAuth() {
-    if (!window.SangoSupabase || !window.SangoAuth) return setTimeout(waitForAuth, 40);
+  function waitForAuth(attempt) {
+    attempt = attempt || 0;
+    if (!window.SangoSupabase || !window.SangoAuth) {
+      if (attempt > 20) {
+        // Fallback after 800ms if scripts are delayed
+        gate('Sign in with your authorized administrator Google account to access Admin Studio.', false);
+        return;
+      }
+      return setTimeout(function () { waitForAuth(attempt + 1); }, 40);
+    }
     window.AppEvent.on('auth:changed', checkAuth);
     if (window.SangoAuth.getUser()) checkAuth();
-    window.SangoAuth.init().then(checkAuth);
+    window.SangoAuth.init()
+      .then(checkAuth)
+      .catch(function () { checkAuth(); });
   }
 
   var googleGateBtn = $('gate-google-btn');

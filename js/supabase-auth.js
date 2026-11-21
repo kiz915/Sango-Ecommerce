@@ -113,8 +113,11 @@
     fetchProfile: function () {
       if (!sb() || !currentUser) return Promise.resolve(null);
       return Promise.resolve(sb().from('profiles').select('*').eq('id', currentUser.id).maybeSingle()).then(function (res) {
-        if (res.data) currentProfile = res.data;
+        if (res && res.data) currentProfile = res.data;
         return currentProfile;
+      }).catch(function (err) {
+        console.warn('[SangoAuth] fetchProfile error:', err);
+        return null;
       });
     },
 
@@ -139,7 +142,9 @@
         currentUser = session ? session.user : null;
         if (!currentUser) { currentProfile = null; updateAuthUI(); emit(); return Promise.resolve(null); }
         updateAuthUI();
-        return window.SangoAuth.fetchProfile().then(function () { updateAuthUI(); emit(); return currentUser; });
+        emit();
+        window.SangoAuth.fetchProfile().then(function () { updateAuthUI(); emit(); });
+        return Promise.resolve(currentUser);
       };
       sb().auth.onAuthStateChange(function (event, session) {
         // never call other Supabase APIs synchronously inside this callback
