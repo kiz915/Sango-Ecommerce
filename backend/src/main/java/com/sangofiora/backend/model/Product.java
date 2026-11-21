@@ -34,7 +34,7 @@ public class Product {
     @Column(nullable = false)
     private String category;
 
-    @Column(nullable = false)
+    @Column
     private String size;
 
     @Column(name = "pot_included")

@@ -66,6 +66,28 @@ public class ProductService {
 
     @Transactional
     public Product saveProduct(Product product) {
+        if (product.getSize() == null || product.getSize().trim().isEmpty()) {
+            product.setSize("Standard");
+        }
+        if (product.getVariant() == null) {
+            product.setVariant("");
+        }
+        if (product.getCategory() == null || product.getCategory().trim().isEmpty()) {
+            product.setCategory("Foliage");
+        }
+        if (product.getPrice() == null) {
+            product.setPrice(product.getMrp() != null ? product.getMrp() : 999);
+        }
+        if (product.getMrp() == null) {
+            product.setMrp(product.getPrice() != null ? product.getPrice() : 999);
+        }
+        if (product.getStock() == null) {
+            product.setStock(50);
+        }
+        if (product.getImage() == null || product.getImage().trim().isEmpty()) {
+            product.setImage("/images/plants/areca-palm-tree-100cm.webp");
+        }
+
         if (product.getSlug() == null || product.getSlug().trim().isEmpty()) {
             String base = (product.getName() + "-" + (product.getSize() != null ? product.getSize() : ""))
                     .toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-+|-+$", "");
