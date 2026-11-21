@@ -27,6 +27,7 @@ Thumbs.db
 .claude/
 agent/
 data/skills/
+data/
 skills-lock.json
 setup-claude-bedrock.ps1
 stitch_assets/

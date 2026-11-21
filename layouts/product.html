@@ -9,7 +9,7 @@ title: Product
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ product.name }} ({{ product.size }}) | Sango Fiora</title>
   <meta name="description" content="Buy {{ product.name }} {{ product.size }} online in India. Pot included. ₹{{ product.price }} with free delivery over ₹999. Handcrafted from Sango Fiora.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+  <link rel="icon" type="image/png" href="/images/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
@@ -77,10 +77,10 @@ title: Product
           {% endif %}
 
           <button type="button" aria-label="Add to wishlist"
-            data-wishlist-btn data-slug="{{ product.slug }}" data-name="{{ product.name }}"
-            data-category="{{ product.category }}" data-size="{{ product.size }}"
-            data-price="{{ product.price }}" data-mrp="{{ product.mrp }}" data-image="{{ product.image }}"
-            class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur border border-outline-variant/30 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors shadow-md z-10">
+ data-wishlist-btn data-slug="{{ product.slug }}" data-name="{{ product.name }}"
+ data-category="{{ product.category }}" data-size="{{ product.size }}"
+ data-price="{{ product.price }}" data-mrp="{{ product.mrp }}" data-image="{{ product.image }}"
+ class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur border border-outline-variant/30 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors shadow-md z-10">
             <span class="material-symbols-outlined text-pink-600">favorite</span>
           </button>
         </div>
@@ -106,7 +106,7 @@ title: Product
           <!-- Price Block -->
           <div class="border-y border-outline-variant/30 py-4">
             <div class="flex items-baseline gap-3">
-              <span class="text-3xl sm:text-4xl font-bold text-deep-forest font-headline-lg">₹{{ product.price }}</span>
+              <span id="pdp-price" class="text-3xl sm:text-4xl font-bold text-deep-forest font-headline-lg">₹{{ product.price }}</span>
               {% if product.mrp > product.price %}
               <span class="text-lg text-gray-400 line-through">₹{{ product.mrp }}</span>
               <span class="bg-red-50 text-red-600 border border-red-200 text-xs font-bold px-2.5 py-1 rounded-lg font-label-sm">Save ₹{{ product.mrp - product.price }}</span>
@@ -134,7 +134,7 @@ title: Product
           <!-- Stock Urgency Alert Badge & Volume Tier Notice -->
           {% set currentStock = product.stock or 15 %}
           {% if currentStock <= 4 %}
-          <div class="flex items-center gap-2.5 p-3.5 bg-amber-50 border border-amber-200/80 rounded-2xl text-amber-900 text-xs font-semibold shadow-sm">
+ <div class="flex items-center gap-2.5 p-3.5 bg-amber-50 border border-amber-200/80 rounded-2xl text-amber-900 text-xs font-semibold shadow-sm">
             <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse shrink-0"></span>
             <span>Only <strong>{{ currentStock }}</strong> left in stock — order soon!</span>
           </div>
@@ -142,7 +142,7 @@ title: Product
 
           <div class="flex items-center justify-between p-3 bg-emerald-50/80 border border-emerald-200/70 rounded-2xl text-xs text-emerald-950 font-medium">
             <span class="flex items-center gap-1.5">
-              <span>🌿</span>
+              <span><span class="material-symbols-outlined ico" aria-hidden="true">eco</span></span>
               <span><strong>Bulk Styling:</strong> Buy 3+ plants for 5% off, 5+ for 10% off!</span>
             </span>
             <span class="text-[11px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">Auto-applied</span>
@@ -154,36 +154,36 @@ title: Product
               <div class="flex items-center border border-outline-variant/50 rounded-2xl overflow-hidden bg-surface-container-high">
                 <button type="button" id="pdp-minus" class="w-11 h-12 hover:bg-white text-xl font-bold text-deep-forest transition-colors" aria-label="Decrease quantity">−</button>
                 <input type="number" id="pdp-qty" value="1" min="1" max="{{ currentStock }}" data-max-stock="{{ currentStock }}"
-                  class="w-14 h-12 text-center font-bold text-gray-900 bg-transparent border-x border-outline-variant/50 focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none">
+ class="w-14 h-12 text-center font-bold text-gray-900 bg-transparent border-x border-outline-variant/50 focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none">
                 <button type="button" id="pdp-plus" class="w-11 h-12 hover:bg-white text-xl font-bold text-deep-forest transition-colors" aria-label="Increase quantity">+</button>
               </div>
 
               <button type="button"
-                data-add-to-cart data-slug="{{ product.slug }}" data-name="{{ product.name }}"
-                data-variant="{{ product.variant }}" data-category="{{ product.category }}"
-                data-size="{{ product.size }}" data-price="{{ product.price }}" data-mrp="{{ product.mrp }}"
-                data-image="{{ product.image }}" data-stock="{{ currentStock }}"
-                class="btn-animated flex-1 bg-deep-forest hover:bg-primary-container text-white px-6 py-4 rounded-2xl font-bold text-sm shadow-md flex items-center justify-center gap-2">
-                <span>🛍️</span> Add to Cart
+ data-add-to-cart data-slug="{{ product.slug }}" data-name="{{ product.name }}"
+ data-variant="{{ product.variant }}" data-category="{{ product.category }}"
+ data-size="{{ product.size }}" data-price="{{ product.price }}" data-mrp="{{ product.mrp }}"
+ data-image="{{ product.image }}" data-stock="{{ currentStock }}"
+ class="btn-animated flex-1 bg-deep-forest hover:bg-primary-container text-white px-6 py-4 rounded-2xl font-bold text-sm shadow-md flex items-center justify-center gap-2">
+                <span><span class="material-symbols-outlined ico" aria-hidden="true">shopping_bag</span></span> Add to Cart
               </button>
             </div>
 
             <!-- Direct Buy Now Button -->
             <button type="button"
-              data-buy-now data-slug="{{ product.slug }}" data-name="{{ product.name }}"
-              data-variant="{{ product.variant }}" data-category="{{ product.category }}"
-              data-size="{{ product.size }}" data-price="{{ product.price }}" data-mrp="{{ product.mrp }}"
-              data-image="{{ product.image }}" data-stock="{{ currentStock }}"
-              class="btn-animated w-full bg-amber-gold hover:bg-amber-400 text-deep-forest px-8 py-4 rounded-2xl font-bold text-base shadow-lg shadow-amber-gold/20 flex items-center justify-center gap-2">
-              <span>⚡</span> Buy Now &amp; Checkout
+ data-buy-now data-slug="{{ product.slug }}" data-name="{{ product.name }}"
+ data-variant="{{ product.variant }}" data-category="{{ product.category }}"
+ data-size="{{ product.size }}" data-price="{{ product.price }}" data-mrp="{{ product.mrp }}"
+ data-image="{{ product.image }}" data-stock="{{ currentStock }}"
+ class="btn-animated w-full bg-amber-gold hover:bg-amber-400 text-deep-forest px-8 py-4 rounded-2xl font-bold text-base shadow-lg shadow-amber-gold/20 flex items-center justify-center gap-2">
+              <span><span class="material-symbols-outlined ico" aria-hidden="true">bolt</span></span> Buy Now &amp; Checkout
             </button>
           </div>
 
           <!-- Trust Badges -->
           <div class="grid grid-cols-3 gap-2 pt-3 border-t border-outline-variant/30 text-center">
-            <div class="p-2"><p class="text-xl mb-0.5">🔒</p><p class="text-[10px] font-bold text-on-surface-variant">Stripe &amp; SSL Secured</p></div>
-            <div class="p-2"><p class="text-xl mb-0.5">🌱</p><p class="text-[10px] font-bold text-on-surface-variant">Quality Guarantee</p></div>
-            <div class="p-2"><p class="text-xl mb-0.5">🧑‍🌾</p><p class="text-[10px] font-bold text-on-surface-variant">Styling Support</p></div>
+            <div class="p-2"><p class="text-xl mb-0.5"><span class="material-symbols-outlined ico" aria-hidden="true">lock</span></p><p class="text-[10px] font-bold text-on-surface-variant">Secure Razorpay Payments</p></div>
+            <div class="p-2"><p class="text-xl mb-0.5"><span class="material-symbols-outlined ico" aria-hidden="true">spa</span></p><p class="text-[10px] font-bold text-on-surface-variant">Quality Guarantee</p></div>
+            <div class="p-2"><p class="text-xl mb-0.5"><span class="material-symbols-outlined ico" aria-hidden="true">agriculture</span></p><p class="text-[10px] font-bold text-on-surface-variant">Styling Support</p></div>
           </div>
         </div>
       </div>
@@ -194,13 +194,13 @@ title: Product
       <div class="bg-white rounded-3xl border border-outline-variant/30 p-6 md:p-8 shadow-sm">
         <div class="flex border-b border-outline-variant/30 gap-6 mb-6">
           <button type="button" data-tab="overview" class="pdp-tab active text-base font-bold text-deep-forest border-b-2 border-amber-gold pb-3 transition-all">
-            🌿 Product Overview
+            <span class="material-symbols-outlined ico" aria-hidden="true">eco</span> Product Overview
           </button>
           <button type="button" data-tab="care" class="pdp-tab text-base font-medium text-on-surface-variant border-b-2 border-transparent pb-3 hover:text-deep-forest transition-all">
-            ✨ Styling Tips
+            <span class="material-symbols-outlined ico" aria-hidden="true">auto_awesome</span> Styling Tips
           </button>
           <button type="button" data-tab="shipping" class="pdp-tab text-base font-medium text-on-surface-variant border-b-2 border-transparent pb-3 hover:text-deep-forest transition-all">
-            📦 Packaging &amp; Delivery
+            <span class="material-symbols-outlined ico" aria-hidden="true">inventory_2</span> Packaging &amp; Delivery
           </button>
         </div>
 
@@ -216,19 +216,19 @@ title: Product
         <div id="tab-care" class="pdp-tab-content hidden space-y-4 text-on-surface-variant text-sm sm:text-base font-body-md">
           <div class="grid sm:grid-cols-2 gap-4">
             <div class="bg-surface-container-low p-4 rounded-2xl border border-outline-variant/30">
-              <h4 class="font-bold text-deep-forest text-sm mb-1">☀️ Placement Tips</h4>
+              <h4 class="font-bold text-deep-forest text-sm mb-1"><span class="material-symbols-outlined ico" aria-hidden="true">light_mode</span> Placement Tips</h4>
               <p class="text-xs text-on-surface-variant/80">Place in any room — no sunlight needed. Avoid direct harsh sunlight to preserve color vibrancy over time.</p>
             </div>
             <div class="bg-surface-container-low p-4 rounded-2xl border border-outline-variant/30">
-              <h4 class="font-bold text-deep-forest text-sm mb-1">🧹 Cleaning</h4>
+              <h4 class="font-bold text-deep-forest text-sm mb-1"><span class="material-symbols-outlined ico" aria-hidden="true">cleaning_services</span> Cleaning</h4>
               <p class="text-xs text-on-surface-variant/80">Gently dust with a soft cloth or use a low-pressure air blower. Wipe leaves with a damp cloth for a fresh look.</p>
             </div>
             <div class="bg-surface-container-low p-4 rounded-2xl border border-outline-variant/30">
-              <h4 class="font-bold text-deep-forest text-sm mb-1">🎨 Styling Ideas</h4>
+              <h4 class="font-bold text-deep-forest text-sm mb-1"><span class="material-symbols-outlined ico" aria-hidden="true">palette</span> Styling Ideas</h4>
               <p class="text-xs text-on-surface-variant/80">Pair with decorative pebbles, macramé holders, or place near natural wood furniture for an organic feel.</p>
             </div>
             <div class="bg-surface-container-low p-4 rounded-2xl border border-outline-variant/30">
-              <h4 class="font-bold text-deep-forest text-sm mb-1">💡 Zero Maintenance</h4>
+              <h4 class="font-bold text-deep-forest text-sm mb-1"><span class="material-symbols-outlined ico" aria-hidden="true">lightbulb</span> Zero Maintenance</h4>
               <p class="text-xs text-on-surface-variant/80">No watering, no fertilizer, no repotting — enjoy lush greenery year-round with zero effort.</p>
             </div>
           </div>
@@ -236,10 +236,10 @@ title: Product
 
         <div id="tab-shipping" class="pdp-tab-content hidden space-y-4 text-on-surface-variant text-sm sm:text-base leading-relaxed font-body-md">
           <p>
-            📦 <strong>Plant-Safe Packaging:</strong> Our custom-designed eco-friendly packaging locks the pot and base securely while allowing safe handling during transit.
+            <span class="material-symbols-outlined ico" aria-hidden="true">inventory_2</span> <strong>Plant-Safe Packaging:</strong> Our custom-designed eco-friendly packaging locks the pot and base securely while allowing safe handling during transit.
           </p>
           <p>
-            🛡️ <strong>Transit Guarantee:</strong> In the rare event of transit damage, take a picture within 24 hours of delivery and we will send a free replacement immediately.
+            <span class="material-symbols-outlined ico" aria-hidden="true">shield</span> <strong>Transit Guarantee:</strong> In the rare event of transit damage, take a picture within 24 hours of delivery and we will send a free replacement immediately.
           </p>
         </div>
       </div>
@@ -277,6 +277,7 @@ title: Product
   <script src="/js/checkout.js" defer></script>
   <script src="/js/orders-tracker.js" defer></script>
   <script src="/js/catalog.js" defer></script>
+  <script src="/js/live-sync.js" defer></script>
   <script src="/js/inquiry.js" defer></script>
   <script src="/js/main.js" defer></script>
 
@@ -296,7 +297,7 @@ title: Product
         var maxStock = parseInt(qty.dataset.maxStock || '20', 10);
         var curr = parseInt(qty.value, 10) || 1;
         if (curr >= maxStock) {
-          if (window.showToast) window.showToast('⚠️ Only ' + maxStock + ' left in stock — reached maximum limit.');
+          if (window.showToast) window.showToast('Only ' + maxStock + ' left in stock — reached maximum limit.');
           return;
         }
         qty.value = curr + 1;
@@ -311,7 +312,7 @@ title: Product
         var v = parseInt(qty.value, 10) || 1;
         if (v > maxStock) {
           qty.value = maxStock;
-          if (window.showToast) window.showToast('⚠️ Adjusted to available stock of ' + maxStock);
+          if (window.showToast) window.showToast('Adjusted to available stock of ' + maxStock);
         } else if (v < 1) {
           qty.value = 1;
         }

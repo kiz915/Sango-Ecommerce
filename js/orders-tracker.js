@@ -58,7 +58,7 @@
       if (!orders.length) {
         wrap.innerHTML =
           '<div class="text-center py-16">' +
-          '<div class="text-6xl mb-4">📦</div>' +
+          '<div class="text-6xl mb-4"><span class="material-symbols-outlined ico" aria-hidden="true">inventory_2</span></div>' +
           '<p class="font-bold text-gray-900 text-lg mb-1">No Orders Placed Yet</p>' +
           '<p class="text-xs text-gray-400 mb-6">Your order history and live delivery tracking will appear here.</p>' +
           '<a href="/products/" class="inline-block bg-amber-500 text-plant-dark px-6 py-2.5 rounded-full font-bold text-xs">Shop Plants</a>' +
@@ -117,7 +117,7 @@
       var order = readOrders().find(function (o) { return o.orderId === orderId; });
       if (order && window.CartEngine) {
         order.items.forEach(function (i) { window.CartEngine.addToCart(i, i.qty); });
-        if (window.showToast) window.showToast('All items added back to cart 🌱');
+        if (window.showToast) window.showToast('All items added back to cart');
       }
       return;
     }

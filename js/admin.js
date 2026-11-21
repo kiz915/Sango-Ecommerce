@@ -1,1092 +1,301 @@
 /**
- * Sango Fiora — Admin Dashboard Engine
- * Handles: Auth gate, products CRUD, orders management, coupons, analytics
+ * Sango Fiora — Admin console (talks directly to Supabase; every write is enforced by RLS + is_admin()).
  */
 (function () {
   'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var API = function () { return window.SangoAPI; };
+  var inr = function (n) { return '₹' + Number(n || 0).toLocaleString('en-IN'); };
+  function esc(s) { var d = document.createElement('div'); d.appendChild(document.createTextNode(s == null ? '' : String(s))); return d.innerHTML.replace(/"/g, '&quot;'); }
+  function dt(s) { return s ? new Date(s).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : ''; }
 
-  var sb = window.SangoSupabase || null; // Supabase client ref
-  var STATUS_LABELS = {
-    1: 'Order Placed',
-    2: 'Quality Inspection',
-    3: 'Packed',
-    4: 'Out for Delivery',
-    5: 'Delivered'
+  function toast(msg, isErr) {
+    var el = document.createElement('div'); el.className = 't' + (isErr ? ' err' : ''); el.textContent = msg;
+    $('toast').appendChild(el); setTimeout(function () { el.remove(); }, isErr ? 5000 : 2800);
+  }
+  function openM(id) { $(id).classList.remove('hidden'); }
+  function closeM(id) { $(id).classList.add('hidden'); }
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('[data-close]')) { var m = e.target.closest('.overlay'); if (m) m.classList.add('hidden'); }
+    else if (e.target.classList && e.target.classList.contains('overlay')) e.target.classList.add('hidden');
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') document.querySelectorAll('.overlay').forEach(function (o) { o.classList.add('hidden'); }); });
+
+  var state = { products: [], orders: [], coupons: [], enquiries: [], editing: null, order: null, loaded: {} };
+  var TABS = {
+    dash: ['Dashboard', 'Store overview'], products: ['Products', 'Changes go live on the store instantly'],
+    orders: ['Orders', 'Track, update and fulfil customer orders'], coupons: ['Coupons', 'Discount codes customers can apply'], enquiries: ['Enquiries', 'Messages from the contact form']
   };
 
-  // ─── Toast ───
-  function toast(msg) {
-    var el = document.getElementById('admin-toast');
-    if (!el) return;
-    el.textContent = msg;
-    el.classList.remove('hidden');
-    clearTimeout(el._timer);
-    el._timer = setTimeout(function () { el.classList.add('hidden'); }, 3000);
+  // ─────────── Auth gate ───────────
+  function gate(msg, showSignout) {
+    $('app').classList.add('hidden'); $('gate').classList.remove('hidden');
+    if (msg) $('gate-msg').textContent = msg;
+    $('gate-out').classList.toggle('hidden', !showSignout);
+    $('gate-form').classList.toggle('hidden', !!showSignout);
   }
-
-  function escapeHTML(str) {
-    var div = document.createElement('div');
-    div.appendChild(document.createTextNode(str == null ? '' : String(str)));
-    return div.innerHTML;
+  function enter(user) {
+    $('gate').classList.add('hidden'); $('app').classList.remove('hidden');
+    $('who').textContent = user.email;
+    if (!state.started) { state.started = true; boot(); }
   }
-
-  function formatCurrency(n) {
-    return '₹' + Number(n || 0).toLocaleString('en-IN');
+  function checkAuth() {
+    var A = window.SangoAuth;
+    if (!A) return;
+    var user = A.getUser();
+    if (!user) return gate('Sign in with your administrator email. We\'ll send you a secure sign-in link.', false);
+    if (!A.isAdmin()) return gate(user.email + ' does not have administrator access.', true);
+    enter(user);
   }
-
-  // ─── Admin Initialization (Backend Enforces Auth via Spring Security JWT) ───
-  function isUserAdmin(u) {
-    if (!u) return false;
-    var email = (u.email || '').toLowerCase().trim();
-    var appRole = u.app_metadata && u.app_metadata.role;
-    var userRole = u.user_metadata && u.user_metadata.role;
-    var customAdmins = window.SANGO_ADMIN_EMAILS || ['admin@sangofiora.com', 'kishorevk40@gmail.com'];
-    return appRole === 'admin' ||
-           userRole === 'admin' ||
-           email.indexOf('admin') !== -1 ||
-           email.endsWith('@sangofiora.com') ||
-           customAdmins.indexOf(email) !== -1;
+  function waitForAuth() {
+    if (!window.SangoSupabase || !window.SangoAuth) return setTimeout(waitForAuth, 80);
+    window.AppEvent.on('auth:changed', checkAuth);
+    window.SangoAuth.init().then(checkAuth);
   }
-
-  function checkAdminAuth() {
-    if (!sb && window.SangoSupabase) sb = window.SangoSupabase;
-    var gate = document.getElementById('auth-gate');
-    var main = document.getElementById('admin-main');
-
-    function unlockDashboard(u) {
-      if (gate) {
-        gate.classList.add('hidden');
-        gate.style.display = 'none';
-      }
-      if (main) {
-        main.classList.remove('hidden');
-        main.style.display = 'block';
-      }
-      var nameEl = document.getElementById('admin-user-name');
-      var email = (u && u.email) || 'admin@sangofiora.com';
-      if (nameEl) nameEl.textContent = email;
-
-      loadDashboard();
-      loadProducts();
-      loadOrders();
-      loadCoupons();
-    }
-
-    function lockDashboard(msg) {
-      if (gate) {
-        gate.classList.remove('hidden');
-        gate.style.display = 'flex';
-      }
-      if (main) {
-        main.classList.add('hidden');
-        main.style.display = 'none';
-      }
-      var msgEl = document.getElementById('auth-gate-msg');
-      if (msgEl && msg) msgEl.textContent = msg;
-    }
-
-    if (sb && sb.auth && sb.auth.getSession) {
-      sb.auth.getSession().then(function (res) {
-        var user = res.data && res.data.session && res.data.session.user;
-        if (user) {
-          if (isUserAdmin(user)) {
-            unlockDashboard(user);
-          } else {
-            lockDashboard('Access Denied: Account ' + user.email + ' does not have administrator privileges.');
-          }
-        } else {
-          lockDashboard();
-        }
-      }).catch(function () {
-        lockDashboard();
-      });
-    } else {
-      lockDashboard();
-    }
-  }
-
-  // ─── Direct Supabase Admin Login Form ───
-  var adminLoginForm = document.getElementById('admin-login-form');
-  if (adminLoginForm) {
-    adminLoginForm.addEventListener('submit', function (e) {
-      e.preventDefault();
-      var email = (document.getElementById('admin-login-email').value || '').trim();
-      var password = (document.getElementById('admin-login-password').value || '').trim();
-      if (!email || !password) {
-        toast('Please enter administrator email and password');
-        return;
-      }
-      var submitBtn = document.getElementById('btn-admin-submit-login');
-      if (submitBtn) {
-        submitBtn.textContent = 'Verifying Studio Access...';
-        submitBtn.disabled = true;
-      }
-
-      if (!sb && window.SangoSupabase) sb = window.SangoSupabase;
-      if (!sb || !sb.auth) {
-        toast('Supabase client unavailable');
-        if (submitBtn) { submitBtn.textContent = 'Sign In to Studio →'; submitBtn.disabled = false; }
-        return;
-      }
-
-      sb.auth.signInWithPassword({
-        email: email,
-        password: password
-      }).then(function (res) {
-        if (res.error) {
-          throw new Error(res.error.message || 'Authentication failed');
-        }
-        var user = res.data.user;
-        if (!isUserAdmin(user)) {
-          sb.auth.signOut();
-          toast('Access Denied: This account is not an authorized administrator.');
-          return;
-        }
-        toast('Welcome to Admin Studio! 🌿');
-        checkAdminAuth();
-      }).catch(function (err) {
-        toast('Login failed: ' + err.message);
-      }).finally(function () {
-        if (submitBtn) {
-          submitBtn.textContent = 'Sign In to Studio →';
-          submitBtn.disabled = false;
-        }
-      });
-    });
-  }
-
-
-
-  // ─── Product Image Folder Upload & Preview Engine ───
-  var pfDropzone = document.getElementById('pf-dropzone');
-  var pfFileInput = document.getElementById('pf-file-input');
-  var pfDropzoneContent = document.getElementById('pf-dropzone-content');
-  var pfUploadSpinner = document.getElementById('pf-upload-spinner');
-  var pfPreviewCard = document.getElementById('pf-preview-card');
-  var pfImgEl = document.getElementById('pf-image-preview');
-  var pfImageName = document.getElementById('pf-image-name');
-  var pfImageStatus = document.getElementById('pf-image-status');
-  var pfImageInput = document.getElementById('pf-image');
-  var btnChangeImage = document.getElementById('btn-change-image');
-
-  function updateImageUI(url, filename, isReady) {
-    if (pfImageInput) pfImageInput.value = url || '';
-    if (url) {
-      if (pfImgEl) pfImgEl.src = url;
-      if (pfImageName) pfImageName.textContent = filename || url.split('/').pop() || 'Product Image';
-      if (pfImageStatus) {
-        pfImageStatus.innerHTML = isReady 
-          ? '<span class="text-emerald-700 font-semibold">✓ Uploaded & ready</span>'
-          : '<span class="text-gray-500">Previewing</span>';
-      }
-      if (pfPreviewCard) pfPreviewCard.classList.remove('hidden');
-      if (pfDropzone) pfDropzone.classList.add('hidden');
-    } else {
-      if (pfPreviewCard) pfPreviewCard.classList.add('hidden');
-      if (pfDropzone) pfDropzone.classList.remove('hidden');
-    }
-  }
-
-  function handleImageFile(file) {
-    if (!file) return;
-    if (!file.type.match(/^image\//)) {
-      toast('Please select an image file (PNG, JPG, WEBP).');
-      return;
-    }
-
-    // 1. Show immediate local preview
-    var localUrl = URL.createObjectURL(file);
-    updateImageUI(localUrl, file.name, false);
-
-    // 2. Show uploading state in UI
-    if (pfUploadSpinner) pfUploadSpinner.classList.remove('hidden');
-    if (pfDropzoneContent) pfDropzoneContent.classList.add('hidden');
-    if (pfImageStatus) pfImageStatus.innerHTML = '<span class="text-amber-600 animate-pulse">⏳ Uploading to server...</span>';
-
-    // 3. Upload to backend
-    if (window.SangoAPI && window.SangoAPI.uploadProductImage) {
-      window.SangoAPI.uploadProductImage(file)
-        .then(function (res) {
-          if (pfUploadSpinner) pfUploadSpinner.classList.add('hidden');
-          if (pfDropzoneContent) pfDropzoneContent.classList.remove('hidden');
-          var publicUrl = res.url || localUrl;
-          updateImageUI(publicUrl, res.filename || file.name, true);
-          toast('Image uploaded successfully! 🌿');
-        })
-        .catch(function (err) {
-          console.warn('Backend upload failed, attempting fallback...', err);
-          // Fallback: Convert to data URL so the product still saves with this image!
-          var reader = new FileReader();
-          reader.onload = function (e) {
-            if (pfUploadSpinner) pfUploadSpinner.classList.add('hidden');
-            if (pfDropzoneContent) pfDropzoneContent.classList.remove('hidden');
-            updateImageUI(e.target.result, file.name, true);
-            toast('Image attached! 🌿');
-          };
-          reader.readAsDataURL(file);
-        });
-    } else {
-      // Fallback: read directly as DataURL
-      var reader = new FileReader();
-      reader.onload = function (e) {
-        if (pfUploadSpinner) pfUploadSpinner.classList.add('hidden');
-        if (pfDropzoneContent) pfDropzoneContent.classList.remove('hidden');
-        updateImageUI(e.target.result, file.name, true);
-        toast('Image attached! 🌿');
-      };
-      reader.readAsDataURL(file);
-    }
-  }
-
-  if (pfDropzone && pfFileInput) {
-    pfDropzone.addEventListener('click', function () {
-      pfFileInput.click();
-    });
-
-    pfFileInput.addEventListener('change', function () {
-      if (pfFileInput.files && pfFileInput.files[0]) {
-        handleImageFile(pfFileInput.files[0]);
-      }
-    });
-
-    // Drag and drop support
-    pfDropzone.addEventListener('dragover', function (e) {
-      e.preventDefault();
-      pfDropzone.classList.add('border-emerald-600', 'bg-emerald-50/50');
-    });
-
-    pfDropzone.addEventListener('dragleave', function (e) {
-      e.preventDefault();
-      pfDropzone.classList.remove('border-emerald-600', 'bg-emerald-50/50');
-    });
-
-    pfDropzone.addEventListener('drop', function (e) {
-      e.preventDefault();
-      pfDropzone.classList.remove('border-emerald-600', 'bg-emerald-50/50');
-      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-        handleImageFile(e.dataTransfer.files[0]);
-      }
-    });
-  }
-
-  if (btnChangeImage && pfFileInput) {
-    btnChangeImage.addEventListener('click', function () {
-      pfFileInput.click();
-    });
-  }
-
-  if (pfImageInput) {
-    pfImageInput.addEventListener('input', function () {
-      var url = pfImageInput.value.trim();
-      if (url) {
-        updateImageUI(url, url.split('/').pop(), true);
-      } else {
-        updateImageUI('', '', false);
-      }
-    });
-  }
-
-  // ─── Sign Out ───
-  var btnAdminSignOut = document.getElementById('admin-signout');
-  if (btnAdminSignOut) {
-    btnAdminSignOut.addEventListener('click', function () {
-      try {
-        localStorage.removeItem('sango_auth_session');
-        for (var i = localStorage.length - 1; i >= 0; i--) {
-          var k = localStorage.key(i);
-          if (k && k.indexOf('sb-') === 0) localStorage.removeItem(k);
-        }
-      } catch (e) {}
-      if (sb && sb.auth && sb.auth.signOut) {
-        sb.auth.signOut().finally(function () {
-          location.reload();
-        });
-      } else {
-        location.reload();
-      }
-    });
-  }
-
-  // ─── Tab Navigation ───
-  document.querySelectorAll('.admin-tab').forEach(function (tab) {
-    tab.addEventListener('click', function () {
-      document.querySelectorAll('.admin-tab').forEach(function (t) {
-        t.classList.remove('tab-active');
-        t.classList.add('bg-gray-100', 'text-gray-700');
-      });
-      tab.classList.add('tab-active');
-      tab.classList.remove('bg-gray-100', 'text-gray-700');
-
-      var target = tab.dataset.adminTab;
-      document.querySelectorAll('.admin-tab-content').forEach(function (c) {
-        c.classList.add('hidden');
-      });
-      var el = document.getElementById('tab-' + target);
-      if (el) { el.classList.remove('hidden'); el.classList.add('fade-in'); }
-
-      if (target === 'spreadsheets') {
-        loadSpreadsheetTables();
-      }
-    });
-  });
-
-  function loadSpreadsheetTables() {
-    var tbDeliveries = document.getElementById('tbody-deliveries-spreadsheet');
-    var tbContacts = document.getElementById('tbody-contacts-spreadsheet');
-
-    var getDeliv = (window.SangoAPI && window.SangoAPI.getDeliveries)
-      ? window.SangoAPI.getDeliveries()
-      : fetch('/api/spreadsheet/deliveries').then(function (r) { return r.json(); });
-
-    getDeliv
-      .then(function (rows) {
-        if (!tbDeliveries) return;
-        if (!rows || rows.length === 0) {
-          tbDeliveries.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-gray-400">No delivery orders logged yet.</td></tr>';
-          return;
-        }
-        tbDeliveries.innerHTML = rows.map(function (row) {
-          return '<tr class="hover:bg-gray-50">' +
-            '<td class="p-3 font-mono font-bold text-deep-forest">' + escapeHTML(row['Order ID'] || '') + '</td>' +
-            '<td class="p-3 text-gray-500 whitespace-nowrap">' + escapeHTML(row['Date'] || '') + '</td>' +
-            '<td class="p-3 font-bold text-gray-800">' + escapeHTML(row['Customer Name'] || '') + '</td>' +
-            '<td class="p-3 text-gray-600">' + escapeHTML(row['Phone'] || '') + '</td>' +
-            '<td class="p-3 text-gray-600 max-w-xs truncate" title="' + escapeHTML(row['Delivery Address'] || '') + '">' + escapeHTML(row['Delivery Address'] || '') + '</td>' +
-            '<td class="p-3 font-mono">' + escapeHTML(row['Pincode'] || '') + '</td>' +
-            '<td class="p-3 text-gray-600">' + escapeHTML(row['Items'] || '') + '</td>' +
-            '<td class="p-3 text-right font-bold text-deep-forest">₹' + escapeHTML(row['Total (INR)'] || '0') + '</td>' +
-            '</tr>';
-        }).join('');
-      })
-      .catch(function () {
-        if (tbDeliveries) tbDeliveries.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-gray-400">Delivery spreadsheet ready on server.</td></tr>';
-      });
-
-    var getCont = (window.SangoAPI && window.SangoAPI.getContacts)
-      ? window.SangoAPI.getContacts()
-      : fetch('/api/spreadsheet/contacts').then(function (r) { return r.json(); });
-
-    getCont
-      .then(function (rows) {
-        if (!tbContacts) return;
-        if (!rows || rows.length === 0) {
-          tbContacts.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-gray-400">No contact inquiries logged yet.</td></tr>';
-          return;
-        }
-        tbContacts.innerHTML = rows.map(function (row) {
-          return '<tr class="hover:bg-gray-50">' +
-            '<td class="p-3 font-mono font-bold text-deep-forest">' + escapeHTML(row['Ticket ID'] || '') + '</td>' +
-            '<td class="p-3 text-gray-500 whitespace-nowrap">' + escapeHTML(row['Date'] || '') + '</td>' +
-            '<td class="p-3 font-bold text-gray-800">' + escapeHTML(row['Customer Name'] || '') + '</td>' +
-            '<td class="p-3 text-gray-600">' + escapeHTML(row['Phone'] || '') + '</td>' +
-            '<td class="p-3 text-gray-600">' + escapeHTML(row['Email'] || '') + '</td>' +
-            '<td class="p-3 font-medium text-amber-800">' + escapeHTML(row['Topic'] || '') + '</td>' +
-            '<td class="p-3 text-gray-600 max-w-xs truncate" title="' + escapeHTML(row['Message'] || '') + '">' + escapeHTML(row['Message'] || '') + '</td>' +
-            '<td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">' + escapeHTML(row['Status'] || 'Open') + '</span></td>' +
-            '</tr>';
-        }).join('');
-      })
-      .catch(function () {
-        if (tbContacts) tbContacts.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-gray-400">Contact spreadsheet ready on server.</td></tr>';
-      });
-  }
-
-
-  // ═══════════════════════════════════════
-  //  DASHBOARD
-  // ═══════════════════════════════════════
-  function renderDashboardRecentOrders(orders) {
-    var wrap = document.getElementById('dashboard-recent-orders');
-    if (!wrap) return;
-    if (!orders || !orders.length) {
-      wrap.innerHTML = '<p class="p-8 text-center text-gray-400 text-sm">No orders yet. Customer orders will appear here automatically.</p>';
-      return;
-    }
-    wrap.innerHTML = '<table class="w-full text-xs"><thead class="bg-gray-50 border-b"><tr>' +
-      '<th class="text-left px-4 py-2 font-bold text-gray-500">Order ID</th>' +
-      '<th class="text-left px-4 py-2 font-bold text-gray-500">Customer</th>' +
-      '<th class="text-right px-4 py-2 font-bold text-gray-500">Total</th>' +
-      '<th class="text-center px-4 py-2 font-bold text-gray-500">Status</th>' +
-      '</tr></thead><tbody class="divide-y divide-gray-100">' +
-      orders.map(function (o) {
-        var oid = o.order_id || o.orderId || '';
-        var cname = o.customer_name || o.customerName || '';
-        var total = o.net_total != null ? o.net_total : (o.netTotal || 0);
-        var st = o.status || 'Order Placed';
-        return '<tr class="hover:bg-gray-50">' +
-          '<td class="px-4 py-3 font-bold mono">' + escapeHTML(oid) + '</td>' +
-          '<td class="px-4 py-3">' + escapeHTML(cname) + '</td>' +
-          '<td class="px-4 py-3 text-right font-bold">' + formatCurrency(total) + '</td>' +
-          '<td class="px-4 py-3 text-center"><span class="bg-green-100 text-green-800 px-2 py-0.5 rounded-full text-[10px] font-bold">' + escapeHTML(st) + '</span></td>' +
-          '</tr>';
-      }).join('') + '</tbody></table>';
-  }
-
-  function loadDashboard() {
-    // 1. Primary: Load live metrics from Spring Boot REST API
-    if (window.SangoAPI) {
-      window.SangoAPI.getAdminStats().then(function (stats) {
-        if (stats) {
-          var pEl = document.getElementById('stat-products');
-          var sEl = document.getElementById('stat-soldout');
-          var oEl = document.getElementById('stat-orders');
-          var rEl = document.getElementById('stat-revenue');
-          if (pEl && stats.activeProducts != null) pEl.textContent = stats.activeProducts;
-          if (sEl && stats.soldOutProducts != null) sEl.textContent = stats.soldOutProducts;
-          if (oEl && stats.totalOrders != null) oEl.textContent = stats.totalOrders;
-          if (rEl && stats.totalRevenue != null) rEl.textContent = formatCurrency(stats.totalRevenue);
-        }
-      }).catch(function () {});
-
-      window.SangoAPI.getAdminOrders().then(function (orders) {
-        if (orders && Array.isArray(orders)) {
-          var oEl = document.getElementById('stat-orders');
-          var rEl = document.getElementById('stat-revenue');
-          if (oEl) oEl.textContent = orders.length;
-          var rev = orders.reduce(function (sum, ord) {
-            return sum + (ord.netTotal != null ? ord.netTotal : (ord.net_total || 0));
-          }, 0);
-          if (rEl) rEl.textContent = formatCurrency(rev);
-          renderDashboardRecentOrders(orders.slice(0, 5));
-        }
-      }).catch(function () {});
-      return;
-    }
-
-    // 2. Fallback: Supabase client
-    if (sb) {
-      sb.from('products').select('id, is_sold_out, is_active', { count: 'exact' }).eq('is_active', true).then(function (res) {
-        var products = res.data || [];
-        document.getElementById('stat-products').textContent = products.length;
-        document.getElementById('stat-soldout').textContent = products.filter(function (p) { return p.is_sold_out; }).length;
-      });
-
-      sb.from('orders').select('net_total', { count: 'exact' }).then(function (res) {
-        var orders = res.data || [];
-        document.getElementById('stat-orders').textContent = orders.length;
-        var revenue = orders.reduce(function (s, o) { return s + (o.net_total || 0); }, 0);
-        document.getElementById('stat-revenue').textContent = formatCurrency(revenue);
-      });
-
-      sb.from('orders').select('*').order('created_at', { ascending: false }).limit(5).then(function (res) {
-        renderDashboardRecentOrders(res.data || []);
-      });
-    } else {
-      renderDashboardRecentOrders([]);
-    }
-  }
-
-
-  // ═══════════════════════════════════════
-  //  PRODUCTS CRUD
-  // ═══════════════════════════════════════
-  var allProducts = [];
-
-  function loadProducts() {
-    if (window.SangoAPI) {
-      window.SangoAPI.getProducts().then(function (prods) {
-        if (prods && prods.length) {
-          allProducts = prods.map(function(p) {
-            return {
-              id: p.id,
-              name: p.name,
-              slug: p.slug,
-              category: p.category,
-              size: p.size,
-              variant: p.variant,
-              price: p.price,
-              mrp: p.mrp,
-              stock: p.stock,
-              image: p.image,
-              is_active: p.isActive !== false,
-              is_sold_out: !!p.isSoldOut
-            };
-          });
-          renderProductsTable(allProducts);
-          return;
-        }
-        fallbackProducts();
-      }).catch(fallbackProducts);
-    } else {
-      fallbackProducts();
-    }
-  }
-
-  function fallbackProducts() {
-    if (sb) {
-      sb.from('products').select('*').order('created_at', { ascending: false }).then(function (res) {
-        allProducts = res.data || [];
-        renderProductsTable(allProducts);
-      });
-    } else {
-      fetch('/_data/plants.json').then(function(r) { return r.json(); }).then(function(data) {
-        allProducts = (data && data.products) || [];
-        renderProductsTable(allProducts);
-      }).catch(function() {
-        renderProductsTable([]);
-      });
-    }
-  }
-
-  function renderProductsTable(products) {
-    var tbody = document.getElementById('admin-products-tbody');
-    if (!tbody) return;
-    if (!products.length) {
-      tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-gray-400">No products found. Click "Add New Product" to get started.</td></tr>';
-      return;
-    }
-    tbody.innerHTML = products.map(function (p) {
-      var statusBadge = p.is_sold_out
-        ? '<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-[10px] font-bold">Sold Out</span>'
-        : p.is_active
-          ? '<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-[10px] font-bold">Active</span>'
-          : '<span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full text-[10px] font-bold">Hidden</span>';
-
-      return '<tr class="hover:bg-gray-50 transition-colors">' +
-        '<td class="px-4 py-3"><div class="flex items-center gap-3">' +
-          '<img src="' + escapeHTML(p.image) + '" alt="" class="w-10 h-10 rounded-lg object-cover bg-gray-100 shrink-0">' +
-          '<div><p class="font-bold text-gray-900 text-xs">' + escapeHTML(p.name) + '</p>' +
-          '<p class="text-[10px] text-gray-400">' + escapeHTML(p.size) + (p.variant ? ' · ' + escapeHTML(p.variant) : '') + '</p></div></div></td>' +
-        '<td class="px-4 py-3 text-xs">' + escapeHTML(p.category) + '</td>' +
-        '<td class="px-4 py-3 text-right font-bold text-xs">' + formatCurrency(p.price) + '</td>' +
-        '<td class="px-4 py-3 text-right text-xs text-gray-400 line-through">' + formatCurrency(p.mrp) + '</td>' +
-        '<td class="px-4 py-3 text-center text-xs font-bold">' + (p.stock != null ? p.stock : '∞') + '</td>' +
-        '<td class="px-4 py-3 text-center">' + statusBadge + '</td>' +
-        '<td class="px-4 py-3 text-center">' +
-          '<div class="flex items-center justify-center gap-1">' +
-          '<button data-edit-product="' + p.id + '" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 transition-colors" title="Edit"><span class="material-symbols-outlined text-base">edit</span></button>' +
-          '<button data-toggle-soldout="' + p.id + '" class="p-1.5 rounded-lg hover:bg-amber-50 text-amber-600 transition-colors" title="Toggle Sold Out"><span class="material-symbols-outlined text-base">' + (p.is_sold_out ? 'check_circle' : 'cancel') + '</span></button>' +
-          '<button data-delete-product="' + p.id + '" class="p-1.5 rounded-lg hover:bg-red-50 text-red-500 transition-colors" title="Delete"><span class="material-symbols-outlined text-base">delete</span></button>' +
-          '</div></td>' +
-        '</tr>';
-    }).join('');
-  }
-
-  // Product search/filter
-  document.getElementById('admin-product-search').addEventListener('input', filterProducts);
-  document.getElementById('admin-product-filter').addEventListener('change', filterProducts);
-  document.getElementById('admin-stock-filter').addEventListener('change', filterProducts);
-
-  function filterProducts() {
-    var query = (document.getElementById('admin-product-search').value || '').toLowerCase();
-    var cat = document.getElementById('admin-product-filter').value;
-    var stock = document.getElementById('admin-stock-filter').value;
-
-    var filtered = allProducts.filter(function (p) {
-      var matchName = !query || p.name.toLowerCase().indexOf(query) !== -1 || p.slug.toLowerCase().indexOf(query) !== -1;
-      var matchCat = cat === 'all' || p.category === cat;
-      var matchStock = stock === 'all' ||
-        (stock === 'active' && !p.is_sold_out && p.is_active) ||
-        (stock === 'soldout' && p.is_sold_out) ||
-        (stock === 'hidden' && !p.is_active);
-      return matchName && matchCat && matchStock;
-    });
-    renderProductsTable(filtered);
-  }
-
-  // Product Modal
-  var productModal = document.getElementById('product-modal');
-  document.getElementById('btn-add-product').addEventListener('click', function () {
-    openProductModal(null);
-  });
-  document.getElementById('close-product-modal').addEventListener('click', closeProductModal);
-  document.getElementById('cancel-product-modal').addEventListener('click', closeProductModal);
-
-  function openProductModal(product) {
-    document.getElementById('product-modal-title').textContent = product ? 'Edit Product' : 'Add New Product';
-    document.getElementById('pf-id').value = product ? product.id : '';
-    document.getElementById('pf-name').value = product ? product.name : '';
-    document.getElementById('pf-slug').value = product ? product.slug : '';
-    document.getElementById('pf-category').value = product ? product.category : '';
-    document.getElementById('pf-size').value = product ? product.size : '';
-    document.getElementById('pf-variant').value = product ? (product.variant || '') : '';
-    document.getElementById('pf-price').value = product ? product.price : '';
-    document.getElementById('pf-mrp').value = product ? product.mrp : '';
-    document.getElementById('pf-stock').value = product ? (product.stock || 100) : 100;
-    document.getElementById('pf-description').value = product ? (product.description || '') : '';
-    document.getElementById('pf-pot-included').checked = product ? product.pot_included : true;
-    document.getElementById('pf-active').checked = product ? product.is_active : true;
-    document.getElementById('pf-soldout').checked = product ? product.is_sold_out : false;
-
-    // Reset or populate Image UI
-    if (pfFileInput) pfFileInput.value = '';
-    if (product && product.image) {
-      updateImageUI(product.image, product.name || 'product.webp', true);
-    } else {
-      updateImageUI('', '', false);
-    }
-
-    productModal.classList.remove('hidden');
-  }
-
-  function closeProductModal() {
-    productModal.classList.add('hidden');
-    if (pfFileInput) pfFileInput.value = '';
-    updateImageUI('', '', false);
-  }
-
-  // Auto-generate slug from name
-  document.getElementById('pf-name').addEventListener('input', function () {
-    var id = document.getElementById('pf-id').value;
-    if (id) return; // Don't auto-update slug on edit
-    var size = document.getElementById('pf-size').value || '';
-    var name = this.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    if (size) name += '-' + size.toLowerCase().replace(/[^a-z0-9]+/g, '');
-    document.getElementById('pf-slug').value = name;
-  });
-
-  // Save Product (Spring Boot API + Supabase sync)
-  document.getElementById('product-form').addEventListener('submit', function (e) {
+  $('gate-form').addEventListener('submit', function (e) {
     e.preventDefault();
-    var id = document.getElementById('pf-id').value;
-    var price = parseInt(document.getElementById('pf-price').value, 10);
-    var mrp = parseInt(document.getElementById('pf-mrp').value, 10);
-    var discount = mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
-
-    var data = {
-      name: document.getElementById('pf-name').value.trim(),
-      slug: document.getElementById('pf-slug').value.trim(),
-      category: document.getElementById('pf-category').value,
-      size: document.getElementById('pf-size').value.trim(),
-      variant: document.getElementById('pf-variant').value.trim(),
-      price: price,
-      mrp: mrp,
-      discount: discount,
-      stock: parseInt(document.getElementById('pf-stock').value, 10) || 0,
-      image: document.getElementById('pf-image').value.trim(),
-      description: document.getElementById('pf-description').value.trim(),
-      potIncluded: document.getElementById('pf-pot-included').checked,
-      isActive: document.getElementById('pf-active').checked,
-      isSoldOut: document.getElementById('pf-soldout').checked
-    };
-
-    var promise;
-    if (window.SangoAPI) {
-      if (id) {
-        promise = window.SangoAPI.adminUpdateProduct(id, data);
-      } else {
-        promise = window.SangoAPI.adminAddProduct(data);
-      }
-    } else if (sb) {
-      var sbData = Object.assign({}, data, {
-        pot_included: data.potIncluded,
-        is_active: data.isActive,
-        is_sold_out: data.isSoldOut
-      });
-      promise = id ? sb.from('products').update(sbData).eq('id', id) : sb.from('products').insert(sbData);
-    }
-
-    if (promise) {
-      promise.then(function (res) {
-        if (res && res.error) {
-          toast('Error: ' + res.error);
-          return;
-        }
-        toast(id ? 'Product updated in database! ✅' : 'Product added to database! 🌱');
-        closeProductModal();
-        loadProducts();
-        loadDashboard();
-      }).catch(function (err) {
-        toast('Error saving product: ' + err.message);
-      });
-    }
+    var b = $('gate-btn'); b.disabled = true; b.textContent = 'Sending…';
+    window.SangoAuth.sendMagicLink($('gate-email').value, { redirectTo: location.origin + '/admin/' }).then(function () {
+      $('gate-form').classList.add('hidden'); $('gate-sent').classList.remove('hidden');
+    }).catch(function (err) { toast(err.message, true); b.disabled = false; b.textContent = 'Email me a sign-in link'; });
   });
+  $('gate-out').addEventListener('click', function () { window.SangoAuth.signOut().then(checkAuth); });
+  $('signout').addEventListener('click', function () { window.SangoAuth.signOut().then(checkAuth); });
 
-  // Delegated click handlers for product table
+  // ─────────── Navigation ───────────
+  function go(tab) {
+    document.querySelectorAll('.tab').forEach(function (t) { t.classList.toggle('on', t.id === 'tab-' + tab); });
+    document.querySelectorAll('.nav-btn[data-tab]').forEach(function (b) { b.classList.toggle('on', b.dataset.tab === tab); });
+    $('title').textContent = TABS[tab][0]; $('subtitle').textContent = TABS[tab][1];
+    var act = $('top-actions'); act.innerHTML = '';
+    if (tab === 'products') act.innerHTML = '<button class="btn pri" id="btn-add"><span class="ms">add</span>Add product</button>';
+    if (tab === 'coupons') act.innerHTML = '<button class="btn pri" id="btn-add-c"><span class="ms">add</span>New coupon</button>';
+    if (tab === 'dash' || tab === 'orders') act.innerHTML = '<button class="btn" id="btn-refresh"><span class="ms">refresh</span>Refresh</button>';
+    $('side').classList.remove('open');
+    if (tab === 'enquiries' && !state.loaded.enq) loadEnquiries();
+  }
   document.addEventListener('click', function (e) {
-    // Edit product
-    var editBtn = e.target.closest('[data-edit-product]');
-    if (editBtn) {
-      var product = allProducts.find(function (p) { return p.id === editBtn.dataset.editProduct; });
-      if (product) openProductModal(product);
-      return;
-    }
-
-    // Toggle sold out
-    var soldoutBtn = e.target.closest('[data-toggle-soldout]');
-    if (soldoutBtn) {
-      var pid = soldoutBtn.dataset.toggleSoldout;
-      var prod = allProducts.find(function (p) { return p.id === pid; });
-      if (prod) {
-        var pPromise;
-        if (window.SangoAPI && window.SangoAPI.adminToggleSoldOut) {
-          pPromise = window.SangoAPI.adminToggleSoldOut(pid);
-        } else if (sb) {
-          pPromise = sb.from('products').update({ is_sold_out: !prod.is_sold_out }).eq('id', pid);
-        }
-        if (pPromise) {
-          pPromise.then(function (res) {
-            toast(prod.is_sold_out ? 'Product back in stock! ✅' : 'Marked as Sold Out 🚫');
-            loadProducts();
-            loadDashboard();
-          }).catch(function (err) {
-            toast('Error toggling status: ' + err.message);
-          });
-        }
-      }
-      return;
-    }
-
-    // Delete product
-    var delBtn = e.target.closest('[data-delete-product]');
-    if (delBtn) {
-      var pid = delBtn.dataset.deleteProduct;
-      var pObj = allProducts.find(function (p) { return p.id === pid; });
-      if (!confirm('Are you sure you want to permanently delete this product?')) return;
-
-      if (pObj && pObj.slug) {
-        var deletedSlugs = JSON.parse(localStorage.getItem('sango_deleted_slugs') || '[]');
-        if (deletedSlugs.indexOf(pObj.slug) === -1) {
-          deletedSlugs.push(pObj.slug);
-          localStorage.setItem('sango_deleted_slugs', JSON.stringify(deletedSlugs));
-        }
-      }
-
-      var delPromise;
-      if (window.SangoAPI && window.SangoAPI.adminDeleteProduct) {
-        delPromise = window.SangoAPI.adminDeleteProduct(pid);
-      } else if (sb) {
-        delPromise = sb.from('products').delete().eq('id', pid);
-      }
-
-      if (delPromise) {
-        delPromise.then(function () {
-          toast('Product deleted from database 🗑️');
-          loadProducts();
-          loadDashboard();
-        }).catch(function (err) {
-          toast('Error deleting product: ' + err.message);
-        });
-      }
-      return;
-    }
-
-    // View order
-    var viewOrder = e.target.closest('[data-view-order]');
-    if (viewOrder) {
-      openOrderModal(viewOrder.dataset.viewOrder);
-      return;
-    }
+    var n = e.target.closest('[data-tab]'); if (n) go(n.dataset.tab);
+    var g = e.target.closest('[data-go]'); if (g) go(g.dataset.go);
+    if (e.target.closest('#btn-add')) openProduct(null);
+    if (e.target.closest('#btn-add-c')) { $('f-coupon').reset(); $('cf-err').classList.add('hidden'); openM('m-coupon'); }
+    if (e.target.closest('#btn-refresh')) refreshAll();
   });
+  $('menu').addEventListener('click', function () { $('side').classList.toggle('open'); });
 
-
-  // ═══════════════════════════════════════
-  //  ORDERS MANAGEMENT
-  // ═══════════════════════════════════════
-  var allOrders = [];
-
-  function normalizeOrder(o) {
-    var rawItems = o.items || o.order_items || [];
-    var items = rawItems.map(function (it) {
-      return {
-        product_name: it.productName || it.product_name || 'Plant Item',
-        qty: it.qty || 1,
-        price: it.price || 0
-      };
-    });
-
-    return {
-      id: o.id,
-      order_id: o.orderId || o.order_id || '',
-      orderId: o.orderId || o.order_id || '',
-      customer_name: o.customerName || o.customer_name || 'Customer',
-      customerName: o.customerName || o.customer_name || 'Customer',
-      customer_phone: o.customerPhone || o.customer_phone || '',
-      customerPhone: o.customerPhone || o.customer_phone || '',
-      customer_email: o.customerEmail || o.customer_email || '',
-      customerEmail: o.customerEmail || o.customer_email || '',
-      created_at: o.createdAt || o.created_at || new Date().toISOString(),
-      createdAt: o.createdAt || o.created_at || new Date().toISOString(),
-      net_total: o.netTotal != null ? o.netTotal : (o.net_total || 0),
-      netTotal: o.netTotal != null ? o.netTotal : (o.net_total || 0),
-      payment_status: o.paymentStatus || o.payment_status || 'Paid',
-      paymentStatus: o.paymentStatus || o.payment_status || 'Paid',
-      payment_method: o.paymentMethod || o.payment_method || 'UPI',
-      paymentMethod: o.paymentMethod || o.payment_method || 'UPI',
-      shipping_address: o.shippingAddress || o.shipping_address || '',
-      shippingAddress: o.shippingAddress || o.shipping_address || '',
-      city: o.city || '',
-      state: o.state || '',
-      pincode: o.pincode || '',
-      status: o.status || 'Order Placed',
-      status_step: o.statusStep != null ? o.statusStep : (o.status_step || 1),
-      statusStep: o.statusStep != null ? o.statusStep : (o.status_step || 1),
-      tracking_notes: o.trackingNotes || o.tracking_notes || '',
-      trackingNotes: o.trackingNotes || o.tracking_notes || '',
-      order_items: items,
-      items: items
-    };
+  function refreshAll() { return Promise.all([loadProducts(), loadOrders(), loadCoupons(), loadStats()]); }
+  function boot() {
+    refreshAll().then(function () { toast('Admin ready'); });
+    // live: new orders and product changes from anywhere appear without a refresh
+    window.SangoSupabase.channel('admin-live')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, function () { loadOrders(); loadStats(); })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, function () { loadProducts(); loadStats(); })
+      .subscribe();
   }
 
-  function loadOrders() {
-    if (window.SangoAPI && window.SangoAPI.getAdminOrders) {
-      window.SangoAPI.getAdminOrders().then(function (orders) {
-        if (orders && Array.isArray(orders)) {
-          allOrders = orders.map(normalizeOrder);
-          renderOrdersTable(allOrders);
-          return;
-        }
-        fallbackOrders();
-      }).catch(function (err) {
-        console.warn('API getAdminOrders fallback:', err);
-        fallbackOrders();
-      });
-    } else {
-      fallbackOrders();
-    }
-  }
-
-  function fallbackOrders() {
-    if (sb) {
-      sb.from('orders').select('*, order_items(*)').order('created_at', { ascending: false }).then(function (res) {
-        allOrders = (res.data || []).map(normalizeOrder);
-        renderOrdersTable(allOrders);
-      }).catch(function () {
-        renderOrdersTable([]);
-      });
-    } else {
-      renderOrdersTable([]);
-    }
-  }
-
-  function renderOrdersTable(orders) {
-    var tbody = document.getElementById('admin-orders-tbody');
-    if (!tbody) return;
-    if (!orders.length) {
-      tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-gray-400">No orders yet. Customer orders will appear here automatically.</td></tr>';
-      return;
-    }
-    tbody.innerHTML = orders.map(function (o) {
-      var step = o.status_step != null ? o.status_step : 1;
-      var statusColor = step >= 5 ? 'bg-green-100 text-green-800' :
-                        step >= 3 ? 'bg-blue-100 text-blue-800' :
-                        'bg-amber-100 text-amber-800';
-      var payColor = (o.payment_status === 'Paid' || o.paymentStatus === 'Paid') ? 'text-green-600' : 'text-amber-600';
-      var date = new Date(o.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' });
-
-      return '<tr class="hover:bg-gray-50 transition-colors">' +
-        '<td class="px-4 py-3 font-bold mono text-xs">' + escapeHTML(o.order_id) + '</td>' +
-        '<td class="px-4 py-3 text-xs"><p class="font-bold">' + escapeHTML(o.customer_name) + '</p><p class="text-gray-400 text-[10px]">' + escapeHTML(o.customer_phone || '') + '</p></td>' +
-        '<td class="px-4 py-3 text-xs text-gray-500">' + date + '</td>' +
-        '<td class="px-4 py-3 text-right font-bold text-xs">' + formatCurrency(o.net_total) + '</td>' +
-        '<td class="px-4 py-3 text-center text-xs font-bold ' + payColor + '">' + escapeHTML(o.payment_status || 'Pending') + '</td>' +
-        '<td class="px-4 py-3 text-center"><span class="' + statusColor + ' px-2 py-0.5 rounded-full text-[10px] font-bold">' + escapeHTML(o.status) + '</span></td>' +
-        '<td class="px-4 py-3 text-center"><button data-view-order="' + o.id + '" class="bg-forest/10 hover:bg-forest/20 text-forest px-3 py-1 rounded-lg text-[10px] font-bold transition-colors">View / Update</button></td>' +
-        '</tr>';
-    }).join('');
-  }
-
-  // Order filters
-  document.getElementById('admin-order-status-filter').addEventListener('change', filterOrders);
-  document.getElementById('admin-order-search').addEventListener('input', filterOrders);
-
-  function filterOrders() {
-    var status = document.getElementById('admin-order-status-filter').value;
-    var query = (document.getElementById('admin-order-search').value || '').toLowerCase();
-    var filtered = allOrders.filter(function (o) {
-      var matchStatus = status === 'all' || o.status === status;
-      var matchSearch = !query || o.order_id.toLowerCase().indexOf(query) !== -1 || (o.customer_name || '').toLowerCase().indexOf(query) !== -1;
-      return matchStatus && matchSearch;
-    });
-    renderOrdersTable(filtered);
-  }
-
-  // Order Detail Modal
-  var orderModal = document.getElementById('order-modal');
-  var currentOrderId = null;
-
-  document.getElementById('close-order-modal').addEventListener('click', function () {
-    orderModal.classList.add('hidden');
-  });
-
-  function openOrderModal(orderId) {
-    var order = allOrders.find(function (o) { return String(o.id) === String(orderId) || o.order_id === orderId || o.orderId === orderId; });
-    if (!order) return;
-    currentOrderId = order.id;
-
-    document.getElementById('order-modal-title').textContent = 'Order ' + (order.order_id || order.orderId);
-    document.getElementById('order-status-select').value = order.status_step || 1;
-    document.getElementById('order-tracking-notes').value = order.tracking_notes || '';
-
-    var content = document.getElementById('order-modal-content');
-    var items = order.order_items || order.items || [];
-    content.innerHTML =
-      '<div class="space-y-2 text-xs">' +
-      '<div class="grid grid-cols-2 gap-2">' +
-        '<div><p class="text-gray-400 font-bold">Customer</p><p class="font-bold">' + escapeHTML(order.customer_name) + '</p></div>' +
-        '<div><p class="text-gray-400 font-bold">Phone</p><p>' + escapeHTML(order.customer_phone) + '</p></div>' +
-        '<div class="col-span-2"><p class="text-gray-400 font-bold">Address</p><p>' + escapeHTML(order.shipping_address) + ', ' + escapeHTML(order.city || '') + ', ' + escapeHTML(order.state || '') + ' - ' + escapeHTML(order.pincode) + '</p></div>' +
-        '<div><p class="text-gray-400 font-bold">Payment</p><p>' + escapeHTML(order.payment_method) + ' (' + escapeHTML(order.payment_status || 'Pending') + ')</p></div>' +
-        '<div><p class="text-gray-400 font-bold">Total</p><p class="font-bold text-base text-forest">' + formatCurrency(order.net_total) + '</p></div>' +
-      '</div>' +
-      '<hr class="border-gray-100">' +
-      '<p class="font-bold text-gray-700">Items (' + items.length + ')</p>' +
-      items.map(function (i) {
-        return '<div class="flex justify-between py-1">' +
-          '<span>' + escapeHTML(i.product_name) + ' × ' + i.qty + '</span>' +
-          '<span class="font-bold">' + formatCurrency(i.price * i.qty) + '</span></div>';
-      }).join('') +
-      '</div>';
-
-    orderModal.classList.remove('hidden');
-  }
-
-  // Update Order Status
-  document.getElementById('btn-update-order-status').addEventListener('click', function () {
-    if (!currentOrderId) return;
-    var step = parseInt(document.getElementById('order-status-select').value, 10);
-    var notes = document.getElementById('order-tracking-notes').value.trim();
-    var statusText = STATUS_LABELS[step] || 'Order Placed';
-
-    var updatePromise;
-    if (window.SangoAPI && window.SangoAPI.updateOrderStatus) {
-      updatePromise = window.SangoAPI.updateOrderStatus(currentOrderId, statusText, step, notes);
-    } else if (sb) {
-      updatePromise = sb.from('orders').update({
-        status_step: step,
-        status: statusText,
-        tracking_notes: notes
-      }).eq('id', currentOrderId);
-    }
-
-    if (updatePromise) {
-      updatePromise.then(function (res) {
-        if (res && res.error) { toast('Error: ' + res.error); return; }
-        toast('Order status updated to "' + statusText + '" ✅');
-        orderModal.classList.add('hidden');
-        loadOrders();
-        loadDashboard();
-      }).catch(function (err) {
-        toast('Error updating order: ' + (err.message || err));
-      });
-    }
-  });
-
-  // Delete Order
-  var btnDeleteOrder = document.getElementById('btn-delete-order');
-  if (btnDeleteOrder) {
-    btnDeleteOrder.addEventListener('click', function () {
-      if (!currentOrderId) return;
-      if (!confirm('Are you sure you want to permanently delete this order?')) return;
-      var delPromise;
-      if (window.SangoAPI && window.SangoAPI.adminDeleteOrder) {
-        delPromise = window.SangoAPI.adminDeleteOrder(currentOrderId);
-      } else if (sb) {
-        delPromise = sb.from('orders').delete().eq('id', currentOrderId);
-      }
-      if (delPromise) {
-        delPromise.then(function () {
-          toast('Order deleted successfully 🗑️');
-          orderModal.classList.add('hidden');
-          loadOrders();
-          loadDashboard();
-        }).catch(function (err) {
-          toast('Error deleting order: ' + (err.message || err));
-        });
-      }
-    });
-  }
-
-
-  // ═══════════════════════════════════════
-  //  COUPONS
-  // ═══════════════════════════════════════
-  function loadCoupons() {
-    if (sb) {
-      sb.from('coupons').select('*').order('created_at', { ascending: false }).then(function (res) {
-        var coupons = res.data || [];
-        renderCoupons(coupons);
-      });
-    } else {
-      // Local default promo coupons
-      var defaultCoupons = [
-        { id: 'c1', code: 'SANGO10', percent: 10, min_subtotal: 0, label: '10% Sitewide Welcome Discount', is_active: true },
-        { id: 'c2', code: 'PLANT15', percent: 15, min_subtotal: 2999, label: '15% Off Orders Above ₹2,999', is_active: true },
-        { id: 'c3', code: 'BOTANICAL20', percent: 20, min_subtotal: 4999, label: '20% Mega Botanical Savings', is_active: true }
+  // ─────────── Dashboard ───────────
+  function loadStats() {
+    return API().getAdminStats().then(function (s) {
+      var cards = [
+        ['Revenue', inr(s.revenue), 'payments'], ['Orders', s.totalOrders, 'receipt_long'], ['New orders', s.pendingOrders, 'notifications'],
+        ['Live products', s.totalProducts, 'inventory_2'], ['Low stock', s.lowStock, 'warning'], ['Sold out', s.soldOut, 'production_quantity_limits'], ['Enquiries', s.enquiries, 'mail']
       ];
-      renderCoupons(defaultCoupons);
-    }
+      $('stats').innerHTML = cards.map(function (c) { return '<div class="card stat"><div class="k"><span class="ms">' + c[2] + '</span>' + c[0] + '</div><div class="v">' + c[1] + '</div></div>'; }).join('');
+      var nb = $('nav-orders'); nb.textContent = s.pendingOrders; nb.classList.toggle('hidden', !s.pendingOrders);
+    }).catch(function (e) { toast(e.message, true); });
   }
 
-  function renderCoupons(coupons) {
-    var wrap = document.getElementById('admin-coupons-list');
-    if (!wrap) return;
-    if (!coupons.length) {
-      wrap.innerHTML = '<p class="text-gray-400 text-sm col-span-full text-center py-8">No coupons created yet. Click "Create Coupon" to add one.</p>';
-      return;
-    }
-    wrap.innerHTML = coupons.map(function (c) {
-      return '<div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm admin-card">' +
-        '<div class="flex items-center justify-between mb-3">' +
-        '<span class="mono font-bold text-lg text-[#0F291E]">' + escapeHTML(c.code) + '</span>' +
-        '<span class="' + (c.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-500') + ' px-2.5 py-0.5 rounded-full text-[10px] font-bold">' + (c.is_active ? 'Active' : 'Disabled') + '</span>' +
-        '</div>' +
-        '<p class="text-xs text-gray-600 mb-2">' + escapeHTML(c.label) + '</p>' +
-        '<div class="flex items-center justify-between text-xs text-gray-400">' +
-        '<span>' + c.percent + '% off' + (c.min_subtotal > 0 ? ' (min ' + formatCurrency(c.min_subtotal) + ')' : '') + '</span>' +
-        '<div class="flex gap-2">' +
-        '<button data-toggle-coupon="' + c.id + '" data-active="' + c.is_active + '" class="text-emerald-700 hover:text-emerald-900 font-bold text-[11px]">' + (c.is_active ? 'Disable' : 'Enable') + '</button>' +
-        '<button data-delete-coupon="' + c.id + '" class="text-red-500 hover:text-red-700 font-bold text-[11px]">Delete</button>' +
-        '</div></div></div>';
-    }).join('');
+  function payPill(o) {
+    var s = o.paymentStatus || '';
+    var cls = s === 'Paid' ? 'ok' : (/Failed|Cancel/.test(s) ? 'bad' : (/Refund/.test(s) ? 'warn' : 'mute'));
+    return '<span class="pill ' + cls + '">' + esc(s || '—') + '</span>';
+  }
+  function statusPill(o) {
+    var cls = o.status === 'Delivered' ? 'ok' : (o.status === 'Cancelled' ? 'bad' : (o.status === 'Order Placed' ? 'warn' : 'mute'));
+    return '<span class="pill ' + cls + '">' + esc(o.status) + '</span>';
   }
 
-  // Coupon modal
-  var couponModal = document.getElementById('coupon-modal');
-  document.getElementById('btn-add-coupon').addEventListener('click', function () {
-    couponModal.classList.remove('hidden');
-  });
-  document.getElementById('close-coupon-modal').addEventListener('click', function () {
-    couponModal.classList.add('hidden');
+  // ─────────── Products ───────────
+  function loadProducts() {
+    API().invalidateProducts();
+    return API().getProducts({ force: true }).then(function (list) { state.products = list; renderProducts(); }).catch(function (e) { toast(e.message, true); });
+  }
+  function renderProducts() {
+    var q = $('p-search').value.trim().toLowerCase(), cat = $('p-cat').value, st = $('p-status').value;
+    var rows = state.products.filter(function (p) {
+      if (q && (p.name + ' ' + p.variant + ' ' + p.slug).toLowerCase().indexOf(q) === -1) return false;
+      if (cat !== 'all' && p.category !== cat) return false;
+      if (st === 'active') return p.isActive && !p.isSoldOut;
+      if (st === 'soldout') return p.isSoldOut;
+      if (st === 'low') return p.stock > 0 && p.stock <= 4;
+      if (st === 'hidden') return !p.isActive;
+      return true;
+    });
+    $('p-body').innerHTML = rows.length ? rows.map(function (p) {
+      var status = !p.isActive ? '<span class="pill mute">Hidden</span>' : (p.isSoldOut ? '<span class="pill bad">Sold out</span>' : (p.stock <= 4 ? '<span class="pill warn">Low stock</span>' : '<span class="pill ok">Live</span>'));
+      return '<tr><td><div style="display:flex;gap:12px;align-items:center"><img class="thumb" src="' + esc(p.image) + '" alt="" loading="lazy"><div><div class="pname">' + esc(p.name) + (p.variant ? ' · ' + esc(p.variant) : '') + '</div><div class="muted">' + esc(p.size) + ' · ' + esc(p.slug) + '</div></div></div></td>' +
+        '<td>' + esc(p.category) + '</td><td><b>' + inr(p.price) + '</b>' + (p.mrp > p.price ? '<div class="muted"><s>' + inr(p.mrp) + '</s></div>' : '') + '</td>' +
+        '<td>' + p.stock + '</td><td>' + status + '</td>' +
+        '<td><div class="actions"><button class="icon-btn" title="' + (p.isActive ? 'Hide from store' : 'Show on store') + '" data-vis="' + p.id + '"><span class="ms">' + (p.isActive ? 'visibility' : 'visibility_off') + '</span></button>' +
+        '<button class="icon-btn" title="Edit" data-edit="' + p.id + '"><span class="ms">edit</span></button>' +
+        '<button class="icon-btn dng" title="Delete" data-del="' + p.id + '"><span class="ms">delete</span></button></div></td></tr>';
+    }).join('') : '<tr><td colspan="6" class="empty">No products match your filters.</td></tr>';
+  }
+  ['p-search', 'p-cat', 'p-status'].forEach(function (id) { $(id).addEventListener('input', renderProducts); });
+
+  function slugify(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
+  function openProduct(p) {
+    state.editing = p; $('f-product').reset(); $('pf-err').classList.add('hidden');
+    $('mp-title').textContent = p ? 'Edit product' : 'Add product';
+    $('pf-slug').dataset.touched = p ? '1' : '';
+    if (p) {
+      $('pf-name').value = p.name; $('pf-variant').value = p.variant; $('pf-cat').value = p.category; $('pf-size').value = p.size; $('pf-slug').value = p.slug;
+      $('pf-price').value = p.price; $('pf-mrp').value = p.mrp; $('pf-stock').value = p.stock; $('pf-desc').value = p.description;
+      $('pf-active').checked = p.isActive; $('pf-sold').checked = p.isSoldOut; $('pf-image').value = p.image;
+    } else { $('pf-image').value = ''; }
+    showPreview($('pf-image').value); openM('m-product');
+  }
+  function showPreview(url) {
+    var img = $('pf-preview'); img.classList.toggle('hidden', !url); $('pf-ph').classList.toggle('hidden', !!url);
+    if (url) img.src = url; $('pf-drop-t').textContent = url ? 'Change photo' : 'Upload a photo';
+  }
+  $('pf-name').addEventListener('input', function () { if (!$('pf-slug').dataset.touched) $('pf-slug').value = slugify($('pf-name').value + ' ' + $('pf-variant').value + ' ' + $('pf-size').value); });
+  $('pf-variant').addEventListener('input', function () { if (!$('pf-slug').dataset.touched) $('pf-slug').value = slugify($('pf-name').value + ' ' + $('pf-variant').value + ' ' + $('pf-size').value); });
+  $('pf-size').addEventListener('input', function () { if (!$('pf-slug').dataset.touched) $('pf-slug').value = slugify($('pf-name').value + ' ' + $('pf-variant').value + ' ' + $('pf-size').value); });
+  $('pf-slug').addEventListener('input', function () { $('pf-slug').dataset.touched = '1'; });
+  $('pf-image').addEventListener('input', function () { showPreview($('pf-image').value.trim()); });
+  $('drop').addEventListener('click', function () { $('pf-file').click(); });
+  $('pf-file').addEventListener('change', function () {
+    var f = this.files[0]; if (!f) return;
+    $('pf-drop-t').textContent = 'Uploading…';
+    API().uploadProductImage(f).then(function (r) { $('pf-image').value = r.url; showPreview(r.url); toast('Photo uploaded'); })
+      .catch(function (e) { showPreview($('pf-image').value); toast(e.message, true); });
   });
 
-  document.getElementById('coupon-form').addEventListener('submit', function (e) {
+  $('f-product').addEventListener('submit', function (e) {
     e.preventDefault();
+    var btn = $('pf-save'); btn.disabled = true; btn.textContent = 'Saving…';
     var data = {
-      code: document.getElementById('cf-code').value.trim().toUpperCase(),
-      percent: parseInt(document.getElementById('cf-percent').value, 10),
-      min_subtotal: parseInt(document.getElementById('cf-min').value, 10) || 0,
-      label: document.getElementById('cf-label').value.trim(),
-      is_active: true
+      name: $('pf-name').value, variant: $('pf-variant').value, category: $('pf-cat').value, size: $('pf-size').value, slug: $('pf-slug').value,
+      price: $('pf-price').value, mrp: $('pf-mrp').value, stock: $('pf-stock').value, description: $('pf-desc').value,
+      image: $('pf-image').value.trim(), isActive: $('pf-active').checked, isSoldOut: $('pf-sold').checked
     };
-    sb.from('coupons').insert(data).then(function (res) {
-      if (res.error) { toast('Error: ' + res.error.message); return; }
-      toast('Coupon created! 🏷️');
-      couponModal.classList.add('hidden');
-      document.getElementById('coupon-form').reset();
-      loadCoupons();
+    var call;
+    try { call = state.editing ? API().adminUpdateProduct(state.editing.id, data) : API().adminAddProduct(data); }
+    catch (err) { call = Promise.reject(err); }
+    call.then(function () { closeM('m-product'); toast(state.editing ? 'Product updated, live on store' : 'Product added, live on store'); return loadProducts().then(loadStats); })
+      .catch(function (err) {
+        var m = err.message || 'Could not save';
+        if (/duplicate key|products_slug_key/.test(m)) m = 'That URL slug is already used by another product.';
+        $('pf-err').textContent = m; $('pf-err').classList.remove('hidden');
+      }).then(function () { btn.disabled = false; btn.textContent = 'Save product'; });
+  });
+
+  $('p-body').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    var id = b.dataset.edit || b.dataset.del || b.dataset.vis;
+    var p = state.products.filter(function (x) { return x.id === id; })[0]; if (!p) return;
+    if (b.dataset.edit) return openProduct(p);
+    if (b.dataset.vis) {
+      return window.SangoSupabase.from('products').update({ is_active: !p.isActive }).eq('id', id).select('id').then(function (r) {
+        if (r.error || !r.data.length) return toast(r.error ? r.error.message : 'Not permitted', true);
+        toast(p.isActive ? 'Hidden from store' : 'Now visible on store'); loadProducts(); loadStats();
+      });
+    }
+    if (b.dataset.del) {
+      if (!confirm('Delete "' + p.name + '" permanently?\n\nIt will be removed from the store immediately. Past orders keep their record.')) return;
+      API().adminDeleteProduct(id).then(function () { toast('Product deleted from store'); loadProducts(); loadStats(); }).catch(function (err) { toast(err.message, true); });
+    }
+  });
+
+  // ─────────── Orders ───────────
+  function loadOrders() {
+    return API().getAdminOrders().then(function (list) { state.orders = list; renderOrders(); renderRecent(); }).catch(function (e) { toast(e.message, true); });
+  }
+  function renderRecent() {
+    $('recent').innerHTML = state.orders.slice(0, 6).map(function (o) {
+      return '<tr><td class="mono"><b>' + esc(o.orderId) + '</b><div class="muted">' + dt(o.createdAt) + '</div></td><td>' + esc(o.customerName) + '</td><td><b>' + inr(o.netTotal) + '</b></td><td>' + payPill(o) + '</td><td>' + statusPill(o) + '</td></tr>';
+    }).join('') || '<tr><td colspan="5" class="empty">No orders yet.</td></tr>';
+  }
+  function renderOrders() {
+    var q = $('o-search').value.trim().toLowerCase(), st = $('o-status').value;
+    var rows = state.orders.filter(function (o) {
+      if (st !== 'all' && o.status !== st) return false;
+      return !q || (o.orderId + ' ' + o.customerName + ' ' + o.customerPhone).toLowerCase().indexOf(q) !== -1;
+    });
+    $('o-body').innerHTML = rows.length ? rows.map(function (o) {
+      return '<tr><td class="mono"><b>' + esc(o.orderId) + '</b><div class="muted">' + dt(o.createdAt) + '</div></td>' +
+        '<td>' + esc(o.customerName) + '<div class="muted">' + esc(o.customerPhone) + ' · ' + esc(o.city || '') + '</div></td>' +
+        '<td>' + o.items.length + '</td><td><b>' + inr(o.netTotal) + '</b><div class="muted">' + esc(o.paymentMethod) + '</div></td><td>' + payPill(o) + '</td><td>' + statusPill(o) + '</td>' +
+        '<td class="right"><button class="btn sm" data-order="' + o.id + '">Manage</button></td></tr>';
+    }).join('') : '<tr><td colspan="7" class="empty">No orders found.</td></tr>';
+  }
+  ['o-search', 'o-status'].forEach(function (id) { $(id).addEventListener('input', renderOrders); });
+
+  var STEPS = [['Order Placed', 1], ['Quality Inspection', 2], ['Packed', 3], ['Out for Delivery', 4], ['Delivered', 5]];
+  $('o-body').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-order]'); if (!b) return;
+    var o = state.orders.filter(function (x) { return x.id === b.dataset.order; })[0]; if (!o) return;
+    state.order = o; $('mo-title').textContent = 'Order ' + o.orderId;
+    $('mo-body').innerHTML =
+      '<div class="grid2" style="margin-bottom:16px"><div><div class="muted">Customer</div><b>' + esc(o.customerName) + '</b><div>' + esc(o.customerPhone) + '</div><div class="muted">' + esc(o.customerEmail || '') + '</div></div>' +
+      '<div><div class="muted">Deliver to</div><div>' + esc(o.shippingAddress) + (o.landmark ? ', ' + esc(o.landmark) : '') + '<br>' + esc([o.city, o.state, o.pincode].filter(Boolean).join(', ')) + '</div></div></div>' +
+      '<div class="card" style="margin-bottom:16px">' + o.items.map(function (i) { return '<div style="display:flex;gap:12px;align-items:center;padding:10px 14px;border-bottom:1px solid #EEF0EC"><img class="thumb" src="' + esc(i.productImage) + '" alt=""><div style="flex:1"><b>' + esc(i.productName) + '</b><div class="muted">' + esc(i.size) + ' · Qty ' + i.qty + '</div></div><b>' + inr(i.price * i.qty) + '</b></div>'; }).join('') +
+      '<div style="padding:12px 14px;display:flex;justify-content:space-between"><span class="muted">' + esc(o.paymentMethod) + ' · ' + esc(o.paymentStatus) + (o.txnId ? ' · ' + esc(o.txnId) : '') + '</span><b>Total ' + inr(o.netTotal) + '</b></div></div>' +
+      '<div class="grid2"><div class="col"><label class="f" for="mo-status">Status</label><select id="mo-status">' + STEPS.map(function (s) { return '<option value="' + s[0] + '"' + (o.status === s[0] ? ' selected' : '') + '>' + s[1] + ' — ' + s[0] + '</option>'; }).join('') + '</select></div>' +
+      '<div class="col"><label class="f" for="mo-notes">Note for customer</label><input id="mo-notes" value="' + esc(o.trackingNotes || '') + '" placeholder="e.g. Courier: Delhivery #123"></div></div>';
+    $('mo-save').disabled = o.status === 'Cancelled'; $('mo-cancel').classList.toggle('hidden', o.status === 'Cancelled' || o.status === 'Delivered');
+    openM('m-order');
+  });
+  $('mo-save').addEventListener('click', function () {
+    var o = state.order, sel = $('mo-status').value, step = STEPS.filter(function (s) { return s[0] === sel; })[0][1];
+    API().updateOrderStatus(o.id, sel, step, $('mo-notes').value.trim()).then(function () { closeM('m-order'); toast('Order updated'); loadOrders(); loadStats(); }).catch(function (e) { toast(e.message, true); });
+  });
+  $('mo-cancel').addEventListener('click', function () {
+    if (!confirm('Cancel this order and return the items to stock?' + (state.order.paymentStatus === 'Paid' ? '\n\nIt is already paid: issue the refund from the Razorpay dashboard.' : ''))) return;
+    API().cancelOrder(state.order.orderId, 'Cancelled by store').then(function () { closeM('m-order'); toast('Order cancelled, stock restored'); loadOrders(); loadProducts(); loadStats(); }).catch(function (e) { toast(e.message, true); });
+  });
+  $('mo-delete').addEventListener('click', function () {
+    if (!confirm('Permanently delete this order record? This cannot be undone.')) return;
+    API().adminDeleteOrder(state.order.id).then(function () { closeM('m-order'); toast('Order deleted'); loadOrders(); loadStats(); }).catch(function (e) { toast(e.message, true); });
+  });
+
+  // ─────────── Coupons ───────────
+  function loadCoupons() {
+    return Promise.resolve(window.SangoSupabase.from('coupons').select('*').order('created_at', { ascending: false })).then(function (r) { state.coupons = r.data || []; renderCoupons(); });
+  }
+  function renderCoupons() {
+    $('c-body').innerHTML = state.coupons.length ? state.coupons.map(function (c) {
+      return '<tr><td class="mono"><b>' + esc(c.code) + '</b><div class="muted">' + esc(c.label) + '</div></td><td>' + c.percent + '%</td><td>' + (c.min_subtotal ? inr(c.min_subtotal) : '—') + '</td>' +
+        '<td>' + c.times_used + (c.usage_limit ? ' / ' + c.usage_limit : '') + '</td><td><span class="pill ' + (c.is_active ? 'ok' : 'mute') + '">' + (c.is_active ? 'Active' : 'Paused') + '</span></td>' +
+        '<td><div class="actions"><button class="btn sm" data-ctoggle="' + c.id + '">' + (c.is_active ? 'Pause' : 'Activate') + '</button><button class="icon-btn dng" data-cdel="' + c.id + '" title="Delete"><span class="ms">delete</span></button></div></td></tr>';
+    }).join('') : '<tr><td colspan="6" class="empty">No coupons yet.</td></tr>';
+  }
+  $('c-body').addEventListener('click', function (e) {
+    var t = e.target.closest('[data-ctoggle]'), d = e.target.closest('[data-cdel]');
+    var sb = window.SangoSupabase;
+    if (t) { var c = state.coupons.filter(function (x) { return x.id === t.dataset.ctoggle; })[0]; sb.from('coupons').update({ is_active: !c.is_active }).eq('id', c.id).then(function (r) { if (r.error) toast(r.error.message, true); loadCoupons(); }); }
+    if (d && confirm('Delete this coupon?')) sb.from('coupons').delete().eq('id', d.dataset.cdel).then(function (r) { if (r.error) toast(r.error.message, true); loadCoupons(); });
+  });
+  $('f-coupon').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var row = { code: $('cf-code').value.trim().toUpperCase(), label: $('cf-label').value.trim(), percent: parseInt($('cf-pct').value, 10), min_subtotal: parseInt($('cf-min').value, 10) || 0, usage_limit: parseInt($('cf-limit').value, 10) || null, is_active: true };
+    if (!row.code || !row.label || !(row.percent > 0 && row.percent <= 100)) { $('cf-err').textContent = 'Enter a code, a label and a discount between 1 and 100.'; return $('cf-err').classList.remove('hidden'); }
+    window.SangoSupabase.from('coupons').insert(row).then(function (r) {
+      if (r.error) { $('cf-err').textContent = /duplicate/.test(r.error.message) ? 'That code already exists.' : r.error.message; return $('cf-err').classList.remove('hidden'); }
+      closeM('m-coupon'); toast('Coupon created'); loadCoupons();
     });
   });
 
-  // Coupon toggle/delete
-  document.addEventListener('click', function (e) {
-    var toggleCoupon = e.target.closest('[data-toggle-coupon]');
-    if (toggleCoupon) {
-      var isActive = toggleCoupon.dataset.active === 'true';
-      sb.from('coupons').update({ is_active: !isActive }).eq('id', toggleCoupon.dataset.toggleCoupon).then(function () {
-        toast(isActive ? 'Coupon disabled' : 'Coupon enabled');
-        loadCoupons();
-      });
-      return;
-    }
-    var delCoupon = e.target.closest('[data-delete-coupon]');
-    if (delCoupon) {
-      if (!confirm('Delete this coupon?')) return;
-      sb.from('coupons').delete().eq('id', delCoupon.dataset.deleteCoupon).then(function () {
-        toast('Coupon deleted');
-        loadCoupons();
-      });
-    }
-  });
-
-
-  // ═══════════════════════════════════════
-  //  INIT
-  // ═══════════════════════════════════════
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', checkAdminAuth);
-  } else {
-    checkAdminAuth();
+  // ─────────── Enquiries ───────────
+  function loadEnquiries() {
+    API().getAdminEnquiries().then(function (rows) {
+      state.loaded.enq = true;
+      $('e-body').innerHTML = rows.length ? rows.map(function (r) {
+        return '<tr><td class="muted" style="white-space:nowrap">' + dt(r.created_at) + '</td><td><b>' + esc(r.name) + '</b><div class="muted">' + esc(r.email || '') + ' ' + esc(r.phone || '') + '</div></td><td style="max-width:520px">' + (r.subject ? '<b>' + esc(r.subject) + '</b><br>' : '') + esc(r.message) + '</td></tr>';
+      }).join('') : '<tr><td colspan="3" class="empty">No enquiries yet.</td></tr>';
+    }).catch(function (e) { toast(e.message, true); });
   }
 
+  document.addEventListener('DOMContentLoaded', waitForAuth);
 })();

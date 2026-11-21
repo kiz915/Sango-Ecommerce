@@ -77,7 +77,7 @@
       var isAuthed = window.SangoAuth && window.SangoAuth.isLoggedIn && window.SangoAuth.isLoggedIn();
       if (!isAuthed) {
         if (window.openAuthModal) {
-          window.openAuthModal('signup', '🔒 Please sign in to save botanical favorites to your wishlist.');
+          window.openAuthModal('signup', 'Please sign in to save botanical favorites to your wishlist.');
         }
         return false;
       }
@@ -99,7 +99,7 @@
           image: item.image
         });
         added = true;
-        if (window.showToast) window.showToast('Saved to your wishlist ❤️');
+        if (window.showToast) window.showToast('Saved to your wishlist');
       }
       writeWishlist(list);
       return added;
@@ -147,7 +147,7 @@
     if (!list.length) {
       wrap.innerHTML =
         '<div class="text-center py-16">' +
-        '<div class="text-6xl mb-4">❤️</div>' +
+        '<div class="text-6xl mb-4"><span class="material-symbols-outlined ico" aria-hidden="true">favorite</span></div>' +
         '<p class="font-bold text-gray-900 text-lg mb-1">Your Wishlist is Empty</p>' +
         '<p class="text-xs text-gray-400 mb-6">Tap the heart icon on any plant to save it for later.</p>' +
         '<a href="/products/" class="inline-block bg-amber-500 text-plant-dark px-6 py-2.5 rounded-full font-bold text-xs">Explore Plants</a>' +
@@ -196,7 +196,7 @@
       if (item && window.CartEngine) {
         window.CartEngine.addToCart(item, 1);
         window.WishlistEngine.remove(slug);
-        if (window.showToast) window.showToast(item.name + ' moved to cart 🌱');
+        if (window.showToast) window.showToast(item.name + ' moved to cart');
       }
       return;
     }

@@ -35,155 +35,66 @@
   window.CheckoutEngine = {
     getOrders: readOrders,
 
+    /**
+     * Places the order through the database (place_order RPC). Prices, stock, coupon, delivery and GST are all
+     * computed server-side from the live catalogue, so the browser can never set its own total.
+     * Online orders stay "Pending" until the payment is verified on the payment page.
+     */
     createOrderAsync: function (customerData, paymentData) {
-      var totals = window.CartEngine ? window.CartEngine.getTotals() : { netTotal: 0 };
       var items = window.CartEngine ? window.CartEngine.getItems() : [];
+      var totals = window.CartEngine ? window.CartEngine.getTotals() : {};
 
       if (!items || !items.length) {
         return Promise.reject(new Error('Your cart is empty. Please add plants before checking out.'));
       }
-
       if (!customerData || !customerData.name || !customerData.address) {
-        return Promise.reject(new Error('Please complete your shipping address details in Step 2.'));
+        return Promise.reject(new Error('Please complete your delivery address details.'));
+      }
+      if (!window.SangoAuth || !window.SangoAuth.isLoggedIn()) {
+        if (window.openAuthModal) window.openAuthModal('signin', 'Sign in to place your order and track it later.');
+        return Promise.reject(new Error('Please sign in to place your order.'));
       }
 
-      var orderId = generateOrderId();
-      var now = new Date();
-      var estDelivery = new Date(now.getTime() + (4 * 24 * 60 * 60 * 1000)); // 4 days out
-
-      var localOrder = {
-        orderId: orderId,
-        createdAt: now.toISOString(),
-        dateString: now.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
-        estDeliveryDate: estDelivery.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' }),
-        status: 'Order Placed',
-        statusStep: 1,
-        items: JSON.parse(JSON.stringify(items)),
-        customer: {
-          name: customerData.name,
-          phone: customerData.phone,
-          email: customerData.email,
-          address: customerData.address,
-          landmark: customerData.landmark || '',
-          pincode: customerData.pincode,
-          city: customerData.city || 'City',
-          state: customerData.state || 'State',
-          gstin: customerData.gstin || ''
-        },
-        payment: {
-          method: paymentData.method,
-          status: paymentData.method === 'COD' ? 'Pending (COD)' : 'Paid',
-          txnId: 'TXN-' + Math.floor(10000000 + Math.random() * 90000000)
-        },
-        totals: totals
-      };
-
-      // Prepare payload for Spring Boot REST API
-      var user = (window.SangoAuth && window.SangoAuth.getUser()) ? window.SangoAuth.getUser() : null;
-      var apiPayload = {
-        userId: user ? user.id : null,
+      var method = (paymentData && paymentData.method === 'COD') ? 'COD' : 'ONLINE';
+      return window.SangoAPI.createOrder({
         customerName: customerData.name,
         customerPhone: customerData.phone,
-        customerEmail: customerData.email,
+        customerEmail: customerData.email || (window.SangoAuth.getUser() || {}).email || '',
         shippingAddress: customerData.address,
         landmark: customerData.landmark || '',
         pincode: customerData.pincode,
-        city: customerData.city || 'City',
-        state: customerData.state || 'State',
+        city: customerData.city,
+        state: customerData.state,
         gstin: customerData.gstin || '',
-        paymentMethod: paymentData.method,
+        paymentMethod: method,
         couponCode: totals.couponCode || null,
-        items: items.map(function (it) {
-          return {
-            productName: it.name,
-            productSlug: it.slug,
-            productImage: it.image,
-            productVariant: it.variant || '',
-            productCategory: it.category || '',
-            size: it.size || '',
-            price: it.price,
-            mrp: it.mrp || it.price,
-            qty: it.qty
-          };
-        })
-      };
-
-      var apiCall = window.SangoAPI ? window.SangoAPI.createOrder(apiPayload).catch(function(err) {
-        console.warn('[Checkout] Backend createOrder fallback to local/Supabase:', err.message);
-        return localOrder;
-      }) : Promise.resolve(localOrder);
-
-      return apiCall.then(function (serverOrder) {
-        if (serverOrder && serverOrder.orderId) {
-          localOrder.orderId = serverOrder.orderId;
-          localOrder.netTotal = serverOrder.netTotal;
-          localOrder.status = serverOrder.status;
-          if (serverOrder.createdAt) localOrder.createdAt = serverOrder.createdAt;
-        }
-
-        // Save directly to Supabase orders table (awaited before navigation)
-        var supabasePromise = Promise.resolve();
-        if (window.SangoSupabase) {
-          var sbOrder = {
-            order_id: localOrder.orderId,
-            user_id: user ? user.id : null,
-            customer_name: customerData.name,
-            customer_phone: customerData.phone,
-            customer_email: customerData.email,
-            shipping_address: customerData.address,
-            landmark: customerData.landmark || '',
-            pincode: customerData.pincode,
-            city: customerData.city || 'City',
-            state: customerData.state || 'State',
-            gstin: customerData.gstin || '',
-            payment_method: paymentData.method,
-            payment_status: paymentData.method === 'COD' ? 'Pending (COD)' : 'Paid',
-            subtotal: totals.subtotal || 0,
-            coupon_code: totals.couponCode || null,
-            coupon_discount: totals.couponDiscount || 0,
-            delivery_fee: totals.deliveryFee || 0,
-            gst_amount: totals.gstAmount || Math.round((totals.netTotal || 0) * 0.18 / 1.18),
-            net_total: totals.netTotal || 0,
-            status: 'Order Placed',
-            status_step: 1
-          };
-
-          supabasePromise = window.SangoSupabase.from('orders').insert([sbOrder]).select().then(function (res) {
-            if (res.data && res.data[0]) {
-              var parentDbId = res.data[0].id;
-              var lineRows = items.map(function (it) {
-                return {
-                  order_id: parentDbId,
-                  product_name: it.name,
-                  product_slug: it.slug,
-                  product_image: it.image,
-                  product_variant: it.variant || '',
-                  product_category: it.category || '',
-                  size: it.size || '',
-                  price: it.price,
-                  mrp: it.mrp || it.price,
-                  qty: it.qty
-                };
-              });
-              return window.SangoSupabase.from('order_items').insert(lineRows);
-            }
-          }).catch(function (sbErr) {
-            console.warn('[Checkout] Supabase direct order insert notice:', sbErr);
-          });
-        }
-
-        return supabasePromise.then(function () {
-          // Save confirmed order to local storage
-          var orders = readOrders();
-          orders.unshift(localOrder);
-          writeOrders(orders);
-
-          // Clear cart only after verified success
-          if (window.CartEngine) window.CartEngine.clearCart();
-          if (window.AppEvent) window.AppEvent.emit('order:created', localOrder);
-
-          return localOrder;
-        });
+        items: items.map(function (it) { return { productSlug: it.slug, qty: it.qty }; })
+      }).then(function (res) {
+        var now = new Date(res.createdAt || Date.now());
+        var order = {
+          orderId: res.orderId,
+          createdAt: now.toISOString(),
+          dateString: now.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+          estDeliveryDate: new Date(now.getTime() + 4 * 864e5).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' }),
+          status: res.status || 'Order Placed',
+          statusStep: 1,
+          items: JSON.parse(JSON.stringify(items)),
+          customer: {
+            name: customerData.name, phone: customerData.phone, email: customerData.email,
+            address: customerData.address, landmark: customerData.landmark || '',
+            pincode: customerData.pincode, city: customerData.city, state: customerData.state, gstin: customerData.gstin || ''
+          },
+          payment: { method: method, status: method === 'COD' ? 'Pending (COD)' : 'Pending' },
+          netTotal: res.netTotal,
+          totals: {
+            subtotal: res.subtotal, couponCode: res.couponCode, couponDiscount: res.couponDiscount,
+            volumeDiscount: res.volumeDiscount, deliveryFee: res.deliveryFee, gstAmount: res.gstAmount, netTotal: res.netTotal
+          }
+        };
+        // COD is complete at this point. Online orders keep the cart until the payment is verified.
+        if (method === 'COD' && window.CartEngine) window.CartEngine.clearCart();
+        if (window.AppEvent) window.AppEvent.emit('order:created', order);
+        return order;
       });
     },
 
@@ -303,7 +214,7 @@
       var couponMsg = document.getElementById('checkout-coupon-msg');
       if (couponMsg) {
         if (totals.couponCode) {
-          couponMsg.textContent = '✓ ' + totals.couponLabel + ' (' + totals.couponCode + ') applied!';
+          couponMsg.textContent = '' + totals.couponLabel + ' (' + totals.couponCode + ') applied!';
           couponMsg.className = 'text-xs text-green-600 font-bold mt-1';
         } else {
           couponMsg.textContent = '';
@@ -352,11 +263,11 @@
         var isAuthed = window.SangoAuth && window.SangoAuth.isLoggedIn && window.SangoAuth.isLoggedIn();
         if (!isAuthed) {
           if (window.openAuthModal) {
-            window.openAuthModal('signin', '🔒 Please sign in to proceed to shipping and checkout.');
+            window.openAuthModal('signin', 'Please sign in to proceed to shipping and checkout.');
           } else {
             location.href = '/login/?redirect=/cart/';
           }
-          if (window.showToast) window.showToast('⚠️ Please sign in to proceed with checkout.');
+          if (window.showToast) window.showToast('Please sign in to proceed with checkout.');
           return;
         }
         goToStep(2);
@@ -478,7 +389,7 @@
         // Set Loading state on button
         placeOrderBtn.disabled = true;
         var originalBtnHTML = placeOrderBtn.innerHTML;
-        placeOrderBtn.innerHTML = '<span class="inline-block animate-spin mr-2">🌿</span> Securing Order & Processing Payment...';
+        placeOrderBtn.innerHTML = '<span class="inline-block animate-spin mr-2"><span class="material-symbols-outlined ico" aria-hidden="true">eco</span></span> Securing Order & Processing Payment...';
 
         window.CheckoutEngine.createOrderAsync(customerData, { method: method })
           .then(function (confirmedOrder) {
@@ -488,7 +399,7 @@
             } else {
               goToStep(4);
               renderOrderReceipt(confirmedOrder);
-              if (window.showToast) window.showToast('✓ Order #' + confirmedOrder.orderId + ' confirmed successfully!');
+              if (window.showToast) window.showToast('Order #' + confirmedOrder.orderId + ' confirmed successfully!');
             }
           })
           .catch(function (err) {
@@ -513,11 +424,11 @@
 
       receiptBox.innerHTML =
         '<div class="text-center pb-6 border-b border-gray-100">' +
-        '<div class="w-16 h-16 bg-green-100 text-green-700 rounded-full flex items-center justify-center text-3xl mx-auto mb-3">✓</div>' +
+        '<div class="w-16 h-16 bg-green-100 text-green-700 rounded-full flex items-center justify-center text-3xl mx-auto mb-3"><span class="material-symbols-outlined ico" aria-hidden="true">check</span></div>' +
         '<span class="text-xs font-bold uppercase tracking-widest text-plant-main">Order Successfully Confirmed</span>' +
         '<h2 class="font-display text-3xl font-bold text-gray-900 mt-1">Thank You, ' + safeCustName + '!</h2>' +
         '<p class="text-sm text-gray-500 mt-1">Order Reference: <strong class="text-gray-900 font-mono">' + escapeHTML(order.orderId) + '</strong></p>' +
-        '<p class="text-xs text-amber-600 bg-amber-50 rounded-lg py-1.5 px-4 inline-block font-bold mt-2">📦 Estimated Delivery: ' + escapeHTML(order.estDeliveryDate) + '</p>' +
+        '<p class="text-xs text-amber-600 bg-amber-50 rounded-lg py-1.5 px-4 inline-block font-bold mt-2">Estimated Delivery: ' + escapeHTML(order.estDeliveryDate) + '</p>' +
         '</div>' +
 
         '<div class="py-6 border-b border-gray-100 grid sm:grid-cols-2 gap-4 text-xs">' +
@@ -525,7 +436,7 @@
         '<p class="font-bold text-gray-900">' + safeCustName + '</p>' +
         '<p class="text-gray-600">' + safeAddress + (safeLandmark ? ', ' + safeLandmark : '') + '</p>' +
         '<p class="text-gray-600">' + safeCity + ', ' + safeState + ' - ' + safePincode + '</p>' +
-        '<p class="text-gray-600">📞 Phone: ' + safePhone + '</p></div>' +
+        '<p class="text-gray-600">Phone: ' + safePhone + '</p></div>' +
 
         '<div><p class="text-gray-400 font-bold uppercase tracking-wider mb-1">Payment Method</p>' +
         '<p class="font-bold text-gray-900">' + escapeHTML(order.payment.method) + ' (' + escapeHTML(order.payment.status) + ')</p>' +

@@ -71,7 +71,7 @@
     if (!results || !results.length) {
       wrapEl.innerHTML =
         '<div class="p-5 text-center text-gray-500 text-xs font-medium">' +
-          '<span class="text-2xl block mb-1">🪴</span>' +
+          '<span class="text-2xl block mb-1"><span class="material-symbols-outlined ico" aria-hidden="true">potted_plant</span></span>' +
           'No plants found matching "<span class="font-bold text-gray-800">' + escapeHTML(query) + '</span>"' +
         '</div>';
       wrapEl.classList.remove('hidden');
@@ -174,7 +174,7 @@
     if (!matches.length) {
       grid.className = 'block text-center py-16 bg-white rounded-3xl border border-outline-variant/30 shadow-sm';
       grid.innerHTML =
-        '<div class="text-6xl mb-4">🪴</div>' +
+        '<div class="text-6xl mb-4"><span class="material-symbols-outlined ico" aria-hidden="true">potted_plant</span></div>' +
         '<h2 class="font-headline-lg font-bold text-2xl text-deep-forest mb-2">No results found for "' + escapeHTML(q) + '"</h2>' +
         '<p class="text-on-surface-variant text-sm mb-6 max-w-md mx-auto">Try searching for broader terms like "Palms", "Ficus", "Rose", or browse our full catalogue.</p>' +
         '<a href="/products/" class="inline-block bg-amber-gold hover:bg-amber-400 text-deep-forest px-8 py-3.5 rounded-full font-bold text-xs uppercase tracking-wider transition-all shadow-md">Browse All Plants →</a>';

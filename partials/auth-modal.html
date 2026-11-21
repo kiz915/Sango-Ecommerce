@@ -1,361 +1,127 @@
-<!-- Sango Fiora Luxury Botanical Member Portal Modal (Magic Link Email Auth & Google 1-Click) -->
-<style>
-  #auth-modal-card::-webkit-scrollbar {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
-  }
-  #auth-modal-card {
-    -ms-overflow-style: none !important;
-    scrollbar-width: none !important;
-  }
-</style>
+<!-- Passwordless sign-in (Supabase magic link, delivered via Resend SMTP) -->
+<div id="auth-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+  <div id="auth-backdrop" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
-<div id="auth-modal-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] hidden opacity-0 transition-opacity duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] flex items-center justify-center p-4">
-  <div id="auth-modal-card" class="bg-[#FAF8F5] rounded-3xl border border-[#1B4332]/20 shadow-[0_30px_70px_-15px_rgba(15,41,30,0.35)] p-6 sm:p-8 max-w-md w-full relative transform scale-95 translate-y-3 opacity-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] max-h-[92vh] overflow-y-auto">
-    
-    <!-- Subtle Botanical Watermark -->
-    <div class="absolute -top-12 -right-12 w-44 h-44 bg-[#1B4332]/5 rounded-full blur-2xl pointer-events-none"></div>
-
-    <!-- Close Button -->
-    <button id="auth-modal-close" type="button" aria-label="Close dialog"
-      class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/80 hover:bg-gray-100 border border-gray-200/80 text-gray-500 hover:text-gray-800 flex items-center justify-center transition-colors text-xl font-bold cursor-pointer z-10">
-      &times;
+  <div class="relative w-full max-w-[420px] bg-white rounded-3xl shadow-2xl overflow-hidden">
+    <button type="button" id="auth-close" aria-label="Close sign in"
+ class="absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors">
+      <span class="material-symbols-outlined text-xl">close</span>
     </button>
 
-    <!-- Contextual Requirement Banner (e.g. "Please sign in to proceed with checkout") -->
-    <div id="modal-auth-context-banner" class="hidden mb-4 bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold px-3.5 py-2.5 rounded-2xl text-center leading-relaxed">
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════
-         STEP 1: CLEAN MAGIC LINK EMAIL SIGN-IN
-         ═══════════════════════════════════════════════════════ -->
-    <div id="auth-step-main" class="space-y-4">
-      <div class="text-center pt-1">
-        <div class="w-12 h-12 mx-auto rounded-2xl bg-emerald-50 border border-emerald-200/80 text-emerald-800 flex items-center justify-center text-2xl shadow-xs mb-2">
-          🌿
-        </div>
-        <h3 class="text-2xl font-bold text-[#0F291E] tracking-tight">Sign In with Email Link</h3>
-        <p class="text-gray-600 text-xs mt-1">Enter your email address to receive an instant, secure sign-in link.</p>
+    <div class="px-7 pt-9 pb-7">
+      <div class="w-12 h-12 rounded-2xl bg-deep-forest/10 text-deep-forest flex items-center justify-center mb-5">
+        <span class="material-symbols-outlined text-2xl">potted_plant</span>
       </div>
 
-      <!-- Google 1-Click Fast Auth -->
-      <button type="button" id="modal-google-btn"
-        class="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-50 border border-gray-200 hover:border-[#1B4332]/40 py-2.5 px-4 rounded-2xl font-bold text-xs text-gray-800 transition-all shadow-xs cursor-pointer">
-        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>
-        <span>Continue with Google</span>
-      </button>
+      <!-- Step 1: email -->
+      <div id="auth-step-email">
+        <h2 id="auth-title" class="font-headline-lg text-2xl font-bold text-gray-900">Sign in or create account</h2>
+        <p class="text-sm text-gray-500 mt-1.5">Enter your email and we'll send a secure one-click sign-in link. No password needed.</p>
 
-      <div class="flex items-center gap-3 my-2">
-        <div class="flex-1 h-px bg-gray-200"></div>
-        <span class="text-[10px] text-gray-400 font-medium uppercase tracking-wider">or sign in with email link</span>
-        <div class="flex-1 h-px bg-gray-200"></div>
-      </div>
+        <p id="auth-notice" class="hidden mt-4 text-[13px] font-medium text-amber-900 bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5"></p>
 
-      <!-- Single Purpose Magic Link Form -->
-      <form id="form-magic-link-send" class="space-y-3.5 pt-1">
-        <div>
-          <label for="input-magic-email" class="block text-xs font-bold text-[#0F291E] mb-1">Email Address</label>
-          <input type="email" id="input-magic-email" required placeholder="name@domain.com" autocomplete="email"
-            class="w-full bg-white border border-[#1B4332]/25 rounded-2xl px-4 py-3 text-xs text-[#0F291E] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B4332]">
-        </div>
-        <p class="text-[11px] text-gray-500 leading-relaxed">
-          We will send a one-click magic link to this address. Simply tap the link in your inbox to sign in instantly — no password required.
-        </p>
-        <button type="submit" id="btn-submit-magic-link"
-          class="w-full bg-[#0F291E] hover:bg-[#1B4332] text-white py-3.5 rounded-2xl font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer active:scale-98">
-          <span>Send Magic Link</span>
-          <span class="text-amber-gold font-bold">✉️ →</span>
-        </button>
-      </form>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════════
-         STEP 2: MAGIC LINK SENT CONFIRMATION
-         ═══════════════════════════════════════════════════════ -->
-    <div id="auth-step-sent" class="space-y-4 hidden" style="display: none;">
-      <div class="text-center pt-2">
-        <div class="w-16 h-16 mx-auto rounded-3xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-center text-3xl shadow-sm mb-3">
-          ✉️
-        </div>
-        <h3 class="text-2xl font-bold text-[#0F291E] tracking-tight">Check Your Inbox</h3>
-        <p class="text-gray-600 text-xs mt-1">
-          A secure magic sign-in link has been dispatched to:
-        </p>
-        <div class="mt-2.5 py-1.5 px-4 bg-white border border-[#1B4332]/20 rounded-xl inline-block max-w-full shadow-2xs">
-          <strong id="modal-magic-target-email" class="text-[#0F291E] text-xs font-mono font-bold break-all"></strong>
-        </div>
-      </div>
-
-      <div class="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-4 text-center space-y-2">
-        <p class="text-xs text-[#0F291E] font-medium leading-relaxed">
-          Click the link inside the email to sign in to Sango Fiora instantly. You can close this window after clicking.
-        </p>
-      </div>
-
-      <div class="space-y-2 pt-1 text-center">
-        <button type="button" id="modal-resend-magic"
-          class="w-full bg-[#1B4332] hover:bg-[#0F291E] text-white py-2.5 rounded-2xl font-bold text-xs transition-colors cursor-pointer">
-          Resend email link ✉️
-        </button>
-        <div>
-          <button type="button" id="modal-back-to-email"
-            class="text-xs text-gray-500 hover:text-[#0F291E] font-medium transition-colors cursor-pointer py-1">
-            ← Enter a different email
+        <form id="auth-form" class="mt-5 space-y-3" novalidate>
+          <div>
+            <label for="auth-email" class="block text-xs font-semibold text-gray-700 mb-1.5">Email address</label>
+            <input id="auth-email" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" required placeholder="you@example.com"
+ class="w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-gray-900 text-[15px] focus:outline-none focus:ring-2 focus:ring-deep-forest/30 focus:border-deep-forest transition">
+          </div>
+          <p id="auth-error" class="hidden text-xs font-medium text-red-600" role="alert"></p>
+          <button id="auth-submit" type="submit"
+ class="w-full h-12 rounded-xl bg-deep-forest hover:bg-primary-container text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+            <span id="auth-submit-label">Email me a sign-in link</span>
           </button>
+        </form>
+        <p class="text-[11px] text-gray-400 mt-4 leading-relaxed">By continuing you agree to our terms. We only use your email for sign-in, order updates and delivery support.</p>
+      </div>
+
+      <!-- Step 2: check inbox -->
+      <div id="auth-step-sent" class="hidden text-center">
+        <div class="w-14 h-14 mx-auto rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center mb-4">
+          <span class="material-symbols-outlined text-3xl">mark_email_read</span>
+        </div>
+        <h2 class="font-headline-lg text-2xl font-bold text-gray-900">Check your inbox</h2>
+        <p class="text-sm text-gray-500 mt-2">We sent a sign-in link to<br><strong id="auth-sent-email" class="text-gray-900 break-all"></strong></p>
+        <p class="text-xs text-gray-400 mt-3">Open the email on this device and tap the link. It expires in an hour. Check spam if you don't see it.</p>
+        <div class="mt-6 flex flex-col gap-2">
+          <button type="button" id="auth-resend" class="h-11 rounded-xl border border-gray-300 text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>Resend link</button>
+          <button type="button" id="auth-change" class="h-10 text-sm font-medium text-deep-forest hover:underline">Use a different email</button>
         </div>
       </div>
     </div>
-
-    <!-- Status Message Banner -->
-    <div id="modal-auth-status" class="hidden text-center text-xs font-bold py-2.5 px-4 rounded-xl mt-3 transition-all"></div>
-
-    <!-- Step 3: Already Logged In Panel -->
-    <div id="modal-auth-logged-in" class="space-y-4 hidden" style="display: none;">
-      <div class="text-center pt-2">
-        <div class="w-14 h-14 mx-auto rounded-full bg-emerald-100/70 border border-emerald-300 text-emerald-900 flex items-center justify-center text-2xl mb-3 shadow-xs">
-          🌱
-        </div>
-        <p class="text-xs text-gray-500 uppercase tracking-widest font-bold">Currently Signed In</p>
-        <h3 id="modal-auth-welcome-name" class="text-xl font-bold text-[#0F291E] mt-1 break-words"></h3>
-      </div>
-
-      <div class="space-y-2 pt-2">
-        <a href="/account/" class="block text-center w-full bg-[#0F291E] hover:bg-[#1B4332] text-white py-3 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all shadow-md">
-          View Profile &amp; Orders →
-        </a>
-        <a href="/admin/" id="modal-auth-admin-go" class="hidden block text-center w-full bg-emerald-800 hover:bg-emerald-900 text-white py-3 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all shadow-md">
-          Admin Studio Access 🌿
-        </a>
-        <button type="button" id="modal-auth-signout"
-          class="w-full bg-white hover:bg-gray-100 text-gray-700 border border-gray-300 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer">
-          Sign Out
-        </button>
-      </div>
-    </div>
-
   </div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  var overlay = document.getElementById('auth-modal-overlay');
-  var card = document.getElementById('auth-modal-card');
-  var closeBtn = document.getElementById('auth-modal-close');
-  var statusEl = document.getElementById('modal-auth-status');
-  var bannerEl = document.getElementById('modal-auth-context-banner');
+(function () {
+  var modal, lastFocus, cooldownTimer, sentTo = '';
+  function $(id) { return document.getElementById(id); }
 
-  // Steps
-  var stepMain = document.getElementById('auth-step-main');
-  var stepSent = document.getElementById('auth-step-sent');
-  var loggedInBox = document.getElementById('modal-auth-logged-in');
-
-  // Inputs & buttons
-  var googleBtn = document.getElementById('modal-google-btn');
-  var formMagicSend = document.getElementById('form-magic-link-send');
-  var inputMagicEmail = document.getElementById('input-magic-email');
-  var targetEmailEl = document.getElementById('modal-magic-target-email');
-  var resendMagicBtn = document.getElementById('modal-resend-magic');
-  var backToEmailBtn = document.getElementById('modal-back-to-email');
-  var modalSignout = document.getElementById('modal-auth-signout');
-
-  var currentTargetEmail = '';
-
-  function showStep(stepName) {
-    if (statusEl) statusEl.classList.add('hidden');
-    [stepMain, stepSent, loggedInBox].forEach(function (el) {
-      if (el) { el.classList.add('hidden'); el.style.display = 'none'; }
-    });
-
-    if (stepName === 'sent') {
-      if (stepSent) { stepSent.classList.remove('hidden'); stepSent.style.display = 'block'; }
-    } else if (stepName === 'logged-in') {
-      if (loggedInBox) { loggedInBox.classList.remove('hidden'); loggedInBox.style.display = 'block'; }
-    } else {
-      if (stepMain) { stepMain.classList.remove('hidden'); stepMain.style.display = 'block'; }
-      if (inputMagicEmail) setTimeout(function () { inputMagicEmail.focus(); }, 150);
-    }
-    if (card) card.scrollTop = 0;
+  function setStep(step) {
+    $('auth-step-email').classList.toggle('hidden', step !== 'email');
+    $('auth-step-sent').classList.toggle('hidden', step !== 'sent');
   }
+  function showError(msg) { var e = $('auth-error'); e.textContent = msg || ''; e.classList.toggle('hidden', !msg); }
 
-  function showStatus(msg, isError) {
-    if (!statusEl) return;
-    statusEl.textContent = msg;
-    statusEl.className = 'text-center text-xs font-bold py-2.5 px-4 rounded-xl mt-3 transition-all ' +
-      (isError ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200');
-    statusEl.classList.remove('hidden');
-  }
-
-  window.openAuthModal = function (mode, reason) {
-    if (!overlay || !card) return;
-    if (bannerEl) {
-      if (reason) {
-        bannerEl.textContent = reason;
-        bannerEl.classList.remove('hidden');
-      } else {
-        bannerEl.classList.add('hidden');
-      }
-    }
-
-    if (window.SangoAuth && window.SangoAuth.isLoggedIn && window.SangoAuth.isLoggedIn()) {
-      showStep('logged-in');
-      var nameEl = document.getElementById('modal-auth-welcome-name');
-      var user = window.SangoAuth.getUser ? window.SangoAuth.getUser() : null;
-      var profile = window.SangoAuth.getProfile ? window.SangoAuth.getProfile() : null;
-      if (nameEl) {
-        nameEl.textContent = (profile && profile.full_name) ? profile.full_name : ((user && user.email) || 'Valued Member');
-      }
-      var adminGo = document.getElementById('modal-auth-admin-go');
-      if (adminGo && window.SangoAuth.isAdmin && window.SangoAuth.isAdmin()) {
-        adminGo.classList.remove('hidden');
-      }
-    } else {
-      showStep('main');
-    }
-
-    overlay.classList.remove('hidden');
+  window.openAuthModal = function (mode, message) {
+    modal = modal || $('auth-modal');
+    if (!modal) return;
+    lastFocus = document.activeElement;
+    var n = $('auth-notice');
+    var clean = (message || '').replace(/^[^\w]+/, '');
+    n.textContent = clean; n.classList.toggle('hidden', !clean);
+    showError(''); setStep('email');
+    modal.classList.remove('hidden'); modal.classList.add('flex');
     document.body.style.overflow = 'hidden';
-    requestAnimationFrame(function () {
-      overlay.classList.remove('opacity-0');
-      card.classList.remove('scale-95', 'translate-y-3', 'opacity-0');
-      card.classList.add('scale-100', 'translate-y-0', 'opacity-100');
-    });
+    setTimeout(function () { $('auth-email').focus(); }, 40);
   };
-
   window.closeAuthModal = function () {
-    if (!overlay || !card) return;
-    overlay.classList.add('opacity-0');
-    card.classList.remove('scale-100', 'translate-y-0', 'opacity-100');
-    card.classList.add('scale-95', 'translate-y-3', 'opacity-0');
-    setTimeout(function () {
-      overlay.classList.add('hidden');
-      document.body.style.overflow = '';
-      if (bannerEl) bannerEl.classList.add('hidden');
-    }, 280);
+    modal = modal || $('auth-modal');
+    if (!modal) return;
+    modal.classList.add('hidden'); modal.classList.remove('flex');
+    document.body.style.overflow = '';
+    clearInterval(cooldownTimer);
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
   };
 
-  if (closeBtn) closeBtn.addEventListener('click', window.closeAuthModal);
-  if (overlay) {
-    overlay.addEventListener('click', function (e) {
-      if (e.target === overlay) window.closeAuthModal();
-    });
-  }
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && overlay && !overlay.classList.contains('hidden')) {
-      window.closeAuthModal();
-    }
-  });
-
-  // Google 1-Click
-  if (googleBtn) {
-    googleBtn.addEventListener('click', function () {
-      if (window.SangoAuth && window.SangoAuth.signInWithGoogle) {
-        window.SangoAuth.signInWithGoogle();
-      }
-    });
+  function startCooldown(seconds) {
+    var btn = $('auth-resend'); var left = seconds;
+    btn.disabled = true; btn.textContent = 'Resend link in ' + left + 's';
+    clearInterval(cooldownTimer);
+    cooldownTimer = setInterval(function () {
+      left--; 
+      if (left <= 0) { clearInterval(cooldownTimer); btn.disabled = false; btn.textContent = 'Resend link'; }
+      else btn.textContent = 'Resend link in ' + left + 's';
+    }, 1000);
   }
 
-  // Back to Main email entry
-  if (backToEmailBtn) {
-    backToEmailBtn.addEventListener('click', function () {
-      showStep('main');
-    });
+  function send(email, btn, label) {
+    if (!window.SangoAuth) { showError('Sign-in is still loading. Please try again in a moment.'); return Promise.resolve(); }
+    btn.disabled = true; var original = label.textContent; label.textContent = 'Sending…';
+    showError('');
+    return window.SangoAuth.sendMagicLink(email).then(function () {
+      sentTo = email; $('auth-sent-email').textContent = email;
+      setStep('sent'); startCooldown(30);
+    }).catch(function (err) { showError(err.message); })
+      .then(function () { btn.disabled = false; label.textContent = original; });
   }
 
-  function handleSuccessfulAuth() {
-    showStatus('Signed in successfully! 🌿', false);
-    setTimeout(function () {
-      window.closeAuthModal();
-      if (window._pendingCartAction) {
-        var action = window._pendingCartAction;
-        window._pendingCartAction = null;
-        if (action.action === 'add' && window.CartEngine) {
-          window.CartEngine.addToCart(action.item, action.qty || 1);
-        } else if (action.action === 'buy-now' && window.CartEngine) {
-          window.CartEngine.addToCart(action.item, action.qty || 1);
-          window.location.href = '/payment/?orderId=pending';
-        }
-      }
-    }, 600);
-  }
-
-  // Auto-close when auth changes (e.g. user clicked magic link in email)
-  if (window.AppEvent) {
-    window.AppEvent.on('auth:changed', function (data) {
-      if (data && data.user && overlay && !overlay.classList.contains('hidden')) {
-        handleSuccessfulAuth();
-      }
-    });
-  }
-
-  // Send Magic Link Form Submit
-  if (formMagicSend) {
-    formMagicSend.addEventListener('submit', function (e) {
+  document.addEventListener('DOMContentLoaded', function () {
+    modal = $('auth-modal');
+    if (!modal) return;
+    $('auth-close').addEventListener('click', window.closeAuthModal);
+    $('auth-backdrop').addEventListener('click', window.closeAuthModal);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !modal.classList.contains('hidden')) window.closeAuthModal(); });
+    $('auth-form').addEventListener('submit', function (e) {
       e.preventDefault();
-      var email = (inputMagicEmail.value || '').trim();
-      if (!email) return;
-
-      currentTargetEmail = email;
-      if (targetEmailEl) targetEmailEl.textContent = email;
-      showStatus('Dispatching secure magic sign-in link...', false);
-      var btn = document.getElementById('btn-submit-magic-link');
-      if (btn) btn.disabled = true;
-
-      window.SangoAuth.sendEmailOtp(email)
-        .then(function (res) {
-          if (res && res.error) {
-            showStatus(res.error.message || 'Could not dispatch sign-in email.', true);
-          } else {
-            showStep('sent');
-            showStatus('Magic sign-in link dispatched! Check your email ✉️', false);
-          }
-        })
-        .catch(function (err) {
-          showStatus(err.message || 'Could not dispatch sign-in email.', true);
-        })
-        .finally(function () {
-          if (btn) btn.disabled = false;
-        });
+      send($('auth-email').value, $('auth-submit'), $('auth-submit-label'));
     });
-  }
-
-  // Resend Magic Link
-  if (resendMagicBtn) {
-    resendMagicBtn.addEventListener('click', function () {
-      if (!currentTargetEmail) return;
-      showStatus('Resending secure magic link...', false);
-      window.SangoAuth.sendEmailOtp(currentTargetEmail)
-        .then(function (res) {
-          if (res && res.error) showStatus(res.error.message || 'Error resending email', true);
-          else showStatus('New magic link sent! Check your inbox ✉️', false);
-        })
-        .catch(function (err) {
-          showStatus(err.message || 'Error resending email', true);
-        });
+    $('auth-resend').addEventListener('click', function () {
+      var b = $('auth-resend'); b.disabled = true;
+      window.SangoAuth.sendMagicLink(sentTo).then(function () { startCooldown(30); if (window.showToast) window.showToast('A new sign-in link is on its way'); })
+        .catch(function (err) { b.disabled = false; if (window.showToast) window.showToast(err.message); });
     });
-  }
-
-  // Sign Out
-  if (modalSignout) {
-    modalSignout.addEventListener('click', function () {
-      if (window.SangoAuth && window.SangoAuth.signOut) {
-        window.SangoAuth.signOut().then(function () {
-          window.closeAuthModal();
-        });
-      }
-    });
-  }
-
-  // Auto-open modal if URL has ?auth=login or hash #login
-  if (window.location.search.indexOf('auth=login') !== -1 || window.location.hash === '#login') {
-    setTimeout(function() {
-      window.openAuthModal('login');
-      if (window.history && window.history.replaceState) {
-        var cleanUrl = window.location.pathname + window.location.search.replace(/[\?&]auth=login/, '').replace(/^&/, '?');
-        if (cleanUrl.endsWith('?')) cleanUrl = cleanUrl.slice(0, -1);
-        window.history.replaceState(null, '', cleanUrl || '/');
-      }
-    }, 180);
-  }
-});
+    $('auth-change').addEventListener('click', function () { setStep('email'); $('auth-email').focus(); });
+  });
+})();
 </script>

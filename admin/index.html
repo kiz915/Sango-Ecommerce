@@ -3,601 +3,227 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Studio | Sango Fiora</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Admin | Sango Fiora</title>
+  <link rel="icon" href="/images/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/main.css">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            'deep-forest': '#0F291E',
-            'forest-light': '#1B4332',
-            'amber-gold': '#F59E0B',
-            'amber-light': '#FCD34D',
-            'surface-low': '#F8F7F4',
-          }
-        }
-      }
-    }
-  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@400,0&display=swap" rel="stylesheet">
   <style>
-    .hidden { display: none !important; }
-    #admin-main.hidden { display: none !important; }
-    #auth-gate.hidden { display: none !important; }
-    body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; background-color: #F8F7F4; margin: 0; color: #111827; }
-    .mono { font-family: 'JetBrains Mono', monospace; }
-    .tab-active { background-color: #0F291E !important; color: #FFFFFF !important; box-shadow: 0 4px 12px rgba(15, 41, 30, 0.25); }
-    .fade-in { animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-    .admin-card { transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
-    .admin-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.06); }
-    header.bg-deep-forest { background-color: #0F291E; }
+    :root{--g:#1B5E20;--gd:#0F291E;--gl:#E8F3E9;--amber:#F5A800;--bg:#F5F6F4;--card:#fff;--line:#E4E7E2;--tx:#14201A;--mute:#667068;--red:#C62828;--redl:#FDECEC;--ok:#1B7F3B;--okl:#E3F4E8;--warn:#9A6700;--warnl:#FFF4D6}
+    *{box-sizing:border-box}html,body{margin:0}
+    body{font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--tx);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+    .hidden{display:none!important}
+    .ms{font-family:'Material Symbols Outlined';font-size:20px;line-height:1;font-weight:400;font-style:normal;display:inline-block;vertical-align:middle;letter-spacing:normal;text-transform:none;white-space:nowrap;-webkit-font-feature-settings:'liga';font-feature-settings:'liga'}
+    button{font:inherit;cursor:pointer}
+    a{color:inherit}
+    /* gate */
+    #gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:linear-gradient(160deg,var(--gd),#1B4332)}
+    .gate-card{background:#fff;border-radius:20px;padding:36px;width:100%;max-width:400px;box-shadow:0 30px 80px rgba(0,0,0,.35)}
+    .gate-card h1{margin:14px 0 4px;font-size:22px}.gate-card p{margin:0;color:var(--mute)}
+    .logo-mark{width:44px;height:44px;border-radius:12px;background:var(--gl);color:var(--g);display:flex;align-items:center;justify-content:center}
+    /* layout */
+    .shell{display:grid;grid-template-columns:232px 1fr;min-height:100vh}
+    aside{background:var(--gd);color:#fff;padding:20px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
+    .brand{display:flex;align-items:center;gap:10px;padding:4px 10px 22px;font-weight:700;font-size:16px}
+    .brand small{display:block;font-weight:500;font-size:11px;color:#9DB8A5;letter-spacing:.04em}
+    .nav-btn{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border:0;background:transparent;color:#C9D8CD;border-radius:10px;text-align:left;font-weight:500;margin-bottom:2px;position:relative}
+    .nav-btn:hover{background:rgba(255,255,255,.07);color:#fff}
+    .nav-btn.on{background:rgba(255,255,255,.12);color:#fff}
+    .nav-btn .badge{margin-left:auto;background:var(--amber);color:var(--gd);font-size:11px;font-weight:700;padding:1px 7px;border-radius:99px}
+    .side-foot{margin-top:auto;border-top:1px solid rgba(255,255,255,.12);padding-top:14px;font-size:12px;color:#9DB8A5}
+    .side-foot b{display:block;color:#fff;font-weight:600;word-break:break-all;margin-bottom:8px}
+    main{padding:28px 32px 60px;min-width:0}
+    .topline{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px;flex-wrap:wrap}
+    h2{margin:0;font-size:22px;letter-spacing:-.01em}
+    .sub{color:var(--mute);font-size:13px;margin-top:2px}
+    /* ui */
+    .btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:#fff;color:var(--tx);padding:9px 14px;border-radius:10px;font-weight:600;font-size:13px;transition:.15s}
+    .btn:hover{border-color:#C7CCC5;background:#FAFBFA}
+    .btn.pri{background:var(--g);border-color:var(--g);color:#fff}.btn.pri:hover{background:#17501B}
+    .btn.dng{color:var(--red)}.btn.dng:hover{background:var(--redl);border-color:#F3C4C4}
+    .btn:disabled{opacity:.55;cursor:not-allowed}
+    .btn.sm{padding:6px 10px;font-size:12px;border-radius:8px}
+    .icon-btn{width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);background:#fff;border-radius:8px;color:var(--mute)}
+    .icon-btn:hover{color:var(--g);border-color:#BFD6C2}.icon-btn.dng:hover{color:var(--red);border-color:#F3C4C4;background:var(--redl)}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px}
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:20px}
+    .stat{padding:18px}.stat .k{color:var(--mute);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:8px}
+    .stat .v{font-size:28px;font-weight:700;margin-top:8px;letter-spacing:-.02em}
+    .toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+    input,select,textarea{font:inherit;color:var(--tx);border:1px solid #D3D8D1;background:#fff;border-radius:10px;padding:9px 12px;width:100%}
+    input:focus,select:focus,textarea:focus{outline:2px solid rgba(27,94,32,.25);border-color:var(--g)}
+    .toolbar input,.toolbar select{width:auto;min-width:160px}.toolbar .grow{flex:1;min-width:220px}
+    label.f{display:block;font-size:12px;font-weight:600;color:#3B463F;margin-bottom:5px}
+    .tbl-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse}
+    th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);font-weight:600;padding:11px 14px;border-bottom:1px solid var(--line);background:#FAFBFA;white-space:nowrap}
+    td{padding:12px 14px;border-bottom:1px solid #EEF0EC;vertical-align:middle}
+    tr:last-child td{border-bottom:0}
+    tbody tr:hover{background:#FBFCFB}
+    .pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap}
+    .pill.ok{background:var(--okl);color:var(--ok)}.pill.warn{background:var(--warnl);color:var(--warn)}.pill.bad{background:var(--redl);color:var(--red)}.pill.mute{background:#EEF0EC;color:#4A554D}
+    .thumb{width:44px;height:44px;border-radius:10px;object-fit:cover;background:#EEF0EC;border:1px solid var(--line)}
+    .pname{font-weight:600}.muted{color:var(--mute);font-size:12px}.mono{font-family:ui-monospace,Menlo,monospace}
+    .right{text-align:right}.actions{display:flex;gap:6px;justify-content:flex-end}
+    .empty{padding:48px 20px;text-align:center;color:var(--mute)}
+    .tab{display:none}.tab.on{display:block}
+    /* modal */
+    .overlay{position:fixed;inset:0;background:rgba(10,20,14,.55);display:flex;align-items:center;justify-content:center;padding:20px;z-index:60;backdrop-filter:blur(2px)}
+    .modal{background:#fff;border-radius:18px;width:100%;max-width:620px;max-height:92vh;overflow:auto;box-shadow:0 30px 80px rgba(0,0,0,.3)}
+    .modal-h{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff;z-index:2}
+    .modal-h h3{margin:0;font-size:17px}.modal-b{padding:22px}.modal-f{padding:16px 22px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:#fff}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.col{margin-bottom:14px}
+    .drop{border:1.5px dashed #BFC8BE;border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px;background:#FAFBFA;cursor:pointer}
+    .drop:hover{border-color:var(--g);background:var(--gl)}
+    .drop img{width:64px;height:64px;border-radius:10px;object-fit:cover;border:1px solid var(--line)}
+    .sw{display:flex;align-items:center;gap:8px;font-weight:500}.sw input{width:auto}
+    /* toast */
+    #toast{position:fixed;bottom:22px;right:22px;z-index:99;display:flex;flex-direction:column;gap:8px}
+    .t{background:var(--gd);color:#fff;padding:11px 16px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.25);font-weight:500;max-width:360px;animation:in .2s ease}
+    .t.err{background:var(--red)}
+    @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .menu-btn{display:none}
+    @media(max-width:860px){.shell{grid-template-columns:1fr}aside{position:fixed;left:0;top:0;width:240px;z-index:50;transform:translateX(-100%);transition:.2s}aside.open{transform:none}main{padding:18px 16px 50px}.menu-btn{display:inline-flex}.grid2,.grid3{grid-template-columns:1fr}}
   </style>
 </head>
-<body class="text-gray-900 min-h-screen">
+<body>
+<script>window.SANGO_ADMIN_PAGE = true;</script>
 
-  <!-- Admin Top Bar -->
-  <header class="bg-deep-forest text-white sticky top-0 z-50 border-b border-emerald-900/40 shadow-md">
-    <div class="max-w-[1440px] mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <a href="/" class="flex items-center hover:opacity-90 transition-opacity">
-          <img src="/images/sango-fiora-logo-white.png" alt="Sango Fiora" class="h-8 w-auto object-contain">
-        </a>
-        <span class="bg-[#1B4332] text-emerald-300 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-widest border border-emerald-400/20">Admin Studio</span>
-      </div>
-      <div class="flex items-center gap-4">
-        <a href="/" class="text-white/70 hover:text-white text-xs font-bold transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-xl hover:bg-white/10">
-          <span class="material-symbols-outlined text-sm">storefront</span> View Storefront
-        </a>
-        <div class="h-4 w-px bg-white/20"></div>
-        <div class="flex items-center gap-3">
-          <span id="admin-user-name" class="text-xs font-semibold text-white/90">Admin</span>
-          <button id="admin-signout" class="bg-white/10 hover:bg-white/20 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border border-white/10">
-            Sign Out
-          </button>
-        </div>
-      </div>
+<!-- Sign-in gate -->
+<div id="gate">
+  <div class="gate-card">
+    <div class="logo-mark"><span class="ms">potted_plant</span></div>
+    <h1>Sango Fiora Admin</h1>
+    <p id="gate-msg">Sign in with your administrator email. We'll send you a secure sign-in link.</p>
+    <form id="gate-form" style="margin-top:20px" novalidate>
+      <label class="f" for="gate-email">Admin email</label>
+      <input id="gate-email" type="email" autocomplete="email" required placeholder="you@example.com">
+      <button id="gate-btn" class="btn pri" style="width:100%;justify-content:center;margin-top:14px;padding:12px" type="submit">Email me a sign-in link</button>
+    </form>
+    <div id="gate-sent" class="hidden" style="margin-top:20px;text-align:center">
+      <span class="ms" style="font-size:40px;color:var(--ok)">mark_email_read</span>
+      <p style="margin-top:8px"><b style="color:var(--tx)">Check your inbox</b><br>Open the link on this device to continue.</p>
     </div>
-  </header>
-
-  <!-- Auth Gate (shown if not logged in or not admin) -->
-  <div id="auth-gate" class="flex items-center justify-center min-h-[80vh] px-4">
-    <div class="text-center max-w-md bg-white p-8 sm:p-10 rounded-3xl border border-gray-200/80 shadow-[0_20px_50px_rgba(15,41,30,0.06)]">
-      <div class="w-14 h-14 rounded-2xl bg-[#1B4332]/10 text-[#1B4332] flex items-center justify-center text-2xl mx-auto mb-4 font-bold">🌿</div>
-      <h1 class="text-2xl font-bold text-[#0F291E] mb-2">Admin Studio Access</h1>
-      <p class="text-gray-500 text-xs mb-6 leading-relaxed" id="auth-gate-msg">Manage products, fulfillment, orders, and promotional discount codes.</p>
-      <!-- Direct Inline Admin Sign-In -->
-      <form id="admin-login-form" class="space-y-3 text-left pt-2">
-        <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1">Administrator Email</label>
-          <input type="email" id="admin-login-email" required placeholder="admin@sangofiora.com" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-deep-forest">
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1">Password</label>
-          <input type="password" id="admin-login-password" required placeholder="••••••••" class="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-deep-forest">
-        </div>
-        <button type="submit" id="btn-admin-submit-login" class="w-full bg-[#0F291E] hover:bg-[#1B4332] text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer">
-          Sign In to Studio →
-        </button>
-      </form>
-
-      <div class="mt-2.5">
-        <button type="button" id="btn-admin-magic-link" onclick="var em = (document.getElementById('admin-login-email').value || '').trim(); if (!em) { alert('Please enter your administrator email first.'); return; } this.textContent = 'Sending Magic Link...'; this.disabled = true; var self = this; if (window.SangoAuth && window.SangoAuth.sendEmailOtp) { window.SangoAuth.sendEmailOtp(em).then(function() { alert('Magic sign-in link dispatched to ' + em + '! Check your inbox ✉️'); self.textContent = 'Link Dispatched ✓'; }).catch(function(e) { alert('Error: ' + e.message); self.textContent = 'Send Sign-In Link ✉️'; self.disabled = false; }); } else { location.href='/?auth=login&redirect=/admin/'; }"
-          class="w-full bg-emerald-50 hover:bg-emerald-100 text-[#1B4332] border border-emerald-300/80 py-2.5 rounded-xl font-bold text-xs transition-all shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
-          <span>✉️ Send Sign-In Link to Email</span>
-        </button>
-      </div>
-
-      <div class="relative flex py-2 items-center">
-        <div class="flex-grow border-t border-gray-200"></div>
-        <span class="flex-shrink mx-3 text-gray-400 text-[10px] uppercase font-bold">Or</span>
-        <div class="flex-grow border-t border-gray-200"></div>
-      </div>
-
-      <div class="space-y-2">
-        <button type="button" id="btn-admin-google-login" onclick="if(window.SangoAuth&&window.SangoAuth.signInWithGoogle){window.SangoAuth.signInWithGoogle();}else{location.href='/?auth=login&redirect=/admin/';}"
-          class="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-50 border border-gray-200 py-3 rounded-xl font-bold text-xs text-gray-800 transition-all shadow-xs cursor-pointer">
-          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>
-          <span>Sign In with Google</span>
-        </button>
-      </div>
-    </div>
+    <button id="gate-out" class="btn hidden" style="width:100%;justify-content:center;margin-top:14px" type="button">Sign out</button>
+    <p style="margin-top:18px;text-align:center"><a href="/" style="color:var(--g);font-weight:600;text-decoration:none;font-size:13px">← Back to store</a></p>
   </div>
+</div>
 
-  <!-- Main Admin Dashboard (hidden until auth verified) -->
-  <main id="admin-main" class="hidden max-w-[1440px] mx-auto px-4 md:px-8 py-8" style="display: none;">
+<!-- App -->
+<div id="app" class="shell hidden">
+  <aside id="side">
+    <div class="brand"><div class="logo-mark" style="width:36px;height:36px;background:rgba(255,255,255,.12);color:#fff"><span class="ms">potted_plant</span></div><div>Sango Fiora<small>ADMIN</small></div></div>
+    <button class="nav-btn on" data-tab="dash"><span class="ms">space_dashboard</span>Dashboard</button>
+    <button class="nav-btn" data-tab="products"><span class="ms">inventory_2</span>Products</button>
+    <button class="nav-btn" data-tab="orders"><span class="ms">receipt_long</span>Orders<span id="nav-orders" class="badge hidden"></span></button>
+    <button class="nav-btn" data-tab="coupons"><span class="ms">sell</span>Coupons</button>
+    <button class="nav-btn" data-tab="enquiries"><span class="ms">mail</span>Enquiries</button>
+    <div class="side-foot"><b id="who"></b>
+      <a href="/" class="nav-btn" style="padding:8px 0;color:#9DB8A5"><span class="ms">storefront</span>View store</a>
+      <button id="signout" class="nav-btn" style="padding:8px 0;color:#9DB8A5"><span class="ms">logout</span>Sign out</button></div>
+  </aside>
 
-    <!-- Navigation Tabs (Pill Style) -->
-    <nav class="flex gap-2 mb-8 bg-white p-2 rounded-2xl border border-outline-variant/30 shadow-sm max-w-max overflow-x-auto">
-      <button data-admin-tab="dashboard" class="admin-tab tab-active px-5 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2">
-        <span class="material-symbols-outlined text-base">dashboard</span> Overview
-      </button>
-      <button data-admin-tab="products" class="admin-tab text-gray-600 hover:bg-gray-100 px-5 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2">
-        <span class="material-symbols-outlined text-base">inventory_2</span> Products
-      </button>
-      <button data-admin-tab="orders" class="admin-tab text-gray-600 hover:bg-gray-100 px-5 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2">
-        <span class="material-symbols-outlined text-base">receipt_long</span> Orders
-      </button>
-      <button data-admin-tab="coupons" class="admin-tab text-gray-600 hover:bg-gray-100 px-5 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2">
-        <span class="material-symbols-outlined text-base">local_offer</span> Coupons
-      </button>
-      <button data-admin-tab="spreadsheets" class="admin-tab text-gray-600 hover:bg-gray-100 px-5 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2">
-        <span class="material-symbols-outlined text-base">table_chart</span> Live Spreadsheets
-      </button>
-    </nav>
+  <main>
+    <div class="topline">
+      <div style="display:flex;align-items:center;gap:12px"><button id="menu" class="icon-btn menu-btn" aria-label="Menu"><span class="ms">menu</span></button>
+        <div><h2 id="title">Dashboard</h2><div class="sub" id="subtitle">Store overview</div></div></div>
+      <div id="top-actions"></div>
+    </div>
 
-    <!-- ═══════════════ DASHBOARD TAB ═══════════════ -->
-    <section id="tab-dashboard" class="admin-tab-content fade-in">
-      <div class="flex items-center justify-between mb-6">
-        <div>
-          <span class="text-amber-gold text-xs font-bold uppercase tracking-widest">Performance Metrics</span>
-          <h2 class="text-2xl font-bold text-deep-forest">Store Overview</h2>
-        </div>
-      </div>
-
-      <!-- KPI Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-        <div class="admin-card bg-white rounded-2xl border border-outline-variant/30 p-6 shadow-sm flex items-center justify-between">
-          <div>
-            <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Total Products</p>
-            <p id="stat-products" class="text-3xl font-extrabold text-deep-forest">0</p>
-            <p class="text-[11px] text-gray-400 mt-1">Active catalog items</p>
-          </div>
-          <div class="w-12 h-12 rounded-2xl bg-deep-forest/10 text-deep-forest flex items-center justify-center text-2xl font-bold">🪴</div>
-        </div>
-
-        <div class="admin-card bg-white rounded-2xl border border-outline-variant/30 p-6 shadow-sm flex items-center justify-between">
-          <div>
-            <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Total Orders</p>
-            <p id="stat-orders" class="text-3xl font-extrabold text-amber-600">0</p>
-            <p class="text-[11px] text-gray-400 mt-1">All time orders</p>
-          </div>
-          <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-2xl font-bold">📦</div>
-        </div>
-
-        <div class="admin-card bg-white rounded-2xl border border-outline-variant/30 p-6 shadow-sm flex items-center justify-between">
-          <div>
-            <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Gross Revenue</p>
-            <p id="stat-revenue" class="text-3xl font-extrabold text-green-600">₹0</p>
-            <p class="text-[11px] text-gray-400 mt-1">Total store earnings</p>
-          </div>
-          <div class="w-12 h-12 rounded-2xl bg-green-50 text-green-600 flex items-center justify-center text-2xl font-bold">💰</div>
-        </div>
-
-        <div class="admin-card bg-white rounded-2xl border border-outline-variant/30 p-6 shadow-sm flex items-center justify-between">
-          <div>
-            <p class="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Sold Out</p>
-            <p id="stat-soldout" class="text-3xl font-extrabold text-red-500">0</p>
-            <p class="text-[11px] text-gray-400 mt-1">Out of stock items</p>
-          </div>
-          <div class="w-12 h-12 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center text-2xl font-bold">🚫</div>
-        </div>
-      </div>
-
-      <!-- Recent Orders Quick View -->
-      <div class="bg-white rounded-2xl border border-outline-variant/30 shadow-sm p-6">
-        <h3 class="text-lg font-bold text-deep-forest mb-4 flex items-center gap-2">
-          <span>📦 Recent Orders</span>
-        </h3>
-        <div id="dashboard-recent-orders" class="overflow-hidden">
-          <p class="py-8 text-center text-gray-400 text-xs">Loading recent orders...</p>
-        </div>
-      </div>
+    <!-- Dashboard -->
+    <section id="tab-dash" class="tab on">
+      <div class="stats" id="stats"></div>
+      <div class="card"><div style="padding:16px 18px;font-weight:600;border-bottom:1px solid var(--line);display:flex;justify-content:space-between"><span>Recent orders</span><button class="btn sm" data-go="orders">View all</button></div>
+        <div class="tbl-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Payment</th><th>Status</th></tr></thead><tbody id="recent"></tbody></table></div></div>
     </section>
 
-    <!-- ═══════════════ PRODUCTS TAB ═══════════════ -->
-    <section id="tab-products" class="admin-tab-content hidden fade-in">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <span class="text-amber-gold text-xs font-bold uppercase tracking-widest">Inventory Control</span>
-          <h2 class="text-2xl font-bold text-deep-forest">Product Management</h2>
-        </div>
-        <button id="btn-add-product" class="bg-deep-forest hover:bg-forest-light text-white px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shadow-md">
-          <span class="material-symbols-outlined text-base">add</span> Add New Product
-        </button>
+    <!-- Products -->
+    <section id="tab-products" class="tab">
+      <div class="toolbar">
+        <input id="p-search" class="grow" placeholder="Search products">
+        <select id="p-cat"><option value="all">All categories</option><option>Foliage</option><option>Trees</option><option>Palms</option><option>Flowering</option></select>
+        <select id="p-status"><option value="all">All status</option><option value="active">Live</option><option value="soldout">Sold out</option><option value="low">Low stock</option><option value="hidden">Hidden</option></select>
       </div>
-
-      <!-- Search & Filter Bar -->
-      <div class="bg-white p-4 rounded-2xl border border-outline-variant/30 shadow-sm flex flex-wrap gap-3 mb-6">
-        <div class="flex-1 min-w-[220px] relative">
-          <input type="text" id="admin-product-search" placeholder="Search products by name or slug..."
-            class="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-deep-forest">
-          <span class="material-symbols-outlined absolute left-3 top-2.5 text-gray-400 text-base pointer-events-none">search</span>
-        </div>
-        <select id="admin-product-filter" class="border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-deep-forest">
-          <option value="all">All Categories</option>
-          <option value="Foliage">Foliage</option>
-          <option value="Trees">Trees</option>
-          <option value="Palms">Palms</option>
-          <option value="Flowering">Flowering</option>
-        </select>
-        <select id="admin-stock-filter" class="border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-deep-forest">
-          <option value="all">All Stock Status</option>
-          <option value="active">In Stock / Active</option>
-          <option value="soldout">Sold Out</option>
-          <option value="hidden">Hidden</option>
-        </select>
-      </div>
-
-      <!-- Products Table -->
-      <div class="bg-white rounded-2xl border border-outline-variant/30 shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-xs">
-            <thead class="bg-surface-low border-b border-gray-200">
-              <tr>
-                <th class="text-left px-4 py-3.5 font-bold text-gray-500 uppercase tracking-wider">Product</th>
-                <th class="text-left px-4 py-3.5 font-bold text-gray-500 uppercase tracking-wider">Category</th>
-                <th class="text-right px-4 py-3.5 font-bold text-gray-500 uppercase tracking-wider">Selling Price</th>
-                <th class="text-right px-4 py-3.5 font-bold text-gray-500 uppercase tracking-wider">MRP</th>
-                <th class="text-center px-4 py-3.5 font-bold text-gray-500 uppercase tracking-wider">Stock</th>
-                <th class="text-center px-4 py-3.5 font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                <th class="text-center px-4 py-3.5 font-bold text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="admin-products-tbody" class="divide-y divide-gray-100">
-              <tr><td colspan="7" class="p-8 text-center text-gray-400">Loading products...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <div class="card tbl-wrap"><table><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th></th></tr></thead><tbody id="p-body"></tbody></table></div>
     </section>
 
-    <!-- ═══════════════ ORDERS TAB ═══════════════ -->
-    <section id="tab-orders" class="admin-tab-content hidden fade-in">
-      <div class="mb-6">
-        <span class="text-amber-gold text-xs font-bold uppercase tracking-widest">Fulfillment Engine</span>
-        <h2 class="text-2xl font-bold text-deep-forest">Order Management</h2>
+    <!-- Orders -->
+    <section id="tab-orders" class="tab">
+      <div class="toolbar">
+        <input id="o-search" class="grow" placeholder="Search order ID, name or phone">
+        <select id="o-status"><option value="all">All statuses</option><option>Order Placed</option><option>Quality Inspection</option><option>Packed</option><option>Out for Delivery</option><option>Delivered</option><option>Cancelled</option></select>
       </div>
-
-      <!-- Order Filters -->
-      <div class="bg-white p-4 rounded-2xl border border-outline-variant/30 shadow-sm flex flex-wrap gap-3 mb-6">
-        <select id="admin-order-status-filter" class="border border-gray-200 rounded-xl px-4 py-2.5 text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-deep-forest">
-          <option value="all">All Order Statuses</option>
-          <option value="Order Placed">Order Placed</option>
-          <option value="Quality Inspection">Quality Inspection</option>
-          <option value="Packed">Packed</option>
-          <option value="Out for Delivery">Out for Delivery</option>
-          <option value="Delivered">Delivered</option>
-        </select>
-        <div class="flex-1 min-w-[220px] relative">
-          <input type="text" id="admin-order-search" placeholder="Search by Order ID or customer name..."
-            class="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-deep-forest">
-          <span class="material-symbols-outlined absolute left-3 top-2.5 text-gray-400 text-base pointer-events-none">search</span>
-        </div>
-      </div>
-
-      <!-- Orders Table -->
-      <div class="bg-white rounded-2xl border border-outline-variant/30 shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-xs">
-            <thead class="bg-surface-low border-b border-gray-200">
-              <tr>
-                <th class="text-left px-4 py-3.5 font-bold text-gray-500 uppercase tracking-wider">Order ID</th>
-                <th class="text-left px-4 py-3.5 font-bold text-gray-500 uppercase tracking-wider">Customer</th>
-                <th class="text-left px-4 py-3.5 font-bold text-gray-500 uppercase tracking-wider">Date</th>
-                <th class="text-right px-4 py-3.5 font-bold text-gray-500 uppercase tracking-wider">Total</th>
-                <th class="text-center px-4 py-3.5 font-bold text-gray-500 uppercase tracking-wider">Payment</th>
-                <th class="text-center px-4 py-3.5 font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                <th class="text-center px-4 py-3.5 font-bold text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="admin-orders-tbody" class="divide-y divide-gray-100">
-              <tr><td colspan="7" class="p-8 text-center text-gray-400">Loading orders...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <div class="card tbl-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th></th></tr></thead><tbody id="o-body"></tbody></table></div>
     </section>
 
-    <!-- ═══════════════ COUPONS TAB ═══════════════ -->
-    <section id="tab-coupons" class="admin-tab-content hidden fade-in">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <span class="text-amber-gold text-xs font-bold uppercase tracking-widest">Promotions</span>
-          <h2 class="text-2xl font-bold text-deep-forest">Coupon Management</h2>
-        </div>
-        <button id="btn-add-coupon" class="bg-deep-forest hover:bg-forest-light text-white px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shadow-md">
-          <span class="material-symbols-outlined text-base">add</span> Create Coupon
-        </button>
-      </div>
-      <div id="admin-coupons-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        <p class="text-gray-400 text-xs col-span-full text-center py-8">Loading coupons...</p>
-      </div>
-    </section>
-    <!-- ═══════════════ SPREADSHEETS TAB ═══════════════ -->
-    <section id="tab-spreadsheets" class="admin-tab-content hidden fade-in space-y-8">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <span class="text-amber-gold text-xs font-bold uppercase tracking-widest">Enterprise Data Sync</span>
-          <h2 class="text-2xl font-bold text-deep-forest">Live Spreadsheets &amp; Dispatch Logs</h2>
-        </div>
-        <div class="flex flex-wrap gap-2.5">
-          <a href="/api/spreadsheet/deliveries/download" download="sango_fiora_deliveries.csv"
-            class="bg-[#0F291E] hover:bg-[#1B4332] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-2">
-            <span class="material-symbols-outlined text-base">download</span> Download Deliveries (.csv)
-          </a>
-          <a href="/api/spreadsheet/contacts/download" download="sango_fiora_contact_inquiries.csv"
-            class="bg-white hover:bg-gray-50 border border-[#1B4332]/30 text-[#0F291E] px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2">
-            <span class="material-symbols-outlined text-base">download</span> Download Contact Inquiries (.csv)
-          </a>
-        </div>
-      </div>
+    <!-- Coupons -->
+    <section id="tab-coupons" class="tab"><div class="card tbl-wrap"><table><thead><tr><th>Code</th><th>Discount</th><th>Min. order</th><th>Used</th><th>Status</th><th></th></tr></thead><tbody id="c-body"></tbody></table></div></section>
 
-      <!-- Live Delivery Spreadsheet Table -->
-      <div class="bg-white rounded-2xl border border-outline-variant/30 shadow-sm p-6 space-y-4">
-        <div class="flex items-center justify-between">
-          <h3 class="font-bold text-sm text-[#0F291E] flex items-center gap-2">
-            <span>🚚</span>
-            <span>Delivery Orders Spreadsheet (`delivery_orders.csv`)</span>
-          </h3>
-          <span class="text-xs text-gray-400">Auto-appended on every completed payment</span>
-        </div>
-        <div class="overflow-x-auto max-h-72">
-          <table class="w-full text-xs" id="table-deliveries-spreadsheet">
-            <thead class="bg-gray-50 border-b border-gray-200 text-gray-600">
-              <tr>
-                <th class="p-3 text-left">Order ID</th>
-                <th class="p-3 text-left">Date</th>
-                <th class="p-3 text-left">Customer</th>
-                <th class="p-3 text-left">Phone</th>
-                <th class="p-3 text-left">Address</th>
-                <th class="p-3 text-left">Pincode</th>
-                <th class="p-3 text-left">Items</th>
-                <th class="p-3 text-right">Total</th>
-              </tr>
-            </thead>
-            <tbody id="tbody-deliveries-spreadsheet" class="divide-y divide-gray-100">
-              <tr><td colspan="8" class="p-4 text-center text-gray-400">Loading delivery records...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Live Contact Inquiries Spreadsheet Table -->
-      <div class="bg-white rounded-2xl border border-outline-variant/30 shadow-sm p-6 space-y-4">
-        <div class="flex items-center justify-between">
-          <h3 class="font-bold text-sm text-[#0F291E] flex items-center gap-2">
-            <span>✉️</span>
-            <span>Contact Inquiries Spreadsheet (`contact_inquiries.csv`)</span>
-          </h3>
-          <span class="text-xs text-gray-400">Auto-appended on every Contact form submission</span>
-        </div>
-        <div class="overflow-x-auto max-h-72">
-          <table class="w-full text-xs" id="table-contacts-spreadsheet">
-            <thead class="bg-gray-50 border-b border-gray-200 text-gray-600">
-              <tr>
-                <th class="p-3 text-left">Ticket ID</th>
-                <th class="p-3 text-left">Date</th>
-                <th class="p-3 text-left">Customer</th>
-                <th class="p-3 text-left">Phone</th>
-                <th class="p-3 text-left">Email</th>
-                <th class="p-3 text-left">Topic</th>
-                <th class="p-3 text-left">Message</th>
-                <th class="p-3 text-left">Status</th>
-              </tr>
-            </thead>
-            <tbody id="tbody-contacts-spreadsheet" class="divide-y divide-gray-100">
-              <tr><td colspan="8" class="p-4 text-center text-gray-400">Loading contact records...</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
+    <!-- Enquiries -->
+    <section id="tab-enquiries" class="tab"><div class="card tbl-wrap"><table><thead><tr><th>Date</th><th>From</th><th>Message</th></tr></thead><tbody id="e-body"></tbody></table></div></section>
   </main>
+</div>
 
-  <!-- ═══════════════ PRODUCT ADD/EDIT MODAL ═══════════════ -->
-  <div id="product-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white rounded-t-3xl z-10">
-        <h3 id="product-modal-title" class="font-bold text-lg text-deep-forest">Add New Product</h3>
-        <button id="close-product-modal" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold">&times;</button>
-      </div>
-      <form id="product-form" class="p-6 space-y-4">
-        <input type="hidden" id="pf-id" value="">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">Product Name *</label>
-            <input type="text" id="pf-name" required class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-deep-forest" placeholder="e.g. Fiddle Leaf Fig">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">Slug (URL) *</label>
-            <input type="text" id="pf-slug" required class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs mono focus:outline-none focus:ring-2 focus:ring-deep-forest" placeholder="e.g. fiddle-leaf-fig-90cm">
-          </div>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">Category *</label>
-            <select id="pf-category" required class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-deep-forest">
-              <option value="">Select Category</option>
-              <option value="Foliage">Foliage</option>
-              <option value="Trees">Trees</option>
-              <option value="Palms">Palms</option>
-              <option value="Flowering">Flowering</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">Size *</label>
-            <input type="text" id="pf-size" required class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-deep-forest" placeholder="e.g. 120cm">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">Variant</label>
-            <input type="text" id="pf-variant" class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-deep-forest" placeholder="e.g. White, Yellow">
-          </div>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">Selling Price (₹) *</label>
-            <input type="number" id="pf-price" required min="1" class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-deep-forest" placeholder="3500">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">MRP (₹) *</label>
-            <input type="number" id="pf-mrp" required min="1" class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-deep-forest" placeholder="5000">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">Stock Qty</label>
-            <input type="number" id="pf-stock" min="0" value="100" class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-deep-forest">
-          </div>
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1.5 flex items-center justify-between">
-            <span>Product Image *</span>
-            <span class="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Select from Folder or URL</span>
-          </label>
-
-          <!-- Modern Click-to-Browse / Drag & Drop Zone -->
-          <div id="pf-dropzone" class="border-2 border-dashed border-gray-300 hover:border-emerald-600 bg-gray-50/70 hover:bg-emerald-50/30 rounded-2xl p-4 text-center cursor-pointer transition-all group">
-            <input type="file" id="pf-file-input" accept="image/png,image/jpeg,image/webp,image/jpg" class="hidden">
-            
-            <div id="pf-dropzone-content" class="flex flex-col items-center justify-center py-2">
-              <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-xl mb-2 group-hover:scale-110 transition-transform shadow-xs">
-                📁
-              </div>
-              <p class="text-xs font-bold text-gray-800 mb-0.5">
-                <span class="text-deep-forest underline decoration-emerald-500">Click to choose image from folder</span> or drag & drop here
-              </p>
-              <p class="text-[10px] text-gray-400">JPG, PNG, WEBP (No URL needed, auto-uploads)</p>
-            </div>
-
-            <!-- Uploading Spinner -->
-            <div id="pf-upload-spinner" class="hidden flex flex-col items-center justify-center py-2">
-              <div class="w-7 h-7 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin mb-1.5"></div>
-              <p class="text-xs font-bold text-emerald-800">Uploading product image...</p>
-            </div>
-          </div>
-
-          <!-- Active Selected Preview Box -->
-          <div id="pf-preview-card" class="hidden mt-3 p-3 bg-white border border-emerald-200 rounded-2xl shadow-xs flex items-center gap-3">
-            <div class="w-14 h-14 rounded-xl bg-gray-100 overflow-hidden shrink-0 border border-gray-200/80">
-              <img id="pf-image-preview" src="" alt="Product Preview" class="w-full h-full object-cover">
-            </div>
-            <div class="flex-1 min-w-0">
-              <p id="pf-image-name" class="text-xs font-bold text-gray-800 truncate">image.webp</p>
-              <p id="pf-image-status" class="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
-                <span>✓ Ready for product</span>
-              </p>
-            </div>
-            <button type="button" id="btn-change-image" class="text-xs font-bold text-gray-600 hover:text-deep-forest px-3 py-1.5 rounded-xl border border-gray-200 hover:border-gray-300 bg-gray-50 hover:bg-white transition-all cursor-pointer">
-              Change Image
-            </button>
-          </div>
-
-          <!-- Direct Image URL Input (Auto-filled by upload, or manual paste) -->
-          <div class="mt-2.5">
-            <div class="flex items-center justify-between mb-1">
-              <label for="pf-image" class="text-[10px] font-semibold text-gray-500">Image Path / Web Address (Auto-filled):</label>
-            </div>
-            <input type="text" id="pf-image" required class="w-full border border-gray-200 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-deep-forest bg-gray-50 font-mono text-gray-700" placeholder="/plants/product-name.webp or https://...">
-          </div>
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1">Description</label>
-          <textarea id="pf-description" rows="3" class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-deep-forest resize-none" placeholder="Product description..."></textarea>
-        </div>
-        <div class="flex items-center gap-6 pt-2">
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" id="pf-pot-included" checked class="w-4 h-4 rounded border-gray-300 text-deep-forest focus:ring-deep-forest">
-            <span class="text-xs font-bold text-gray-700">Pot Included</span>
-          </label>
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" id="pf-active" checked class="w-4 h-4 rounded border-gray-300 text-deep-forest focus:ring-deep-forest">
-            <span class="text-xs font-bold text-gray-700">Active (Visible)</span>
-          </label>
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" id="pf-soldout" class="w-4 h-4 rounded border-gray-300 text-red-500 focus:ring-red-500">
-            <span class="text-xs font-bold text-gray-700">Mark as Sold Out</span>
-          </label>
-        </div>
-        <div class="flex gap-3 pt-4">
-          <button type="submit" class="flex-1 bg-deep-forest hover:bg-forest-light text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md">
-            Save Product
-          </button>
-          <button type="button" id="cancel-product-modal" class="px-6 py-3 rounded-xl border border-gray-200 font-bold text-xs text-gray-600 hover:bg-gray-50 transition-colors">
-            Cancel
-          </button>
-        </div>
-      </form>
+<!-- Product modal -->
+<div id="m-product" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="mp-title">
+  <form class="modal" id="f-product" novalidate>
+    <div class="modal-h"><h3 id="mp-title">Add product</h3><button type="button" class="icon-btn" data-close aria-label="Close"><span class="ms">close</span></button></div>
+    <div class="modal-b">
+      <div class="col"><label class="f">Photo</label>
+        <div class="drop" id="drop"><img id="pf-preview" class="hidden" alt=""><span class="ms" id="pf-ph" style="font-size:32px;color:var(--mute)">add_photo_alternate</span>
+          <div><b id="pf-drop-t">Upload a photo</b><div class="muted" id="pf-drop-s">JPG, PNG or WebP, up to 5 MB</div></div></div>
+        <input type="file" id="pf-file" accept="image/jpeg,image/png,image/webp,image/avif" class="hidden">
+        <input id="pf-image" placeholder="…or paste an image URL" style="margin-top:8px"></div>
+      <div class="grid2"><div class="col"><label class="f" for="pf-name">Name *</label><input id="pf-name" required maxlength="120"></div>
+        <div class="col"><label class="f" for="pf-variant">Variant / colour</label><input id="pf-variant" maxlength="60"></div></div>
+      <div class="grid3"><div class="col"><label class="f" for="pf-cat">Category *</label><select id="pf-cat"><option>Foliage</option><option>Trees</option><option>Palms</option><option>Flowering</option></select></div>
+        <div class="col"><label class="f" for="pf-size">Height / size *</label><input id="pf-size" placeholder="e.g. 120cm"></div>
+        <div class="col"><label class="f" for="pf-slug">URL slug *</label><input id="pf-slug" placeholder="auto"></div></div>
+      <div class="grid3"><div class="col"><label class="f" for="pf-price">Selling price (₹) *</label><input id="pf-price" type="number" min="0" inputmode="numeric"></div>
+        <div class="col"><label class="f" for="pf-mrp">MRP (₹) *</label><input id="pf-mrp" type="number" min="0" inputmode="numeric"></div>
+        <div class="col"><label class="f" for="pf-stock">Stock *</label><input id="pf-stock" type="number" min="0" inputmode="numeric"></div></div>
+      <div class="col"><label class="f" for="pf-desc">Description</label><textarea id="pf-desc" rows="3" maxlength="1000"></textarea></div>
+      <div style="display:flex;gap:24px;flex-wrap:wrap"><label class="sw"><input type="checkbox" id="pf-active" checked>Visible on store</label><label class="sw"><input type="checkbox" id="pf-sold">Mark as sold out</label></div>
+      <p id="pf-err" class="hidden" style="color:var(--red);font-weight:500;margin:14px 0 0"></p>
     </div>
-  </div>
+    <div class="modal-f"><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn pri" id="pf-save">Save product</button></div>
+  </form>
+</div>
 
-  <!-- ═══════════════ ORDER DETAIL MODAL ═══════════════ -->
-  <div id="order-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white rounded-t-3xl z-10">
-        <h3 id="order-modal-title" class="font-bold text-lg text-deep-forest">Order Details</h3>
-        <button id="close-order-modal" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold">&times;</button>
-      </div>
-      <div id="order-modal-content" class="p-6 space-y-4">
-        <p class="text-gray-400 text-xs text-center">Loading...</p>
-      </div>
-      <div class="p-6 border-t border-gray-100 space-y-3">
-        <label class="block text-xs font-bold text-gray-700 mb-1">Update Delivery Status</label>
-        <select id="order-status-select" class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-deep-forest font-bold">
-          <option value="1">1 — Order Placed</option>
-          <option value="2">2 — Quality Inspection</option>
-          <option value="3">3 — Packed</option>
-          <option value="4">4 — Out for Delivery</option>
-          <option value="5">5 — Delivered</option>
-        </select>
-        <label class="block text-xs font-bold text-gray-700 mb-1">Tracking Notes (optional)</label>
-        <textarea id="order-tracking-notes" rows="2" class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-deep-forest resize-none" placeholder="e.g. Shipped via BlueDart, AWB #12345"></textarea>
-        <button id="btn-update-order-status" class="w-full bg-amber-gold hover:bg-amber-400 text-deep-forest py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md">
-          Update Order Status
-        </button>
-        <button id="btn-delete-order" type="button" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all border border-rose-200 cursor-pointer">
-          Delete Order 🗑️
-        </button>
-      </div>
+<!-- Order modal -->
+<div id="m-order" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="mo-title">
+  <div class="modal">
+    <div class="modal-h"><h3 id="mo-title">Order</h3><button type="button" class="icon-btn" data-close aria-label="Close"><span class="ms">close</span></button></div>
+    <div class="modal-b" id="mo-body"></div>
+    <div class="modal-f" style="justify-content:space-between"><div style="display:flex;gap:8px"><button class="btn dng" id="mo-cancel">Cancel order</button><button class="btn dng" id="mo-delete">Delete</button></div><button class="btn pri" id="mo-save">Update status</button></div>
+  </div>
+</div>
+
+<!-- Coupon modal -->
+<div id="m-coupon" class="overlay hidden" role="dialog" aria-modal="true">
+  <form class="modal" style="max-width:460px" id="f-coupon" novalidate>
+    <div class="modal-h"><h3>New coupon</h3><button type="button" class="icon-btn" data-close aria-label="Close"><span class="ms">close</span></button></div>
+    <div class="modal-b">
+      <div class="col"><label class="f" for="cf-code">Code *</label><input id="cf-code" maxlength="24" style="text-transform:uppercase"></div>
+      <div class="col"><label class="f" for="cf-label">Label *</label><input id="cf-label" placeholder="e.g. Festive offer" maxlength="80"></div>
+      <div class="grid3"><div class="col"><label class="f" for="cf-pct">Discount % *</label><input id="cf-pct" type="number" min="1" max="100"></div>
+        <div class="col"><label class="f" for="cf-min">Min. order ₹</label><input id="cf-min" type="number" min="0" value="0"></div>
+        <div class="col"><label class="f" for="cf-limit">Usage limit</label><input id="cf-limit" type="number" min="1" placeholder="∞"></div></div>
+      <p id="cf-err" class="hidden" style="color:var(--red);font-weight:500;margin:0"></p>
     </div>
-  </div>
+    <div class="modal-f"><button type="button" class="btn" data-close>Cancel</button><button class="btn pri" type="submit">Create coupon</button></div>
+  </form>
+</div>
 
-  <!-- ═══════════════ COUPON ADD MODAL ═══════════════ -->
-  <div id="coupon-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full">
-      <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-        <h3 class="font-bold text-lg text-deep-forest">Create Coupon</h3>
-        <button id="close-coupon-modal" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold">&times;</button>
-      </div>
-      <form id="coupon-form" class="p-6 space-y-4">
-        <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1">Coupon Code *</label>
-          <input type="text" id="cf-code" required class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs mono uppercase focus:outline-none focus:ring-2 focus:ring-deep-forest" placeholder="e.g. SUMMER25">
-        </div>
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">Discount % *</label>
-            <input type="number" id="cf-percent" required min="1" max="100" class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-deep-forest" placeholder="15">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-gray-700 mb-1">Min. Subtotal (₹)</label>
-            <input type="number" id="cf-min" min="0" value="0" class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-deep-forest">
-          </div>
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-gray-700 mb-1">Label / Description *</label>
-          <input type="text" id="cf-label" required class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-deep-forest" placeholder="e.g. 25% Summer Sale Discount">
-        </div>
-        <button type="submit" class="w-full bg-deep-forest hover:bg-forest-light text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md">
-          Create Coupon
-        </button>
-      </form>
-    </div>
-  </div>
+<div id="toast" aria-live="polite"></div>
 
-  <!-- Toast Container -->
-  <div id="admin-toast" class="fixed bottom-6 right-6 z-50 hidden bg-deep-forest text-white px-5 py-3 rounded-xl shadow-2xl font-bold text-xs max-w-xs border border-amber-gold/30"></div>
-
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <script src="/js/api-client.js?v=20261121_1215"></script>
-  <script src="/js/supabase-client.js?v=20261121_1215"></script>
-  <script src="/js/supabase-auth.js?v=20261121_1215"></script>
-  <script src="/js/admin.js?v=20261121_1215"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/js/event-bus.js"></script>
+<script src="/js/api-client.js"></script>
+<script src="/js/supabase-client.js"></script>
+<script src="/js/supabase-auth.js"></script>
+<script src="/js/admin.js"></script>
 </body>
 </html>

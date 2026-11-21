@@ -44,7 +44,7 @@ description: Manage your Sango Fiora account profile, view your past orders, and
       <!-- Orders List -->
       <div id="account-orders-list" class="space-y-4">
         <div class="text-center py-12 text-gray-400">
-          <span class="text-4xl block mb-2">📦</span>
+          <span class="text-4xl block mb-2"><span class="material-symbols-outlined ico" aria-hidden="true">inventory_2</span></span>
           <p class="text-xs">Loading your orders...</p>
         </div>
       </div>
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function renderOrders(orders) {
     if (!orders || orders.length === 0) {
       ordersList.innerHTML = '<div class="text-center py-12 text-gray-500">' +
-        '<span class="text-5xl block mb-2">🌿</span>' +
+        '<span class="text-5xl block mb-2"><span class="material-symbols-outlined ico" aria-hidden="true">eco</span></span>' +
         '<p class="text-sm font-bold text-gray-800 mb-1">No orders placed yet</p>' +
         '<p class="text-xs text-gray-400 mb-4">Discover 76+ handcrafted botanical plants with pots included.</p>' +
         '<a href="/products/" class="px-5 py-2.5 rounded-full bg-amber-gold text-deep-forest text-xs font-bold inline-block shadow-sm">Explore Collection</a>' +

@@ -30,7 +30,7 @@
       if (email) email.focus();
       return;
     }
-    window.showToast('Welcome to the Sango Fiora family! Check your inbox 🌿');
+    window.showToast('Welcome to the Sango Fiora family! Check your inbox');
     form.reset();
   });
 

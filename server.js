@@ -72,59 +72,10 @@ const server = http.createServer((req, res) => {
     const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
     let pathname = decodeURIComponent(parsedUrl.pathname);
 
-    // REST API endpoints fallback (if running standalone static server)
+    // The storefront talks to Supabase directly; there is no local /api. Never fake success here.
     if (pathname.startsWith('/api/')) {
-      res.setHeader('Content-Type', 'application/json');
-
-      if (pathname === '/api/products' || pathname === '/api/products/') {
-        const category = parsedUrl.searchParams.get('category');
-        let products = getProductsData();
-        if (category && category !== 'all') {
-          products = products.filter(p => (p.category || '').toLowerCase() === category.toLowerCase());
-        }
-        res.writeHead(200);
-        return res.end(JSON.stringify(products));
-      }
-
-      if (pathname.startsWith('/api/products/')) {
-        const slug = pathname.replace('/api/products/', '').replace(/\/$/, '');
-        const products = getProductsData();
-        const found = products.find(p => p.slug === slug);
-        if (found) {
-          res.writeHead(200);
-          return res.end(JSON.stringify(found));
-        }
-        res.writeHead(404);
-        return res.end(JSON.stringify({ error: 'Product not found' }));
-      }
-
-      if (pathname === '/api/coupons/validate') {
-        const code = parsedUrl.searchParams.get('code');
-        if (code && code.toUpperCase() === 'WELCOME10') {
-          res.writeHead(200);
-          return res.end(JSON.stringify({ valid: true, discountPercent: 10, code: 'WELCOME10' }));
-        }
-        res.writeHead(400);
-        return res.end(JSON.stringify({ valid: false, message: 'Invalid coupon code' }));
-      }
-
-      if (pathname === '/api/products/upload-image' && req.method === 'POST') {
-        const uploadDir = path.join(__dirname, 'uploads', 'plants');
-        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-        const filename = 'product-' + Date.now() + '.webp';
-        const targetPath = path.join(uploadDir, filename);
-        const fileStream = fs.createWriteStream(targetPath);
-        req.pipe(fileStream);
-        fileStream.on('finish', () => {
-          res.writeHead(200);
-          res.end(JSON.stringify({ status: 'success', url: '/uploads/plants/' + filename, filename: filename }));
-        });
-        return;
-      }
-
-      // Default mock 200 for other /api requests (e.g. cart sync, contact)
-      res.writeHead(200);
-      return res.end(JSON.stringify({ success: true, message: 'API simulated successfully' }));
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'Not found' }));
     }
 
     // Prevent directory traversal
@@ -158,9 +109,12 @@ const server = http.createServer((req, res) => {
     const contentType = MIME_TYPES[ext] || 'application/octet-stream';
 
     // Set appropriate caching headers
-    const cacheControl = ext === '.html'
-      ? 'no-cache, must-revalidate'
-      : 'public, max-age=31536000, immutable';
+    // Versioned assets (?v=hash) and media are immutable; HTML and un-versioned JS/CSS always revalidate
+    const versioned = parsedUrl.searchParams.has('v');
+    const isMedia = !['.html', '.js', '.css', '.json'].includes(ext);
+    const cacheControl = (versioned || isMedia)
+      ? 'public, max-age=31536000, immutable'
+      : 'no-cache, must-revalidate';
 
     const acceptEncoding = req.headers['accept-encoding'] || '';
     const compressible = ['.html', '.css', '.js', '.mjs', '.json', '.xml', '.txt', '.svg'].includes(ext);

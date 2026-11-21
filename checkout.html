@@ -34,7 +34,7 @@ description: Secure checkout for premium handcrafted artificial plants & trees. 
 
     <!-- Empty Cart Fallback -->
     <div id="co-empty-state" class="hidden text-center py-20 bg-white rounded-3xl border border-outline-variant/30 shadow-sm max-w-xl mx-auto p-8">
-      <div class="text-6xl mb-4">🪴</div>
+      <div class="text-6xl mb-4"><span class="material-symbols-outlined ico" aria-hidden="true">potted_plant</span></div>
       <h2 class="font-headline-lg text-2xl font-bold text-deep-forest mb-2">Your cart is empty</h2>
       <p class="text-xs text-gray-500 mb-6 font-body-md">Add artificial plants to your cart before proceeding to checkout.</p>
       <a href="/products/" class="px-8 py-3.5 rounded-full bg-amber-gold text-deep-forest font-bold text-xs uppercase tracking-wider inline-block shadow-md">
@@ -55,7 +55,7 @@ description: Secure checkout for premium handcrafted artificial plants & trees. 
           <!-- Member Auth Gate Banner (Shown if guest) -->
           <div id="checkout-auth-gate-banner" class="hidden flex-col sm:flex-row items-center justify-between gap-3 p-4 bg-amber-50 border border-amber-200/80 rounded-2xl text-amber-950 text-xs">
             <div class="flex items-center gap-2.5">
-              <span class="text-xl">🔒</span>
+              <span class="text-xl"><span class="material-symbols-outlined ico" aria-hidden="true">lock</span></span>
               <span><strong>Member Sign-In Required:</strong> Please sign in to verify your account, save your delivery address, and proceed to payment.</span>
             </div>
             <button type="button" id="btn-checkout-signin" class="shrink-0 bg-deep-forest hover:bg-primary-container text-white px-5 py-2 rounded-full font-bold text-xs uppercase tracking-wider transition-all shadow-sm cursor-pointer">
@@ -65,7 +65,7 @@ description: Secure checkout for premium handcrafted artificial plants & trees. 
 
           <!-- 1-Click Checkout Returning Customer Banner -->
           <div id="one-click-profile-banner" class="hidden items-center gap-2.5 p-3.5 bg-emerald-50 border border-emerald-200/80 rounded-2xl text-emerald-950 text-xs font-medium">
-            <span class="text-base">✨</span>
+            <span class="text-base"><span class="material-symbols-outlined ico" aria-hidden="true">auto_awesome</span></span>
             <span><strong>1-Click Checkout:</strong> Delivery address and contact details auto-filled from your previous order.</span>
           </div>
           
@@ -122,44 +122,26 @@ description: Secure checkout for premium handcrafted artificial plants & trees. 
         <div id="co-panel-2" class="hidden bg-white rounded-3xl border border-outline-variant/30 shadow-sm p-6 sm:p-8 space-y-6">
           <h2 class="font-headline-sm font-bold text-xl text-deep-forest border-b border-gray-100 pb-3">Payment Method</h2>
 
-          <div class="space-y-3">
-            <label class="flex items-center gap-4 p-4 rounded-2xl border-2 border-deep-forest bg-green-50/40 cursor-pointer transition-all">
-              <input type="radio" name="co-payment" value="STRIPE" checked class="w-4 h-4 text-deep-forest">
+          <div class="space-y-3" role="radiogroup" aria-label="Payment method">
+            <label class="flex items-start gap-4 p-4 rounded-2xl border-2 border-deep-forest bg-green-50/40 cursor-pointer transition-all">
+              <input type="radio" name="co-payment" value="ONLINE" checked class="mt-1 w-4 h-4 text-deep-forest">
               <div class="flex-1">
-                <div class="flex items-center gap-2">
-                  <span class="font-bold text-sm text-gray-900 block">Stripe Global Secure Gateway</span>
-                  <span class="text-[10px] font-bold bg-[#635BFF] text-white px-2 py-0.5 rounded-full">Recommended</span>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="font-bold text-sm text-gray-900">Pay online</span>
+                  <span class="text-[10px] font-bold bg-deep-forest text-white px-2 py-0.5 rounded-full">Recommended</span>
                 </div>
-                <span class="text-xs text-gray-500">Credit/Debit Cards (Visa, Mastercard, Amex), Apple Pay, Google Pay with instant confirmation.</span>
+                <span class="text-xs text-gray-500 block mt-0.5">UPI, debit &amp; credit cards, net banking and wallets. Processed securely by Razorpay.</span>
               </div>
-              <span class="text-xl">💳</span>
+              <span class="material-symbols-outlined text-deep-forest">lock</span>
             </label>
 
-            <label class="flex items-center gap-4 p-4 rounded-2xl border border-gray-200 hover:border-deep-forest cursor-pointer transition-all">
-              <input type="radio" name="co-payment" value="UPI" class="w-4 h-4 text-deep-forest">
+            <label class="flex items-start gap-4 p-4 rounded-2xl border border-gray-200 hover:border-deep-forest cursor-pointer transition-all">
+              <input type="radio" name="co-payment" value="COD" class="mt-1 w-4 h-4 text-deep-forest">
               <div class="flex-1">
-                <span class="font-bold text-sm text-gray-900 block">UPI Instant Payment</span>
-                <span class="text-xs text-gray-500">Google Pay, PhonePe, Paytm, BHIM with dynamic QR code.</span>
+                <span class="font-bold text-sm text-gray-900 block">Cash on delivery</span>
+                <span class="text-xs text-gray-500 block mt-0.5">Pay in cash or by UPI when your order arrives at your doorstep.</span>
               </div>
-              <span class="text-xl">📱</span>
-            </label>
-
-            <label class="flex items-center gap-4 p-4 rounded-2xl border border-gray-200 hover:border-deep-forest cursor-pointer transition-all">
-              <input type="radio" name="co-payment" value="CARD" class="w-4 h-4 text-deep-forest">
-              <div class="flex-1">
-                <span class="font-bold text-sm text-gray-900 block">Domestic Card &amp; NetBanking</span>
-                <span class="text-xs text-gray-500">Indian Debit Cards &amp; 50+ NetBanking options.</span>
-              </div>
-              <span class="text-xl">🏦</span>
-            </label>
-
-            <label class="flex items-center gap-4 p-4 rounded-2xl border border-gray-200 hover:border-deep-forest cursor-pointer transition-all">
-              <input type="radio" name="co-payment" value="COD" class="w-4 h-4 text-deep-forest">
-              <div class="flex-1">
-                <span class="font-bold text-sm text-gray-900 block">Cash on Delivery (COD)</span>
-                <span class="text-xs text-gray-500">Pay cash or scan QR code when plant arrives at your doorstep.</span>
-              </div>
-              <span class="text-xl">💵</span>
+              <span class="material-symbols-outlined text-gray-500">payments</span>
             </label>
           </div>
 
@@ -168,7 +150,7 @@ description: Secure checkout for premium handcrafted artificial plants & trees. 
               ← Edit Address
             </button>
             <button id="co-submit-order" type="button" class="bg-deep-forest text-white hover:bg-primary-container font-bold px-10 py-4 rounded-full text-xs uppercase tracking-wider transition-all shadow-md">
-              Place Order Now 🌿
+              Place Order Now <span class="material-symbols-outlined ico" aria-hidden="true">eco</span>
             </button>
           </div>
         </div>
@@ -329,7 +311,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (netTotalEl) netTotalEl.textContent = '₹' + Number(totals.netTotal || 0).toLocaleString('en-IN');
 
     if (totals.couponCode && couponStatus) {
-      couponStatus.textContent = '✓ ' + totals.couponCode + ' applied!';
+      couponStatus.textContent = '' + totals.couponCode + ' applied!';
       couponStatus.className = 'text-[11px] mt-1 font-semibold text-green-700';
     }
   }
@@ -396,7 +378,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var selected = document.querySelector('input[name="co-payment"]:checked');
       var method = selected ? selected.value : 'COD';
       submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span class="inline-block animate-spin mr-2">🌿</span> Securing Order & Processing Payment...';
+      submitBtn.innerHTML = 'Placing your order…';
 
       window.CheckoutEngine.createOrderAsync(customerData, { method: method })
         .then(function (order) {
@@ -408,7 +390,7 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .catch(function (err) {
           submitBtn.disabled = false;
-          submitBtn.textContent = 'Place Order Now 🌿';
+          submitBtn.textContent = 'Place order';
           if (window.showToast) window.showToast(err.message || 'Error creating order');
         });
     });
@@ -431,7 +413,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var btnCheckoutSignin = document.getElementById('btn-checkout-signin');
   if (btnCheckoutSignin) {
     btnCheckoutSignin.addEventListener('click', function () {
-      if (window.openAuthModal) window.openAuthModal('signin', '🔒 Sign in to proceed with checkout.');
+      if (window.openAuthModal) window.openAuthModal('signin', 'Sign in to proceed with checkout.');
     });
   }
 

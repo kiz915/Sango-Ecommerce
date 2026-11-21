@@ -8,12 +8,14 @@ permalink: 404.html
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sango Fiora — Botanical Studio</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+  <link rel="icon" type="image/png" href="/images/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/main.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <style>.ico{font-size:1.15em;line-height:1;vertical-align:-.2em}</style>
 </head>
 <body class="bg-background text-on-background antialiased flex flex-col min-h-screen">
   {% include 'partials/header.html' %}
@@ -21,7 +23,7 @@ permalink: 404.html
   <main id="dynamic-host" class="flex-1 min-h-[70vh] flex items-center justify-center pt-24 pb-16 px-4">
     <!-- Default 404 view (replaced dynamically if the URL is a dynamic product) -->
     <div id="standard-404" class="text-center max-w-md mx-auto py-12">
-      <div class="w-20 h-20 mx-auto rounded-full bg-[#1B4332]/10 text-[#1B4332] flex items-center justify-center text-3xl font-bold mb-4">🪴</div>
+      <div class="w-20 h-20 mx-auto rounded-full bg-[#1B4332]/10 text-[#1B4332] flex items-center justify-center text-3xl font-bold mb-4"><span class="material-symbols-outlined ico" aria-hidden="true">potted_plant</span></div>
       <span class="inline-block px-3 py-1 bg-amber-50 text-amber-800 text-[11px] font-bold rounded-full border border-amber-200 mb-3 uppercase tracking-wider">Botanical Studio</span>
       <h1 class="text-3xl font-bold text-[#0F291E] font-headline-lg mb-2">Botanical Not Found</h1>
       <p class="text-gray-600 text-sm mb-6 leading-relaxed">
@@ -29,7 +31,7 @@ permalink: 404.html
       </p>
       <div class="flex flex-col sm:flex-row gap-3 justify-center">
         <a href="/products/" class="bg-[#0F291E] hover:bg-[#1B4332] text-white px-6 py-3 rounded-full text-xs font-bold transition-all shadow-md">
-          Explore All Plants 🌿
+          Explore All Plants <span class="material-symbols-outlined ico" aria-hidden="true">eco</span>
         </a>
         <a href="/" class="bg-white border border-[#1B4332]/25 text-[#1B4332] px-6 py-3 rounded-full text-xs font-bold hover:bg-gray-50 transition-all">
           Return to Home
@@ -80,10 +82,10 @@ permalink: 404.html
             if (!product || !product.name) {
               if (standard404) {
                 standard404.innerHTML =
-                  '<div class="w-20 h-20 mx-auto rounded-full bg-[#1B4332]/10 text-[#1B4332] flex items-center justify-center text-3xl font-bold mb-4">🪴</div>' +
+                  '<div class="w-20 h-20 mx-auto rounded-full bg-[#1B4332]/10 text-[#1B4332] flex items-center justify-center text-3xl font-bold mb-4"><span class="material-symbols-outlined ico" aria-hidden="true">potted_plant</span></div>' +
                   '<h1 class="text-3xl font-bold text-[#0F291E] font-headline-lg mb-2">Botanical Not Found</h1>' +
                   '<p class="text-gray-600 text-sm mb-6">This item is not currently active in our studio inventory.</p>' +
-                  '<a href="/products/" class="bg-[#0F291E] text-white px-6 py-3 rounded-full text-xs font-bold">Explore All Plants 🌿</a>';
+                  '<a href="/products/" class="bg-[#0F291E] text-white px-6 py-3 rounded-full text-xs font-bold">Explore All Plants</a>';
               }
               return;
             }
@@ -98,10 +100,10 @@ permalink: 404.html
           .catch(function () {
             if (standard404) {
               standard404.innerHTML =
-                '<div class="w-20 h-20 mx-auto rounded-full bg-[#1B4332]/10 text-[#1B4332] flex items-center justify-center text-3xl font-bold mb-4">🪴</div>' +
+                '<div class="w-20 h-20 mx-auto rounded-full bg-[#1B4332]/10 text-[#1B4332] flex items-center justify-center text-3xl font-bold mb-4"><span class="material-symbols-outlined ico" aria-hidden="true">potted_plant</span></div>' +
                 '<h1 class="text-3xl font-bold text-[#0F291E] font-headline-lg mb-2">Botanical Not Found</h1>' +
                 '<p class="text-gray-600 text-sm mb-6">Could not load this plant details.</p>' +
-                '<a href="/products/" class="bg-[#0F291E] text-white px-6 py-3 rounded-full text-xs font-bold">Explore All Plants 🌿</a>';
+                '<a href="/products/" class="bg-[#0F291E] text-white px-6 py-3 rounded-full text-xs font-bold">Explore All Plants</a>';
             }
           });
       }
@@ -119,7 +121,7 @@ permalink: 404.html
                 (isSold ? '<span class="absolute top-4 left-4 bg-red-600 text-white text-xs font-bold px-3.5 py-1.5 rounded-full shadow-md">SOLD OUT</span>' :
                   (p.discount ? '<span class="absolute top-4 left-4 bg-red-600 text-white text-xs font-bold px-3.5 py-1.5 rounded-full shadow-md">SAVE ' + p.discount + '%</span>' : '')) +
                 '<button type="button" aria-label="Add to wishlist" data-wishlist-btn data-slug="' + p.slug + '" data-name="' + p.name + '" data-category="' + p.category + '" data-size="' + p.size + '" data-price="' + p.price + '" data-mrp="' + p.mrp + '" data-image="' + p.image + '" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur border border-gray-200 flex items-center justify-center text-gray-500 hover:text-red-500 transition-colors shadow-md z-10">' +
-                  '<span class="text-lg">❤️</span>' +
+                  '<span class="text-lg"><span class="material-symbols-outlined ico" aria-hidden="true">favorite</span></span>' +
                 '</button>' +
               '</div>' +
             '</div>' +
@@ -157,10 +159,10 @@ permalink: 404.html
                   '</div>' +
                   (isSold ?
                     '<button type="button" disabled class="flex-1 bg-gray-200 text-gray-400 py-3.5 rounded-2xl font-bold text-sm cursor-not-allowed">Sold Out</button>' :
-                    '<button type="button" id="dyn-add-cart" class="flex-1 bg-[#0F291E] hover:bg-[#1B4332] text-white py-3.5 rounded-2xl font-bold text-sm transition-all shadow-md cursor-pointer">Add to Cart 🛍️</button>') +
+                    '<button type="button" id="dyn-add-cart" class="flex-1 bg-[#0F291E] hover:bg-[#1B4332] text-white py-3.5 rounded-2xl font-bold text-sm transition-all shadow-md cursor-pointer">Add to Cart</button>') +
                 '</div>' +
                 (!isSold ?
-                  '<button type="button" id="dyn-buy-now" class="w-full bg-amber-gold hover:bg-amber-400 text-deep-forest py-3.5 rounded-2xl font-bold text-base transition-all shadow-md cursor-pointer">Buy Now &amp; Checkout ⚡</button>' : '') +
+                  '<button type="button" id="dyn-buy-now" class="w-full bg-amber-gold hover:bg-amber-400 text-deep-forest py-3.5 rounded-2xl font-bold text-base transition-all shadow-md cursor-pointer">Buy Now &amp; Checkout</button>' : '') +
               '</div>' +
             '</div>' +
           '</div>';

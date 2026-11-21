@@ -77,14 +77,14 @@
 
   function getFreeShippingProgress(subtotal) {
     if (subtotal >= CONFIG.FREE_SHIPPING_THRESHOLD) {
-      return { needed: 0, percentage: 100, message: '🎉 You unlocked FREE Delivery across India!' };
+      return { needed: 0, percentage: 100, message: 'You unlocked FREE Delivery across India!' };
     }
     var needed = CONFIG.FREE_SHIPPING_THRESHOLD - subtotal;
     var percentage = Math.min(100, Math.round((subtotal / CONFIG.FREE_SHIPPING_THRESHOLD) * 100));
     return {
       needed: needed,
       percentage: percentage,
-      message: 'Add ₹' + needed.toLocaleString('en-IN') + ' more for FREE Delivery 🚚'
+      message: 'Add ₹' + needed.toLocaleString('en-IN') + ' more for FREE Delivery'
     };
   }
 

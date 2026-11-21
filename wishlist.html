@@ -17,7 +17,7 @@ description: View and manage your saved artificial plants and luxury statement t
 
     <!-- Empty Wishlist State -->
     <div id="wishlist-empty" class="hidden text-center py-20 bg-white rounded-3xl border border-outline-variant/30 p-8 shadow-sm max-w-xl mx-auto">
-      <div class="text-6xl mb-4">🌿</div>
+      <div class="text-6xl mb-4"><span class="material-symbols-outlined ico" aria-hidden="true">eco</span></div>
       <h2 class="font-headline-lg text-xl font-bold text-deep-forest mb-2">Your Wishlist is Empty</h2>
       <p class="text-xs text-gray-500 mb-6 font-body-md">Tap the heart icon on any plant card to save it to your wishlist.</p>
       <a href="/products/" class="px-6 py-3 rounded-full bg-amber-gold text-deep-forest font-bold text-xs uppercase tracking-wider inline-block shadow-md">
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
         '<div class="relative aspect-square overflow-hidden bg-gray-50">' +
         '<img src="' + p.image + '" alt="' + p.name + '" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">' +
         '<button type="button" data-wishlist-remove="' + p.slug + '" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur text-pink-600 flex items-center justify-center shadow-md text-sm hover:scale-110 transition-transform">' +
-        '✕' +
+        '' +
         '</button>' +
         '</div>' +
         '<div class="p-5 flex-1 flex flex-col justify-between space-y-3">' +

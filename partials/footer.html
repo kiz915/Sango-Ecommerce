@@ -1,42 +1,54 @@
-<!-- Stitch Footer -->
-<footer class="bg-surface-container-highest w-full border-t border-outline-variant mt-section-gap">
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-gutter px-4 md:px-margin-desktop py-16 max-w-[1440px] mx-auto">
-    <!-- Brand Column -->
-    <div class="flex flex-col gap-4">
-      <a href="/" class="inline-block w-fit">
-        <img src="/images/logo.png" alt="Sango Fiora" class="h-10 w-auto object-contain">
-      </a>
-      <p class="font-body-md text-body-md text-on-surface-variant max-w-xs">Premium Artificial Greenery for Every Space.</p>
-      <p class="text-xs text-on-surface-variant/80">Sango Fiora, Chennai, Tamil Nadu</p>
+<footer class="bg-deep-forest text-white mt-section-gap">
+  <div class="max-w-[1440px] mx-auto px-4 md:px-margin-desktop pt-16 pb-8">
+    <div class="grid grid-cols-2 md:grid-cols-12 gap-x-6 gap-y-10">
+      <div class="col-span-2 md:col-span-4">
+        <a href="/" class="inline-block" aria-label="Sango Fiora home"><img src="/images/sango-fiora-logo-white.png" alt="Sango Fiora" class="h-10 w-auto object-contain"></a>
+        <p class="mt-4 text-sm text-white/70 leading-relaxed max-w-xs">{{ site.tagline }}. Handcrafted, pot included and delivered across India.</p>
+        <div class="mt-5 flex items-center gap-2">
+          <a href="{{ site.instagram }}" target="_blank" rel="noopener" aria-label="Instagram" class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-white/10 transition-colors">
+            <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6" fill="currentColor"/></svg>
+          </a>
+          <a href="https://wa.me/{{ site.whatsapp }}" target="_blank" rel="noopener" aria-label="WhatsApp" class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center hover:bg-white/10 transition-colors">
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">chat</span>
+          </a>
+        </div>
+      </div>
+
+      <nav class="md:col-span-2" aria-label="Shop">
+        <h4 class="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/50 mb-4 font-sans">Shop</h4>
+        <ul class="space-y-2.5 text-sm text-white/80">
+          <li><a class="hover:text-white transition-colors" href="/products/">All plants</a></li>
+          <li><a class="hover:text-white transition-colors" href="/collections/foliage/">Indoor foliage</a></li>
+          <li><a class="hover:text-white transition-colors" href="/collections/palms/">Palms</a></li>
+          <li><a class="hover:text-white transition-colors" href="/collections/trees/">Trees</a></li>
+          <li><a class="hover:text-white transition-colors" href="/collections/flowering/">Flowering</a></li>
+        </ul>
+      </nav>
+
+      <nav class="md:col-span-3" aria-label="Help">
+        <h4 class="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/50 mb-4 font-sans">Help</h4>
+        <ul class="space-y-2.5 text-sm text-white/80">
+          <li><a class="hover:text-white transition-colors" href="/track/">Track your order</a></li>
+          <li><a class="hover:text-white transition-colors" href="/account/">My account</a></li>
+          <li><a class="hover:text-white transition-colors" href="/wishlist/">Wishlist</a></li>
+          <li><a class="hover:text-white transition-colors" href="/about/">Our story</a></li>
+          <li><a class="hover:text-white transition-colors" href="/contact/">Contact us</a></li>
+        </ul>
+      </nav>
+
+      <div class="col-span-2 md:col-span-3">
+        <h4 class="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/50 mb-4 font-sans">Contact</h4>
+        <ul class="space-y-3 text-sm text-white/80">
+          <li class="flex gap-2.5"><span class="material-symbols-outlined text-[18px] text-white/50 mt-0.5" aria-hidden="true">call</span><a class="hover:text-white" href="tel:{{ site.phone | replace(' ', '') }}">{{ site.phone }}</a></li>
+          <li class="flex gap-2.5"><span class="material-symbols-outlined text-[18px] text-white/50 mt-0.5" aria-hidden="true">mail</span><a class="hover:text-white break-all" href="mailto:{{ site.email }}">{{ site.email }}</a></li>
+          <li class="flex gap-2.5"><span class="material-symbols-outlined text-[18px] text-white/50 mt-0.5" aria-hidden="true">location_on</span><span>{{ site.address }}</span></li>
+        </ul>
+      </div>
     </div>
 
-    <!-- Links Column -->
-    <div class="flex flex-col gap-3">
-      <h4 class="font-label-md text-label-md text-deep-forest uppercase tracking-wider mb-2">Explore Collections</h4>
-      <a class="font-body-md text-body-md text-on-surface-variant hover:text-deep-forest transition-all w-fit" href="/products/">Shop All Plants</a>
-      <a class="font-body-md text-body-md text-on-surface-variant hover:text-deep-forest transition-all w-fit" href="/collections/foliage/">Indoor Foliage</a>
-      <a class="font-body-md text-body-md text-on-surface-variant hover:text-deep-forest transition-all w-fit" href="/collections/palms/">Resort Palms</a>
-      <a class="font-body-md text-body-md text-on-surface-variant hover:text-deep-forest transition-all w-fit" href="/collections/trees/">Statement Trees</a>
-    </div>
-
-    <!-- Customer Support Column -->
-    <div class="flex flex-col gap-3">
-      <h4 class="font-label-md text-label-md text-deep-forest uppercase tracking-wider mb-2">Help &amp; Services</h4>
-      <a class="font-body-md text-body-md text-on-surface-variant hover:text-deep-forest transition-all w-fit" href="/contact/">Customer Support</a>
-      <a class="font-body-md text-body-md text-on-surface-variant hover:text-deep-forest transition-all w-fit" href="/about/">About Us</a>
-      <a class="font-body-md text-body-md text-on-surface-variant hover:text-deep-forest transition-all w-fit" href="/cart/">Checkout &amp; Invoice</a>
-    </div>
-
-    <!-- Contact Info -->
-    <div class="flex flex-col gap-3">
-      <h4 class="font-label-md text-label-md text-deep-forest uppercase tracking-wider mb-2">Get In Touch</h4>
-      <p class="font-body-md text-body-md text-on-surface-variant">📞 {{ site.phone }}</p>
-      <p class="font-body-md text-body-md text-on-surface-variant">✉️ {{ site.email }}</p>
-      <p class="font-body-md text-body-md text-on-surface-variant">📍 Sango Fiora, Chennai, Tamil Nadu</p>
-    </div>
-
-    <div class="md:col-span-4 mt-12 pt-8 border-t border-outline-variant/30 text-center">
-      <p class="font-label-sm text-label-sm text-on-surface-variant">© 2026 Sango Fiora. Premium Artificial Greenery for Every Space.</p>
+    <div class="mt-12 pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-white/50">
+      <p>© 2026 Sango Fiora. All rights reserved.</p>
+      <p class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px]" aria-hidden="true">lock</span>Secure payments by Razorpay · Cash on delivery available</p>
     </div>
   </div>
 </footer>

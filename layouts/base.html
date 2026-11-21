@@ -69,9 +69,10 @@
   </script>
 </head>
 <body class="bg-background text-on-background antialiased flex flex-col min-h-screen">
+  <a href="#main-content" class="skip-link">Skip to content</a>
   {% include 'partials/header.html' %}
 
-  <div class="flex-1">
+  <div class="flex-1" id="main-content">
     {{ content | safe }}
   </div>
 
@@ -95,6 +96,7 @@
   <script src="{{ '/js/catalog.js' | assetHash }}" defer></script>
   <script src="{{ '/js/inquiry.js' | assetHash }}" defer></script>
   <script src="{{ '/js/search.js' | assetHash }}" defer></script>
+  <script src="{{ '/js/live-sync.js' | assetHash }}" defer></script>
   <script src="{{ '/js/main.js' | assetHash }}" defer></script>
 </body>
 </html>

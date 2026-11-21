@@ -50,9 +50,9 @@ permalink: /products/
     <div id="all-products-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
       {% for p in plants.products %}
         {% set isAboveFold = loop.index <= 8 %}
-        {% include 'partials/product-card.html' %}
-      {% endfor %}
-    </div>
+ {% include 'partials/product-card.html' %}
+ {% endfor %}
+ </div>
 
     <!-- Load More Button -->
     <div id="load-more-wrap" class="text-center mt-12 mb-12 hidden">
@@ -61,7 +61,7 @@ permalink: /products/
 
     <!-- Empty State -->
     <div id="no-results" class="hidden text-center py-20 bg-white rounded-lg border border-outline-variant/20 mt-6 shadow-sm">
-      <div class="text-6xl mb-4">🌿</div>
+      <div class="text-6xl mb-4"><span class="material-symbols-outlined ico" aria-hidden="true">eco</span></div>
       <h3 class="font-headline-sm font-bold text-xl text-deep-forest mb-2">No matching products found</h3>
       <p class="text-on-surface-variant text-sm mb-6">Try clearing your search query or selecting a different category filter.</p>
       <button type="button" id="reset-filters" class="bg-amber-gold text-deep-forest px-8 py-3.5 rounded font-label-md text-label-md uppercase tracking-wider hover:bg-amber-400 transition-colors shadow-md">

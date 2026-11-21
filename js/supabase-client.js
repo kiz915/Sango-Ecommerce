@@ -50,5 +50,5 @@
   window.SangoSupabase = client;
   window.SUPABASE_CONFIGURED = true;
 
-  console.log('%c[Sango Fiora] Supabase connected ✓', 'color: #27ae60; font-weight: bold;');
+  console.log('%c[Sango Fiora] Supabase connected', 'color: #27ae60; font-weight: bold;');
 })();

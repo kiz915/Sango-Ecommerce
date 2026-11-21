@@ -1,0 +1,152 @@
+---
+layout: base
+title: Product
+permalink: /product/
+description: Premium artificial plants and trees from Sango Fiora.
+---
+
+<main class="bg-background pt-[96px] pb-20 min-h-[70vh]">
+  <div class="max-w-[1200px] mx-auto px-4 md:px-8">
+    <nav class="text-xs font-medium text-on-surface-variant mb-6 flex items-center gap-2" aria-label="Breadcrumb">
+      <a href="/" class="hover:text-deep-forest">Home</a><span>/</span>
+      <a href="/products/" class="hover:text-deep-forest">Shop</a><span>/</span>
+      <span id="lp-crumb" class="text-deep-forest font-semibold">Product</span>
+    </nav>
+
+    <div id="lp-loading" class="grid md:grid-cols-2 gap-10 animate-pulse" aria-busy="true">
+      <div class="aspect-square rounded-3xl bg-surface-container"></div>
+      <div class="space-y-4 pt-4"><div class="h-8 w-2/3 bg-surface-container rounded"></div><div class="h-6 w-1/3 bg-surface-container rounded"></div><div class="h-24 bg-surface-container rounded"></div></div>
+    </div>
+
+    <div id="lp-missing" class="hidden text-center py-20">
+      <span class="material-symbols-outlined text-5xl text-outline">potted_plant</span>
+      <h1 class="font-headline-lg text-2xl font-bold text-deep-forest mt-3">This product isn't available</h1>
+      <p class="text-sm text-on-surface-variant mt-2 max-w-md mx-auto">It may have been removed or is no longer sold. Explore our current collection instead.</p>
+      <a href="/products/" class="inline-block mt-6 bg-deep-forest text-white font-semibold text-sm px-6 py-3 rounded-full hover:bg-primary-container transition-colors">Browse all plants</a>
+    </div>
+
+    <article id="lp-product" class="hidden grid md:grid-cols-2 gap-8 lg:gap-14 items-start">
+      <div class="relative rounded-3xl overflow-hidden bg-surface-container border border-outline-variant/30 aspect-square">
+        <img id="lp-image" src="" alt="" class="w-full h-full object-cover" width="800" height="800">
+        <span id="lp-badge" class="hidden absolute top-4 left-4 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full"></span>
+      </div>
+
+      <div class="space-y-5">
+        <div>
+          <p id="lp-cat" class="text-[11px] font-bold uppercase tracking-widest text-deep-forest/80"></p>
+          <h1 id="lp-name" class="font-headline-lg text-3xl md:text-4xl font-bold text-gray-900 leading-tight mt-1"></h1>
+          <p id="lp-rating" class="text-sm text-on-surface-variant mt-2"></p>
+        </div>
+
+        <div class="border-y border-outline-variant/30 py-4">
+          <div class="flex items-baseline gap-3 flex-wrap">
+            <span id="lp-price" class="text-4xl font-bold text-deep-forest"></span>
+            <span id="lp-mrp" class="text-lg text-gray-400 line-through"></span>
+            <span id="lp-save" class="hidden bg-red-50 text-red-600 border border-red-200 text-xs font-bold px-2.5 py-1 rounded-lg"></span>
+          </div>
+          <p class="text-xs text-on-surface-variant mt-1">Inclusive of all taxes · Pot &amp; base included</p>
+        </div>
+
+        <p id="lp-desc" class="text-sm text-on-surface-variant leading-relaxed"></p>
+
+        <div class="grid grid-cols-3 gap-3 text-center">
+          <div class="bg-surface-container-low border border-outline-variant/30 rounded-2xl p-3"><p class="text-xs text-on-surface-variant">Height</p><p id="lp-size" class="font-bold text-deep-forest text-sm"></p></div>
+          <div class="bg-surface-container-low border border-outline-variant/30 rounded-2xl p-3"><p class="text-xs text-on-surface-variant">Pot</p><p class="font-bold text-deep-forest text-sm">Included</p></div>
+          <div class="bg-surface-container-low border border-outline-variant/30 rounded-2xl p-3"><p class="text-xs text-on-surface-variant">Dispatch</p><p class="font-bold text-deep-forest text-sm">Within 24 hrs</p></div>
+        </div>
+
+        <p id="lp-stock" class="hidden text-xs font-semibold text-amber-900 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2"></p>
+
+        <div class="space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="flex items-center border border-outline-variant/50 rounded-2xl overflow-hidden bg-surface-container-high">
+              <button type="button" id="lp-minus" class="w-11 h-12 text-xl font-bold text-deep-forest hover:bg-white" aria-label="Decrease quantity">−</button>
+              <input type="number" id="lp-qty" value="1" min="1" class="w-14 h-12 text-center font-bold bg-transparent border-x border-outline-variant/50 focus:outline-none [appearance:textfield]" aria-label="Quantity">
+              <button type="button" id="lp-plus" class="w-11 h-12 text-xl font-bold text-deep-forest hover:bg-white" aria-label="Increase quantity">+</button>
+            </div>
+            <button type="button" id="lp-add" class="flex-1 bg-deep-forest hover:bg-primary-container text-white px-6 py-3.5 rounded-2xl font-bold text-sm shadow-md transition-colors">Add to cart</button>
+          </div>
+          <button type="button" id="lp-buy" class="w-full bg-amber-gold hover:bg-amber-400 text-deep-forest px-8 py-3.5 rounded-2xl font-bold text-sm shadow-md transition-colors">Buy now</button>
+        </div>
+      </div>
+    </article>
+  </div>
+</main>
+
+<script>
+(function () {
+  var slug = new URLSearchParams(location.search).get('slug') || '';
+  var $ = function (id) { return document.getElementById(id); };
+  var current = null;
+
+  function show(which) {
+    ['lp-loading', 'lp-missing', 'lp-product'].forEach(function (id) { $(id).classList.toggle('hidden', id !== which); });
+  }
+
+  function render(p) {
+    current = p;
+    document.title = p.name + ' (' + p.size + ') | Sango Fiora';
+    $('lp-crumb').textContent = p.name;
+    $('lp-image').src = p.image; $('lp-image').alt = p.name;
+    $('lp-cat').textContent = p.category + (p.variant ? ' · ' + p.variant : '');
+    $('lp-name').textContent = p.name;
+    $('lp-rating').textContent = '★ ' + p.rating + ' (' + p.reviews + ' reviews)';
+    $('lp-price').textContent = '₹' + p.price;
+    var hasDisc = p.mrp > p.price;
+    $('lp-mrp').textContent = hasDisc ? '₹' + p.mrp : ''; $('lp-mrp').classList.toggle('hidden', !hasDisc);
+    $('lp-save').textContent = 'Save ₹' + (p.mrp - p.price); $('lp-save').classList.toggle('hidden', !hasDisc);
+    $('lp-badge').textContent = 'SAVE ' + p.discount + '%'; $('lp-badge').classList.toggle('hidden', !hasDisc);
+    $('lp-desc').textContent = p.description || 'Handcrafted premium artificial plant with a decorative pot included.';
+    $('lp-size').textContent = '~' + p.size;
+    var sold = p.isSoldOut || p.stock <= 0;
+    var stockEl = $('lp-stock');
+    if (!sold && p.stock <= 4) { stockEl.textContent = 'Only ' + p.stock + ' left in stock — order soon.'; stockEl.classList.remove('hidden'); }
+    else stockEl.classList.add('hidden');
+    $('lp-qty').max = Math.max(1, p.stock);
+    if ((parseInt($('lp-qty').value, 10) || 1) > p.stock && p.stock > 0) $('lp-qty').value = p.stock;
+
+    ['lp-add', 'lp-buy'].forEach(function (id) {
+      var b = $(id);
+      b.dataset.slug = p.slug; b.dataset.name = p.name; b.dataset.variant = p.variant; b.dataset.category = p.category;
+      b.dataset.size = p.size; b.dataset.price = p.price; b.dataset.mrp = p.mrp; b.dataset.image = p.image; b.dataset.stock = p.stock;
+      b.disabled = sold; b.classList.toggle('opacity-60', sold); b.classList.toggle('cursor-not-allowed', sold);
+      if (sold) { b.removeAttribute('data-add-to-cart'); b.removeAttribute('data-buy-now'); b.textContent = 'Sold out'; }
+      else { b.setAttribute(id === 'lp-add' ? 'data-add-to-cart' : 'data-buy-now', ''); b.textContent = id === 'lp-add' ? 'Add to cart' : 'Buy now'; }
+    });
+    syncQty();
+    show('lp-product');
+  }
+
+  function syncQty() {
+    var v = Math.max(1, parseInt($('lp-qty').value, 10) || 1);
+    ['lp-add', 'lp-buy'].forEach(function (id) { $(id).dataset.qty = v; });
+  }
+  function bump(d) {
+    var max = current ? Math.max(1, current.stock) : 20;
+    var v = Math.min(max, Math.max(1, (parseInt($('lp-qty').value, 10) || 1) + d));
+    $('lp-qty').value = v; syncQty();
+  }
+  $('lp-plus').addEventListener('click', function () { bump(1); });
+  $('lp-minus').addEventListener('click', function () { bump(-1); });
+  $('lp-qty').addEventListener('change', function () { bump(0); });
+
+  function load() {
+    if (!slug) return show('lp-missing');
+    if (!window.SangoAPI || !window.SangoSupabase) return setTimeout(load, 120);
+    window.SangoAPI.getProductBySlug(slug).then(function (p) {
+      if (!p || p.isActive === false) return show('lp-missing');
+      render(p);
+    }).catch(function () { show('lp-missing'); });
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    load();
+    var t;
+    var wait = setInterval(function () {
+      if (window.SangoAPI && window.SangoSupabase) {
+        clearInterval(wait);
+        window.SangoAPI.onProductsChange(function () { clearTimeout(t); t = setTimeout(load, 250); });
+      }
+    }, 150);
+  });
+})();
+</script>

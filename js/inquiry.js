@@ -104,7 +104,7 @@
         }
 
         if (window.showToast) {
-          window.showToast('Ticket ' + record.ticketId + ' created! Our plant team will contact you within 24h 🌿');
+          window.showToast('Ticket ' + record.ticketId + ' created! Our plant team will contact you within 24h');
         }
 
         contactForm.reset();

@@ -37,7 +37,7 @@
             minSubtotal: c.min_subtotal || 0
           };
         });
-        console.log('[Sango] Coupons loaded from Supabase ✓', Object.keys(VALID_COUPONS).length);
+        console.log('[Sango] Coupons loaded from Supabase', Object.keys(VALID_COUPONS).length);
       }
     });
   }
@@ -142,7 +142,7 @@
                 current.items = res.data.items;
                 if (res.data.coupon_code) current.coupon = res.data.coupon_code;
                 writeCartData(current);
-                if (window.showToast) window.showToast('🌿 Restored your saved botanical cart!');
+                if (window.showToast) window.showToast('Restored your saved botanical cart!');
               }
             }
           }).catch(function (err) {
@@ -161,7 +161,7 @@
                   if ((!current.items || current.items.length === 0) && restoredItems.length > 0) {
                     current.items = restoredItems;
                     writeCartData(current);
-                    if (window.showToast) window.showToast('🌿 Restored your saved botanical cart!');
+                    if (window.showToast) window.showToast('Restored your saved botanical cart!');
                   }
                 } catch (e) {
                   console.error('[Cart] Synced cart JSON parse error:', e);
@@ -238,22 +238,22 @@
         if (stockLimit && (found.qty + q) > stockLimit) {
           var allowed = Math.max(0, stockLimit - found.qty);
           if (allowed <= 0) {
-            if (window.showToast) window.showToast('⚠️ Only ' + stockLimit + ' left in database stock — reached limit.');
+            if (window.showToast) window.showToast('Only ' + stockLimit + ' left in database stock — reached limit.');
             openDrawer();
             return;
           }
           found.qty = stockLimit;
-          if (window.showToast) window.showToast('⚠️ Stock limit: Added ' + allowed + ' (maximum stock is ' + stockLimit + ').');
+          if (window.showToast) window.showToast('Stock limit: Added ' + allowed + ' (maximum stock is ' + stockLimit + ').');
         } else {
           found.qty += q;
-          if (window.showToast) window.showToast(item.name + ' added to cart 🌿');
+          if (window.showToast) window.showToast(item.name + ' added to cart');
         }
       } else {
         if (stockLimit && q > stockLimit) {
           q = stockLimit;
-          if (window.showToast) window.showToast('⚠️ Only ' + stockLimit + ' in stock. Quantity adjusted to ' + stockLimit + '.');
+          if (window.showToast) window.showToast('Only ' + stockLimit + ' in stock. Quantity adjusted to ' + stockLimit + '.');
         } else {
-          if (window.showToast) window.showToast(item.name + ' added to cart 🌿');
+          if (window.showToast) window.showToast(item.name + ' added to cart');
         }
         items.push({
           slug: item.slug,
@@ -283,7 +283,7 @@
           var stockLimit = parseInt(it.stock || 15, 10);
           if (stockLimit && q > stockLimit) {
             it.qty = stockLimit;
-            if (window.showToast) window.showToast('⚠️ Only ' + stockLimit + ' left in database stock.');
+            if (window.showToast) window.showToast('Only ' + stockLimit + ' left in database stock.');
           } else {
             it.qty = q;
           }
@@ -318,7 +318,7 @@
           var d = readCartData();
           d.coupon = c;
           writeCartData(d);
-          var msg = res.message || ('Coupon "' + c + '" applied successfully! 🎉');
+          var msg = res.message || ('Coupon "' + c + '" applied successfully!');
           if (callback) callback({ success: true, message: msg, discountAmount: res.discountAmount });
         } else {
           var d2 = readCartData();
@@ -335,7 +335,7 @@
           var d = readCartData();
           d.coupon = c;
           writeCartData(d);
-          if (callback) callback({ success: true, message: 'Coupon applied! 🎉' });
+          if (callback) callback({ success: true, message: 'Coupon applied!' });
         } else {
           if (callback) callback({ success: false, message: 'Invalid coupon code.' });
         }
@@ -401,14 +401,14 @@
     var shipFill = document.getElementById('drawer-shipping-fill');
     if (shipText && shipFill) {
       if (totals.subtotal >= FREE_SHIP_ABOVE) {
-        shipText.textContent = '🎉 You unlocked FREE Delivery across India!';
+        shipText.textContent = 'You unlocked FREE Delivery across India!';
         if (shipPct) shipPct.textContent = '100%';
         shipFill.style.width = '100%';
         shipFill.className = 'bg-emerald-600 h-full transition-all duration-500 rounded-full';
       } else {
         var needed = FREE_SHIP_ABOVE - totals.subtotal;
         var pct = Math.min(100, Math.round((totals.subtotal / FREE_SHIP_ABOVE) * 100));
-        shipText.textContent = 'Add ' + formatCurrency(needed) + ' more for FREE Delivery 🚚';
+        shipText.textContent = 'Add ' + formatCurrency(needed) + ' more for FREE Delivery';
         if (shipPct) shipPct.textContent = pct + '%';
         shipFill.style.width = pct + '%';
         shipFill.className = 'bg-[#1B4332] h-full transition-all duration-500 rounded-full';
@@ -420,7 +420,7 @@
     if (!items.length) {
       wrap.innerHTML =
         '<div class="text-center py-16">' +
-        '<div class="text-6xl mb-4">🪴</div>' +
+        '<div class="text-6xl mb-4"><span class="material-symbols-outlined ico" aria-hidden="true">potted_plant</span></div>' +
         '<p class="font-bold text-gray-900 text-lg mb-1">Your cart is empty</p>' +
         '<p class="text-xs text-gray-400 mb-6">Add some handcrafted artificial plants to get started!</p>' +
         '<a href="/products/" class="inline-block bg-amber-500 text-plant-dark px-6 py-2.5 rounded-full font-bold text-xs">Browse Artificial Plants</a></div>';
@@ -468,19 +468,19 @@
       } else if (totals.count < 3) {
         volTier.classList.remove('hidden');
         var need = 3 - totals.count;
-        volText.textContent = '🌿 Add ' + need + ' more plant' + (need > 1 ? 's' : '') + ' for 5% Bulk Volume Discount!';
+        volText.textContent = 'Add ' + need + ' more plant' + (need > 1 ? 's' : '') + ' for 5% Bulk Volume Discount!';
         if (volTag) volTag.classList.add('hidden');
       } else if (totals.count < 5) {
         volTier.classList.remove('hidden');
         var need5 = 5 - totals.count;
-        volText.textContent = '🎉 5% Bulk Discount Active! Add ' + need5 + ' more for 10% discount!';
+        volText.textContent = '5% Bulk Discount Active! Add ' + need5 + ' more for 10% discount!';
         if (volTag) {
           volTag.classList.remove('hidden');
           volTag.textContent = '5% Active';
         }
       } else {
         volTier.classList.remove('hidden');
-        volText.textContent = '🌿 10% B2B / Bulk Styling Discount Applied!';
+        volText.textContent = '10% B2B / Bulk Styling Discount Applied!';
         if (volTag) {
           volTag.classList.remove('hidden');
           volTag.textContent = '10% Active';
@@ -540,7 +540,7 @@
           qty: itemQty
         };
         if (window.openAuthModal) {
-          window.openAuthModal('signin', '🔒 Please sign in to your Sango Fiora account to add luxury botanicals to your cart.');
+          window.openAuthModal('signin', 'Please sign in to your Sango Fiora account to add luxury botanicals to your cart.');
         } else {
           window.location.href = '/login/?redirect=' + encodeURIComponent(window.location.pathname);
         }
@@ -582,7 +582,7 @@
       if (it1) {
         var stockMax = parseInt(it1.stock || 15, 10);
         if (stockMax && it1.qty >= stockMax) {
-          if (window.showToast) window.showToast('⚠️ Only ' + stockMax + ' left in stock — reached limit.');
+          if (window.showToast) window.showToast('Only ' + stockMax + ' left in stock — reached limit.');
           return;
         }
         window.CartEngine.setQty(inc.dataset.inc, it1.qty + 1);
@@ -611,7 +611,7 @@
       var isAuthed = window.SangoAuth && window.SangoAuth.isLoggedIn && window.SangoAuth.isLoggedIn();
       if (!isAuthed) {
         if (window.openAuthModal) {
-          window.openAuthModal('signin', '🔒 Please sign in to your Sango Fiora account to checkout.');
+          window.openAuthModal('signin', 'Please sign in to your Sango Fiora account to checkout.');
         } else {
           location.href = '/login/?redirect=/checkout/';
         }
