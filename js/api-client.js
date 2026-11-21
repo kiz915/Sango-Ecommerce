@@ -47,14 +47,12 @@
       } catch (e) {}
     }
 
-    // In Admin Studio or when calling admin endpoints, ensure admin authorization is dynamically resolved
+    // In Admin Studio or when calling admin endpoints, resolve admin headers
     var isAdminArea = (typeof window !== 'undefined' && window.location && window.location.pathname.indexOf('/admin') !== -1) || (endpoint.indexOf('/admin') === 0);
     if (isAdminArea) {
-      headers['X-Admin-Role'] = 'admin';
-      var adminEmail = (user && user.email) ? user.email : 'admin@sangofiora.com';
-      headers['X-Admin-Email'] = adminEmail;
-      if (!token || !token.startsWith('admin:')) {
-        token = 'admin:' + adminEmail;
+      var adminEmail = (user && user.email) ? user.email : '';
+      if (adminEmail) {
+        headers['X-Admin-Email'] = adminEmail;
       }
     }
 

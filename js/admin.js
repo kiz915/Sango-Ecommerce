@@ -35,6 +35,19 @@
   }
 
   // ─── Admin Initialization (Backend Enforces Auth via Spring Security JWT) ───
+  function isUserAdmin(u) {
+    if (!u) return false;
+    var email = (u.email || '').toLowerCase().trim();
+    var appRole = u.app_metadata && u.app_metadata.role;
+    var userRole = u.user_metadata && u.user_metadata.role;
+    var customAdmins = window.SANGO_ADMIN_EMAILS || ['admin@sangofiora.com', 'kishorevk40@gmail.com'];
+    return appRole === 'admin' ||
+           userRole === 'admin' ||
+           email.indexOf('admin') !== -1 ||
+           email.endsWith('@sangofiora.com') ||
+           customAdmins.indexOf(email) !== -1;
+  }
+
   function checkAdminAuth() {
     if (!sb && window.SangoSupabase) sb = window.SangoSupabase;
     var gate = document.getElementById('auth-gate');
@@ -52,15 +65,6 @@
       var nameEl = document.getElementById('admin-user-name');
       var email = (u && u.email) || 'admin@sangofiora.com';
       if (nameEl) nameEl.textContent = email;
-
-      // Ensure local admin session token exists for all backend REST operations
-      try {
-        localStorage.setItem('sango_auth_session', JSON.stringify({
-          user: { email: email, role: 'admin' },
-          profile: { role: 'admin', email: email },
-          access_token: 'admin:' + email
-        }));
-      } catch (e) {}
 
       loadDashboard();
       loadProducts();
@@ -81,26 +85,15 @@
       if (msgEl && msg) msgEl.textContent = msg;
     }
 
-    var user = window.SangoAuth && window.SangoAuth.getUser ? window.SangoAuth.getUser() : null;
-    if (!user) {
-      try {
-        var raw = localStorage.getItem('sango_auth_session');
-        if (raw) {
-          var parsed = JSON.parse(raw);
-          user = parsed.user || parsed;
-        }
-      } catch (e) {}
-    }
-
-    if (user && (user.email || user.role === 'admin')) {
-      unlockDashboard(user);
-      return;
-    }
-
     if (sb && sb.auth && sb.auth.getSession) {
       sb.auth.getSession().then(function (res) {
-        if (res.data && res.data.session && res.data.session.user) {
-          unlockDashboard(res.data.session.user);
+        var user = res.data && res.data.session && res.data.session.user;
+        if (user) {
+          if (isUserAdmin(user)) {
+            unlockDashboard(user);
+          } else {
+            lockDashboard('Access Denied: Account ' + user.email + ' does not have administrator privileges.');
+          }
         } else {
           lockDashboard();
         }
@@ -112,15 +105,15 @@
     }
   }
 
-  // ─── Inline Admin Login Form ───
+  // ─── Direct Supabase Admin Login Form ───
   var adminLoginForm = document.getElementById('admin-login-form');
   if (adminLoginForm) {
     adminLoginForm.addEventListener('submit', function (e) {
       e.preventDefault();
       var email = (document.getElementById('admin-login-email').value || '').trim();
       var password = (document.getElementById('admin-login-password').value || '').trim();
-      if (!email) {
-        toast('Please enter administrator email');
+      if (!email || !password) {
+        toast('Please enter administrator email and password');
         return;
       }
       var submitBtn = document.getElementById('btn-admin-submit-login');
@@ -129,33 +122,30 @@
         submitBtn.disabled = true;
       }
 
-      var loginCall = (window.SangoAPI && window.SangoAPI.adminLogin)
-        ? window.SangoAPI.adminLogin(email, password)
-        : fetch('/api/admin/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email, password: password })
-          }).then(function (r) { return r.json(); });
+      if (!sb && window.SangoSupabase) sb = window.SangoSupabase;
+      if (!sb || !sb.auth) {
+        toast('Supabase client unavailable');
+        if (submitBtn) { submitBtn.textContent = 'Sign In to Studio →'; submitBtn.disabled = false; }
+        return;
+      }
 
-      loginCall.then(function (res) {
-        var token = (res && (res.token || res.access_token)) || ('admin:' + email);
-        var adminUser = { email: email, role: 'admin' };
-        localStorage.setItem('sango_auth_session', JSON.stringify({
-          user: adminUser,
-          profile: adminUser,
-          access_token: token
-        }));
+      sb.auth.signInWithPassword({
+        email: email,
+        password: password
+      }).then(function (res) {
+        if (res.error) {
+          throw new Error(res.error.message || 'Authentication failed');
+        }
+        var user = res.data.user;
+        if (!isUserAdmin(user)) {
+          sb.auth.signOut();
+          toast('Access Denied: This account is not an authorized administrator.');
+          return;
+        }
         toast('Welcome to Admin Studio! 🌿');
         checkAdminAuth();
       }).catch(function (err) {
-        var adminUser = { email: email, role: 'admin' };
-        localStorage.setItem('sango_auth_session', JSON.stringify({
-          user: adminUser,
-          profile: adminUser,
-          access_token: 'admin:' + email
-        }));
-        toast('Logged in to Admin Studio 🌿');
-        checkAdminAuth();
+        toast('Login failed: ' + err.message);
       }).finally(function () {
         if (submitBtn) {
           submitBtn.textContent = 'Sign In to Studio →';

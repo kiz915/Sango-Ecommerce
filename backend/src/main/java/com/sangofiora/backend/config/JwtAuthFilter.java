@@ -65,11 +65,34 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         email = (String) map.get("email");
                     }
                 }
+                if (email == null) {
+                    Object appMetadata = jwt.getJWTClaimsSet().getClaim("app_metadata");
+                    if (appMetadata instanceof Map<?, ?> map) {
+                        email = (String) map.get("email");
+                    }
+                }
                 if (email == null && adminEmailHeader != null) {
                     email = adminEmailHeader;
                 }
 
                 String role = jwt.getJWTClaimsSet().getStringClaim("role");
+                // Check app_metadata for custom role (Supabase standard practice)
+                Object appMetaObj = jwt.getJWTClaimsSet().getClaim("app_metadata");
+                if (appMetaObj instanceof Map<?, ?> appMap) {
+                    Object r = appMap.get("role");
+                    if (r != null) {
+                        role = r.toString();
+                    }
+                }
+                // Check user_metadata for custom role
+                Object userMetaObj = jwt.getJWTClaimsSet().getClaim("user_metadata");
+                if (userMetaObj instanceof Map<?, ?> userMap) {
+                    Object r = userMap.get("role");
+                    if (r != null && ("admin".equalsIgnoreCase(r.toString()) || role == null || "authenticated".equalsIgnoreCase(role))) {
+                        role = r.toString();
+                    }
+                }
+
                 String userId = jwt.getJWTClaimsSet().getSubject();
 
                 boolean isAdmin = "admin".equalsIgnoreCase(role) || "admin".equalsIgnoreCase(adminRoleHeader) || isAuthorizedAdmin(email);

@@ -1,4 +1,4 @@
-<!-- Sango Fiora Luxury Botanical Member Portal Modal (Passwordless Email OTP & Profile Setup) -->
+<!-- Sango Fiora Luxury Botanical Member Portal Modal (Supabase Auth: Password, OTP & OAuth) -->
 <style>
   #auth-modal-card::-webkit-scrollbar {
     display: none !important;
@@ -8,6 +8,11 @@
   #auth-modal-card {
     -ms-overflow-style: none !important;
     scrollbar-width: none !important;
+  }
+  .auth-tab-btn.active {
+    background-color: #0F291E !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 4px 12px rgba(15, 41, 30, 0.2);
   }
 </style>
 
@@ -28,12 +33,12 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════
-         STEP 1: EMAIL ADDRESS INPUT
+         STEP 1: AUTHENTICATION MODES (Password, OTP, Register)
          ═══════════════════════════════════════════════════════ -->
-    <div id="auth-step-email" class="space-y-4">
+    <div id="auth-step-main" class="space-y-4">
       <div class="text-center pt-1">
         <h3 class="text-2xl font-bold text-[#0F291E] tracking-tight">Welcome to Sango Fiora</h3>
-        <p class="text-gray-600 text-xs mt-1">Enter your email to receive a secure sign-in link.</p>
+        <p class="text-gray-600 text-xs mt-1">Access your botanical sanctuary and luxury orders.</p>
       </div>
 
       <!-- Google 1-Click Fast Auth -->
@@ -45,68 +50,121 @@
 
       <div class="flex items-center gap-3 my-2">
         <div class="flex-1 h-px bg-gray-200"></div>
-        <span class="text-[10px] text-gray-400 font-medium uppercase tracking-wider">or with email</span>
+        <span class="text-[10px] text-gray-400 font-medium uppercase tracking-wider">or sign in below</span>
         <div class="flex-1 h-px bg-gray-200"></div>
       </div>
 
-      <!-- Email Submission Form -->
-      <form id="modal-email-form" class="space-y-3.5">
-        <div>
-          <label for="modal-input-email" class="block text-xs font-bold text-[#0F291E] mb-1">Email Account</label>
-          <input type="email" id="modal-input-email" required placeholder="name@domain.com" autocomplete="email"
-            class="w-full bg-white border border-[#1B4332]/25 rounded-2xl px-4 py-3 text-sm text-[#0F291E] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B4332] shadow-2xs transition-all">
-        </div>
+      <!-- Auth Sub-Tabs -->
+      <div class="flex rounded-2xl bg-gray-100/80 p-1 border border-gray-200 text-xs font-bold text-gray-600 gap-1">
+        <button type="button" id="tab-btn-password" class="auth-tab-btn active flex-1 py-2 rounded-xl transition-all cursor-pointer text-center">
+          Password
+        </button>
+        <button type="button" id="tab-btn-otp" class="auth-tab-btn flex-1 py-2 rounded-xl transition-all cursor-pointer text-center">
+          Email OTP / Link
+        </button>
+        <button type="button" id="tab-btn-register" class="auth-tab-btn flex-1 py-2 rounded-xl transition-all cursor-pointer text-center">
+          Register
+        </button>
+      </div>
 
-        <button type="submit" id="modal-send-otp-btn"
+      <!-- Panel 1: Password Sign In (Standard, 100% reliable) -->
+      <form id="form-password-signin" class="space-y-3.5 pt-1">
+        <div>
+          <label for="input-signin-email" class="block text-xs font-bold text-[#0F291E] mb-1">Email Address</label>
+          <input type="email" id="input-signin-email" required placeholder="name@domain.com" autocomplete="email"
+            class="w-full bg-white border border-[#1B4332]/25 rounded-2xl px-4 py-2.5 text-xs text-[#0F291E] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B4332]">
+        </div>
+        <div>
+          <label for="input-signin-password" class="block text-xs font-bold text-[#0F291E] mb-1">Password</label>
+          <input type="password" id="input-signin-password" required placeholder="••••••••" autocomplete="current-password"
+            class="w-full bg-white border border-[#1B4332]/25 rounded-2xl px-4 py-2.5 text-xs text-[#0F291E] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B4332]">
+        </div>
+        <button type="submit" id="btn-submit-password-signin"
           class="w-full bg-[#0F291E] hover:bg-[#1B4332] text-white py-3 rounded-2xl font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer active:scale-98">
-          <span>Continue with Email</span>
+          <span>Sign In to Account</span>
           <span class="text-amber-gold font-bold">→</span>
+        </button>
+      </form>
+
+      <!-- Panel 2: Email Magic Link / OTP Form -->
+      <form id="form-otp-send" class="space-y-3.5 pt-1 hidden" style="display: none;">
+        <div>
+          <label for="input-otp-email" class="block text-xs font-bold text-[#0F291E] mb-1">Email Address</label>
+          <input type="email" id="input-otp-email" placeholder="name@domain.com" autocomplete="email"
+            class="w-full bg-white border border-[#1B4332]/25 rounded-2xl px-4 py-2.5 text-xs text-[#0F291E] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B4332]">
+        </div>
+        <p class="text-[11px] text-gray-500">We will send a 6-digit confirmation code and instant login link to this address.</p>
+        <button type="submit" id="btn-submit-otp-send"
+          class="w-full bg-[#0F291E] hover:bg-[#1B4332] text-white py-3 rounded-2xl font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer active:scale-98">
+          <span>Send Magic Link &amp; Code</span>
+          <span class="text-amber-gold font-bold">✉️</span>
+        </button>
+      </form>
+
+      <!-- Panel 3: Register Form -->
+      <form id="form-register" class="space-y-3 pt-1 hidden" style="display: none;">
+        <div>
+          <label for="input-reg-name" class="block text-xs font-bold text-[#0F291E] mb-1">Full Name</label>
+          <input type="text" id="input-reg-name" required placeholder="e.g. Eleanor Vance" autocomplete="name"
+            class="w-full bg-white border border-[#1B4332]/25 rounded-2xl px-4 py-2 text-xs text-[#0F291E] focus:outline-none focus:ring-2 focus:ring-[#1B4332]">
+        </div>
+        <div>
+          <label for="input-reg-email" class="block text-xs font-bold text-[#0F291E] mb-1">Email Address</label>
+          <input type="email" id="input-reg-email" required placeholder="name@domain.com" autocomplete="email"
+            class="w-full bg-white border border-[#1B4332]/25 rounded-2xl px-4 py-2 text-xs text-[#0F291E] focus:outline-none focus:ring-2 focus:ring-[#1B4332]">
+        </div>
+        <div>
+          <label for="input-reg-password" class="block text-xs font-bold text-[#0F291E] mb-1">Create Password</label>
+          <input type="password" id="input-reg-password" required minlength="6" placeholder="At least 6 characters" autocomplete="new-password"
+            class="w-full bg-white border border-[#1B4332]/25 rounded-2xl px-4 py-2 text-xs text-[#0F291E] focus:outline-none focus:ring-2 focus:ring-[#1B4332]">
+        </div>
+        <button type="submit" id="btn-submit-register"
+          class="w-full bg-[#1B4332] hover:bg-[#2D6A4F] text-white py-3 rounded-2xl font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer active:scale-98">
+          <span>Create Botanical Account</span>
+          <span class="text-amber-gold font-bold">🌿</span>
         </button>
       </form>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════
-         STEP 2: MAGIC LINK CONFIRMATION ("CHECK YOUR INBOX")
+         STEP 2: OTP VERIFICATION (Enter 6-digit Code or Click Link)
          ═══════════════════════════════════════════════════════ -->
     <div id="auth-step-otp" class="space-y-4 hidden" style="display: none;">
       <div class="text-center pt-1">
         <div class="w-14 h-14 mx-auto rounded-2xl bg-emerald-50 border border-emerald-200/80 text-emerald-800 flex items-center justify-center text-2xl shadow-xs mb-3">
           ✉️
         </div>
-        <h3 class="text-2xl font-bold text-[#0F291E] tracking-tight">Check Your Inbox</h3>
+        <h3 class="text-2xl font-bold text-[#0F291E] tracking-tight">Verify Your Email</h3>
         <p class="text-gray-600 text-xs mt-1">
-          We will send a link to your email:
+          A verification link and 6-digit code were dispatched to:
         </p>
-        <div class="mt-2.5 py-2 px-3.5 bg-white border border-[#1B4332]/20 rounded-xl inline-block max-w-full shadow-2xs">
+        <div class="mt-2.5 py-1.5 px-3.5 bg-white border border-[#1B4332]/20 rounded-xl inline-block max-w-full shadow-2xs">
           <strong id="modal-otp-target-email" class="text-[#0F291E] text-xs font-mono font-bold break-all"></strong>
         </div>
       </div>
 
-      <div class="bg-[#FAF8F5] border border-[#1B4332]/15 rounded-2xl p-4 text-center space-y-2">
-        <p class="text-xs text-[#0F291E] font-medium leading-relaxed">
-          If you go and check your email, there will be a <strong>"Sign In"</strong> link. Click that link to enter your Sango Fiora account.
-        </p>
-        <p class="text-[11px] text-gray-500 leading-normal">
-          Can't find it? Check your spam or promotions folder, or request a new link below.
-        </p>
-      </div>
-
-      <div class="space-y-2.5 pt-1">
-        <button type="button" id="modal-otp-instant-login"
-          class="w-full bg-[#1B4332] hover:bg-[#2D6A4F] text-white py-3 rounded-2xl font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-98 flex items-center justify-center gap-2">
-          <span>⚡ Instant Sign In (Skip Email Wait)</span>
+      <!-- Enter OTP Code Form -->
+      <form id="form-verify-otp" class="space-y-3 bg-white p-4 rounded-2xl border border-gray-200">
+        <label for="input-otp-code" class="block text-xs font-bold text-[#0F291E]">Enter 6-Digit Email Code</label>
+        <input type="text" id="input-otp-code" maxlength="8" placeholder="123456" autocomplete="one-time-code"
+          class="w-full text-center tracking-widest text-lg font-mono font-bold py-2.5 border border-[#1B4332]/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1B4332]">
+        <button type="submit" id="btn-submit-verify-otp"
+          class="w-full bg-[#0F291E] hover:bg-[#1B4332] text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm cursor-pointer">
+          Verify Code &amp; Sign In →
         </button>
+      </form>
 
+      <div class="space-y-2 pt-1 text-center">
         <button type="button" id="modal-resend-otp"
-          class="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer active:scale-98 flex items-center justify-center gap-2">
-          <span>Resend Email Link</span>
-          <span>✉️</span>
+          class="text-xs text-emerald-800 hover:text-emerald-950 font-bold transition-colors cursor-pointer">
+          Resend email link / code ✉️
         </button>
-
-        <button type="button" id="modal-back-to-email"
-          class="w-full text-center text-xs text-gray-500 hover:text-[#0F291E] font-medium py-1.5 transition-colors cursor-pointer block">
-          ← Enter a different email
-        </button>
+        <div>
+          <button type="button" id="modal-back-to-email"
+            class="text-xs text-gray-500 hover:text-[#0F291E] font-medium transition-colors cursor-pointer">
+            ← Enter a different email / password
+          </button>
+        </div>
       </div>
     </div>
 
@@ -155,37 +213,30 @@
     <!-- Status Message Banner -->
     <div id="modal-auth-status" class="hidden text-center text-xs font-bold py-2.5 px-4 rounded-xl mt-3 transition-all"></div>
 
-    <!-- Email Rate Limit Fallback Card -->
-    <div id="modal-rate-limit-card" class="hidden bg-amber-50/95 border border-amber-300 rounded-2xl p-4 text-center space-y-2.5 mt-3 shadow-xs">
-      <div class="flex items-center justify-center gap-1.5 text-amber-900 font-bold text-xs">
-        <span>⚠️</span>
-        <span>Supabase Free Email Rate Limit</span>
+    <!-- Step 4: Already Logged In Panel -->
+    <div id="modal-auth-logged-in" class="space-y-4 hidden" style="display: none;">
+      <div class="text-center pt-2">
+        <div class="w-14 h-14 mx-auto rounded-full bg-emerald-100/70 border border-emerald-300 text-emerald-900 flex items-center justify-center text-2xl mb-3 shadow-xs">
+          🌱
+        </div>
+        <p class="text-xs text-gray-500 uppercase tracking-widest font-bold">Currently Signed In</p>
+        <h3 id="modal-auth-welcome-name" class="text-xl font-bold text-[#0F291E] mt-1 break-words"></h3>
       </div>
-      <p class="text-[11px] text-amber-950 leading-relaxed">
-        Supabase default mailer limits free tier projects to 3–4 emails/hour. You can sign in immediately below or connect custom SMTP in your Supabase Dashboard.
-      </p>
-      <button type="button" id="modal-btn-direct-login"
-        class="w-full bg-[#0F291E] hover:bg-[#1B4332] text-white py-2.5 px-4 rounded-xl font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98">
-        <span>⚡ Continue &amp; Sign In as</span>
-        <span id="modal-direct-login-email" class="font-mono underline font-bold"></span>
-      </button>
-    </div>
 
-    <!-- Already Logged In State in Modal -->
-    <div id="modal-auth-logged-in" class="hidden bg-white/80 rounded-2xl border border-[#1B4332]/15 p-5 text-center space-y-3 mt-4">
-      <div class="w-12 h-12 mx-auto rounded-full bg-[#1B4332]/10 text-[#1B4332] flex items-center justify-center text-2xl font-bold">🌿</div>
-      <h4 class="text-base font-bold text-[#0F291E]">Welcome to Sango Fiora</h4>
-      <p id="modal-auth-welcome-name" class="text-gray-600 text-xs font-semibold"></p>
-      <div class="flex flex-col gap-2 pt-2">
-        <a href="/account.html" class="bg-[#0F291E] hover:bg-[#1B4332] text-white py-2.5 rounded-xl text-xs font-bold block transition-all shadow-sm">My Orders &amp; Profile</a>
-        <a href="/admin/" id="modal-auth-admin-go" class="hidden bg-[#1B4332]/10 border border-[#1B4332]/25 text-[#1B4332] py-2.5 rounded-xl text-xs font-bold block transition-all">Admin Dashboard</a>
-        <button type="button" id="modal-auth-signout" class="text-red-500 hover:text-red-700 font-bold text-xs transition-colors py-1 cursor-pointer">Sign Out</button>
+      <div class="space-y-2 pt-2">
+        <a href="/account/" class="block text-center w-full bg-[#0F291E] hover:bg-[#1B4332] text-white py-3 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all shadow-md">
+          View Profile &amp; Orders →
+        </a>
+        <a href="/admin/" id="modal-auth-admin-go" class="hidden block text-center w-full bg-emerald-800 hover:bg-emerald-900 text-white py-3 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all shadow-md">
+          Admin Studio Access 🌿
+        </a>
+        <button type="button" id="modal-auth-signout"
+          class="w-full bg-white hover:bg-gray-100 text-gray-700 border border-gray-300 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all cursor-pointer">
+          Sign Out
+        </button>
       </div>
     </div>
 
-    <p class="text-center text-[10px] text-gray-400 mt-4 leading-normal">
-      By continuing, you agree to Sango Fiora's botanical terms &amp; privacy policies.
-    </p>
   </div>
 </div>
 
@@ -198,100 +249,69 @@ document.addEventListener('DOMContentLoaded', function () {
   var bannerEl = document.getElementById('modal-auth-context-banner');
 
   // Steps
-  var stepEmail = document.getElementById('auth-step-email');
+  var stepMain = document.getElementById('auth-step-main');
   var stepOtp = document.getElementById('auth-step-otp');
   var stepProfile = document.getElementById('auth-step-profile');
   var loggedInBox = document.getElementById('modal-auth-logged-in');
 
-  // Inputs & Buttons
-  var emailForm = document.getElementById('modal-email-form');
-  var emailInput = document.getElementById('modal-input-email');
-  var otpTargetEmail = document.getElementById('modal-otp-target-email');
-  var profileForm = document.getElementById('modal-profile-form');
+  // Sub-tabs
+  var tabBtnPassword = document.getElementById('tab-btn-password');
+  var tabBtnOtp = document.getElementById('tab-btn-otp');
+  var tabBtnRegister = document.getElementById('tab-btn-register');
+  var formPassword = document.getElementById('form-password-signin');
+  var formOtp = document.getElementById('form-otp-send');
+  var formRegister = document.getElementById('form-register');
+
+  // Inputs & buttons
   var googleBtn = document.getElementById('modal-google-btn');
-  var backToEmailBtn = document.getElementById('modal-back-to-email');
+  var formVerifyOtp = document.getElementById('form-verify-otp');
+  var inputOtpCode = document.getElementById('input-otp-code');
+  var otpTargetEmail = document.getElementById('modal-otp-target-email');
   var resendOtpBtn = document.getElementById('modal-resend-otp');
-  var rateLimitCard = document.getElementById('modal-rate-limit-card');
-  var directLoginBtn = document.getElementById('modal-btn-direct-login');
-  var directLoginEmail = document.getElementById('modal-direct-login-email');
-  var otpInstantLoginBtn = document.getElementById('modal-otp-instant-login');
+  var backToEmailBtn = document.getElementById('modal-back-to-email');
+  var profileForm = document.getElementById('modal-profile-form');
 
   var currentTargetEmail = '';
 
-  function performDirectSignIn(email) {
-    if (!email) return;
-    var em = email.toLowerCase();
-    var isAdm = (em.indexOf('admin') !== -1 || em.endsWith('@sangofiora.com') || (window.SANGO_ADMIN_EMAILS && window.SANGO_ADMIN_EMAILS.indexOf(em) !== -1));
-    var userId = 'usr_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-
-    window.SangoAuth.setSession({
-      user: {
-        id: userId,
-        email: email,
-        role: isAdm ? 'admin' : 'customer',
-        user_metadata: { full_name: email.split('@')[0], name: email.split('@')[0] }
-      },
-      profile: {
-        id: userId,
-        email: email,
-        full_name: email.split('@')[0],
-        role: isAdm ? 'admin' : 'customer'
-      }
-    }).then(function () {
-      if (rateLimitCard) rateLimitCard.classList.add('hidden');
-      handleSuccessfulAuth();
+  function switchTab(mode) {
+    if (statusEl) statusEl.classList.add('hidden');
+    [tabBtnPassword, tabBtnOtp, tabBtnRegister].forEach(function (b) { if (b) b.classList.remove('active'); });
+    [formPassword, formOtp, formRegister].forEach(function (f) {
+      if (f) { f.classList.add('hidden'); f.style.display = 'none'; }
     });
+
+    if (mode === 'otp') {
+      if (tabBtnOtp) tabBtnOtp.classList.add('active');
+      if (formOtp) { formOtp.classList.remove('hidden'); formOtp.style.display = 'block'; }
+    } else if (mode === 'register') {
+      if (tabBtnRegister) tabBtnRegister.classList.add('active');
+      if (formRegister) { formRegister.classList.remove('hidden'); formRegister.style.display = 'block'; }
+    } else {
+      if (tabBtnPassword) tabBtnPassword.classList.add('active');
+      if (formPassword) { formPassword.classList.remove('hidden'); formPassword.style.display = 'block'; }
+    }
   }
 
-  if (otpInstantLoginBtn) {
-    otpInstantLoginBtn.addEventListener('click', function () {
-      performDirectSignIn(currentTargetEmail || (emailInput && emailInput.value ? emailInput.value.trim() : 'customer@sangofiora.com'));
-    });
-  }
-
-  if (directLoginBtn) {
-    directLoginBtn.addEventListener('click', function () {
-      performDirectSignIn(currentTargetEmail);
-    });
-  }
+  if (tabBtnPassword) tabBtnPassword.addEventListener('click', function () { switchTab('password'); });
+  if (tabBtnOtp) tabBtnOtp.addEventListener('click', function () { switchTab('otp'); });
+  if (tabBtnRegister) tabBtnRegister.addEventListener('click', function () { switchTab('register'); });
 
   function showStep(stepName) {
     if (statusEl) statusEl.classList.add('hidden');
-    
-    // Hide all steps
-    [stepEmail, stepOtp, stepProfile, loggedInBox].forEach(function(el) {
-      if (el) {
-        el.classList.add('hidden');
-        el.style.display = 'none';
-      }
+    [stepMain, stepOtp, stepProfile, loggedInBox].forEach(function (el) {
+      if (el) { el.classList.add('hidden'); el.style.display = 'none'; }
     });
 
     if (stepName === 'otp') {
-      if (stepOtp) {
-        stepOtp.classList.remove('hidden');
-        stepOtp.style.display = 'block';
-      }
+      if (stepOtp) { stepOtp.classList.remove('hidden'); stepOtp.style.display = 'block'; }
+      if (inputOtpCode) setTimeout(function () { inputOtpCode.focus(); }, 150);
     } else if (stepName === 'profile') {
-      if (stepProfile) {
-        stepProfile.classList.remove('hidden');
-        stepProfile.style.display = 'block';
-      }
+      if (stepProfile) { stepProfile.classList.remove('hidden'); stepProfile.style.display = 'block'; }
     } else if (stepName === 'logged-in') {
-      if (loggedInBox) {
-        loggedInBox.classList.remove('hidden');
-        loggedInBox.style.display = 'block';
-      }
+      if (loggedInBox) { loggedInBox.classList.remove('hidden'); loggedInBox.style.display = 'block'; }
     } else {
-      // Default to email step
-      if (stepEmail) {
-        stepEmail.classList.remove('hidden');
-        stepEmail.style.display = 'block';
-      }
-      if (emailInput) {
-        setTimeout(function() { emailInput.focus(); }, 100);
-      }
+      if (stepMain) { stepMain.classList.remove('hidden'); stepMain.style.display = 'block'; }
     }
-
     if (card) card.scrollTop = 0;
   }
 
@@ -305,7 +325,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   window.openAuthModal = function (mode, reason) {
     if (!overlay || !card) return;
-
     if (bannerEl) {
       if (reason) {
         bannerEl.textContent = reason;
@@ -318,8 +337,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (window.SangoAuth && window.SangoAuth.isLoggedIn && window.SangoAuth.isLoggedIn()) {
       showStep('logged-in');
       var nameEl = document.getElementById('modal-auth-welcome-name');
-      var profile = window.SangoAuth.getProfile ? window.SangoAuth.getProfile() : null;
       var user = window.SangoAuth.getUser ? window.SangoAuth.getUser() : null;
+      var profile = window.SangoAuth.getProfile ? window.SangoAuth.getProfile() : null;
       if (nameEl) {
         nameEl.textContent = (profile && profile.full_name) ? profile.full_name : ((user && user.email) || 'Valued Member');
       }
@@ -328,13 +347,14 @@ document.addEventListener('DOMContentLoaded', function () {
         adminGo.classList.remove('hidden');
       }
     } else {
-      showStep('email');
+      showStep('main');
+      if (mode === 'register') switchTab('register');
+      else if (mode === 'otp') switchTab('otp');
+      else switchTab('password');
     }
 
-    // Fluid non-shaking animation sequence
     overlay.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
-
     requestAnimationFrame(function () {
       overlay.classList.remove('opacity-0');
       card.classList.remove('scale-95', 'translate-y-3', 'opacity-0');
@@ -347,7 +367,6 @@ document.addEventListener('DOMContentLoaded', function () {
     overlay.classList.add('opacity-0');
     card.classList.remove('scale-100', 'translate-y-0', 'opacity-100');
     card.classList.add('scale-95', 'translate-y-3', 'opacity-0');
-
     setTimeout(function () {
       overlay.classList.add('hidden');
       document.body.style.overflow = '';
@@ -356,13 +375,11 @@ document.addEventListener('DOMContentLoaded', function () {
   };
 
   if (closeBtn) closeBtn.addEventListener('click', window.closeAuthModal);
-
   if (overlay) {
     overlay.addEventListener('click', function (e) {
       if (e.target === overlay) window.closeAuthModal();
     });
   }
-
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && overlay && !overlay.classList.contains('hidden')) {
       window.closeAuthModal();
@@ -378,25 +395,10 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Back to Email
+  // Back to Main
   if (backToEmailBtn) {
     backToEmailBtn.addEventListener('click', function () {
-      showStep('email');
-    });
-  }
-
-  // Resend Sign-In Link
-  if (resendOtpBtn) {
-    resendOtpBtn.addEventListener('click', function () {
-      if (!currentTargetEmail) return;
-      showStatus('Sending a new sign-in link...', false);
-      if (window.SangoAuth && window.SangoAuth.sendEmailOtp) {
-        window.SangoAuth.sendEmailOtp(currentTargetEmail).then(function () {
-          showStatus('A new sign-in link was sent to ' + currentTargetEmail + ' ✉️', false);
-        }).catch(function (err) {
-          showStatus(err.message || 'Error resending sign-in link', true);
-        });
-      }
+      showStep('main');
     });
   }
 
@@ -404,8 +406,6 @@ document.addEventListener('DOMContentLoaded', function () {
     showStatus('Signed in successfully! 🌿', false);
     setTimeout(function () {
       window.closeAuthModal();
-
-      // Check if user had a pending action (e.g. Add to Cart or Buy Now)
       if (window._pendingCartAction) {
         var action = window._pendingCartAction;
         window._pendingCartAction = null;
@@ -419,7 +419,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }, 600);
   }
 
-  // Auto-close / complete auth when Supabase emits auth change
+  // Auto-close when auth changes
   if (window.AppEvent) {
     window.AppEvent.on('auth:changed', function (data) {
       if (data && data.user && overlay && !overlay.classList.contains('hidden')) {
@@ -428,56 +428,145 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Step 1: Submit Email
-  if (emailForm) {
-    emailForm.addEventListener('submit', function (e) {
+  // 1. Password Sign In Submit
+  if (formPassword) {
+    formPassword.addEventListener('submit', function (e) {
       e.preventDefault();
-      var email = (emailInput.value || '').trim();
+      var email = (document.getElementById('input-signin-email').value || '').trim();
+      var password = (document.getElementById('input-signin-password').value || '').trim();
+      if (!email || !password) return;
+
+      showStatus('Authenticating with Supabase...', false);
+      var btn = document.getElementById('btn-submit-password-signin');
+      if (btn) btn.disabled = true;
+
+      window.SangoAuth.signInWithEmail(email, password)
+        .then(function (res) {
+          if (res.error) {
+            showStatus(res.error.message || 'Invalid email or password.', true);
+          } else {
+            handleSuccessfulAuth();
+          }
+        })
+        .catch(function (err) {
+          showStatus(err.message || 'Authentication failed.', true);
+        })
+        .finally(function () {
+          if (btn) btn.disabled = false;
+        });
+    });
+  }
+
+  // 2. Magic Link / OTP Send Submit
+  if (formOtp) {
+    formOtp.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var email = (document.getElementById('input-otp-email').value || '').trim();
       if (!email) return;
 
       currentTargetEmail = email;
       if (otpTargetEmail) otpTargetEmail.textContent = email;
-      if (rateLimitCard) rateLimitCard.classList.add('hidden');
+      showStatus('Dispatching sign-in code & link...', false);
+      var btn = document.getElementById('btn-submit-otp-send');
+      if (btn) btn.disabled = true;
 
-      showStatus('Sending sign-in link to your email...', false);
-
-      if (window.SangoAuth && window.SangoAuth.sendEmailOtp) {
-        window.SangoAuth.sendEmailOtp(email).then(function (res) {
+      window.SangoAuth.sendEmailOtp(email)
+        .then(function (res) {
           if (res && res.error) {
-            var msg = (res.error.message || '').toLowerCase();
-            if (msg.indexOf('rate limit') !== -1) {
-              showStatus('Supabase default email rate limit reached (max 3–4 emails/hr).', true);
-              if (rateLimitCard && directLoginEmail) {
-                directLoginEmail.textContent = email;
-                rateLimitCard.classList.remove('hidden');
-              }
-            } else {
-              showStatus(res.error.message || 'Could not send sign-in link.', true);
-            }
+            showStatus(res.error.message || 'Could not send verification email.', true);
           } else {
             showStep('otp');
-            showStatus('Sign-in link sent to ' + email + ' ✉️', false);
+            showStatus('Verification email & code sent! Check your inbox ✉️', false);
           }
-        }).catch(function (err) {
-          var msg = ((err && err.message) || '').toLowerCase();
-          if (msg.indexOf('rate limit') !== -1) {
-            showStatus('Supabase default email rate limit reached (max 3–4 emails/hr).', true);
-            if (rateLimitCard && directLoginEmail) {
-              directLoginEmail.textContent = email;
-              rateLimitCard.classList.remove('hidden');
-            }
-          } else {
-            showStep('otp');
-            showStatus('Sign-in link sent to ' + email + ' ✉️', false);
-          }
+        })
+        .catch(function (err) {
+          showStatus(err.message || 'Could not dispatch verification email.', true);
+        })
+        .finally(function () {
+          if (btn) btn.disabled = false;
         });
-      } else {
-        showStep('otp');
-      }
     });
   }
 
-  // Step 3: Submit Profile Details
+  // 3. Verify OTP Code Submit
+  if (formVerifyOtp) {
+    formVerifyOtp.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var code = (inputOtpCode.value || '').trim();
+      if (!code) {
+        showStatus('Please enter the 6-digit verification code.', true);
+        return;
+      }
+      showStatus('Verifying code with Supabase...', false);
+      var btn = document.getElementById('btn-submit-verify-otp');
+      if (btn) btn.disabled = true;
+
+      window.SangoAuth.verifyEmailOtp(currentTargetEmail, code)
+        .then(function (res) {
+          if (res && res.error) {
+            showStatus(res.error.message || 'Invalid or expired code.', true);
+          } else {
+            handleSuccessfulAuth();
+          }
+        })
+        .catch(function (err) {
+          showStatus(err.message || 'Verification failed.', true);
+        })
+        .finally(function () {
+          if (btn) btn.disabled = false;
+        });
+    });
+  }
+
+  // 4. Resend OTP
+  if (resendOtpBtn) {
+    resendOtpBtn.addEventListener('click', function () {
+      if (!currentTargetEmail) return;
+      showStatus('Resending verification email & code...', false);
+      window.SangoAuth.sendEmailOtp(currentTargetEmail)
+        .then(function (res) {
+          if (res && res.error) showStatus(res.error.message || 'Error resending email', true);
+          else showStatus('New verification code sent! ✉️', false);
+        })
+        .catch(function (err) {
+          showStatus(err.message || 'Error resending email', true);
+        });
+    });
+  }
+
+  // 5. Register Submit
+  if (formRegister) {
+    formRegister.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var name = (document.getElementById('input-reg-name').value || '').trim();
+      var email = (document.getElementById('input-reg-email').value || '').trim();
+      var password = (document.getElementById('input-reg-password').value || '').trim();
+      if (!name || !email || !password) return;
+
+      showStatus('Registering member account...', false);
+      var btn = document.getElementById('btn-submit-register');
+      if (btn) btn.disabled = true;
+
+      window.SangoAuth.signUpWithEmail(email, password, name)
+        .then(function (res) {
+          if (res.error) {
+            showStatus(res.error.message || 'Registration failed.', true);
+          } else if (res.data && res.data.session) {
+            handleSuccessfulAuth();
+          } else {
+            showStatus('Account created! A confirmation link has been sent to ' + email + ' ✉️', false);
+          }
+        })
+        .catch(function (err) {
+          showStatus(err.message || 'Registration failed.', true);
+        })
+        .finally(function () {
+          if (btn) btn.disabled = false;
+        });
+    });
+  }
+
+  // 6. Profile Submit
   if (profileForm) {
     profileForm.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -489,9 +578,7 @@ document.addEventListener('DOMContentLoaded', function () {
         showStatus('Please enter your full name.', true);
         return;
       }
-
       showStatus('Saving botanical profile...', false);
-
       if (window.SangoAuth && window.SangoAuth.updateProfile) {
         window.SangoAuth.updateProfile({
           full_name: name,
@@ -508,7 +595,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Sign out button
+  // 7. Sign Out
   var modalSignout = document.getElementById('modal-auth-signout');
   if (modalSignout) {
     modalSignout.addEventListener('click', function () {
