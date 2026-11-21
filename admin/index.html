@@ -105,7 +105,7 @@
 
     <!-- Professional 1-Click Google Sign-In for Admin -->
     <div id="gate-actions" style="margin-top:24px">
-      <button type="button" id="gate-google-btn" class="btn" style="width:100%;justify-content:center;padding:12px 16px;background:#ffffff;border:1px solid #d1d5db;color:#374151;font-weight:600;font-size:14px;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,0.05);display:flex;align-items:center;gap:10px;cursor:pointer;transition:all 0.15s ease;">
+      <button type="button" id="gate-google-btn" onclick="window.location.href='https://hyecifzfswwrhsyrrxmw.supabase.co/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(window.location.origin + '/admin/')" class="btn" style="width:100%;justify-content:center;padding:12px 16px;background:#ffffff;border:1px solid #d1d5db;color:#374151;font-weight:600;font-size:14px;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,0.05);display:flex;align-items:center;gap:10px;cursor:pointer;transition:all 0.15s ease;">
         <svg style="width:20px;height:20px;flex-shrink:0" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
           <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>

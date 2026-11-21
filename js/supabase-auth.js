@@ -67,22 +67,33 @@
     /** Sign in with Google OAuth */
     signInWithGoogle: function (opts) {
       opts = opts || {};
-      if (!sb()) return Promise.reject(new Error('Sign-in is temporarily unavailable. Please refresh and try again.'));
-      return sb().auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: opts.redirectTo || cleanRedirect(),
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'select_account'
+      var target = opts.redirectTo || cleanRedirect();
+      var directUrl = 'https://hyecifzfswwrhsyrrxmw.supabase.co/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(target);
+      if (sb() && sb().auth && sb().auth.signInWithOAuth) {
+        return sb().auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: target,
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'select_account'
+            }
           }
-        }
-      }).then(function (res) {
-        if (res && res.error) {
-          throw new Error(res.error.message || 'Google sign-in could not be started');
-        }
-        return res;
-      });
+        }).then(function (res) {
+          if (res && res.error) throw new Error(res.error.message || 'Google sign-in could not be started');
+          if (res && res.data && res.data.url) {
+            window.location.href = res.data.url;
+          } else {
+            window.location.href = directUrl;
+          }
+          return res;
+        }).catch(function (err) {
+          console.warn('[SangoAuth] signInWithOAuth fallback:', err);
+          window.location.href = directUrl;
+        });
+      }
+      window.location.href = directUrl;
+      return Promise.resolve();
     },
 
     /** Sign in with Google Identity Services ID token */

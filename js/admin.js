@@ -83,18 +83,18 @@
 
   var googleGateBtn = $('gate-google-btn');
   if (googleGateBtn) {
-    googleGateBtn.addEventListener('click', function () {
-      var A = window.SangoAuth;
-      if (!A || !A.signInWithGoogle) return toast('Authentication is still loading. Please wait a moment.', true);
-      googleGateBtn.disabled = true;
+    googleGateBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      var directUrl = 'https://hyecifzfswwrhsyrrxmw.supabase.co/auth/v1/authorize?provider=google&redirect_to=' + encodeURIComponent(window.location.origin + '/admin/');
       var lbl = $('gate-google-label');
-      var original = lbl ? lbl.textContent : 'Sign in with Google';
-      if (lbl) lbl.textContent = 'Connecting to Google…';
-      A.signInWithGoogle({ redirectTo: location.origin + '/admin/' }).catch(function (err) {
-        toast(err.message || 'Google sign-in could not be started', true);
-        googleGateBtn.disabled = false;
-        if (lbl) lbl.textContent = original;
-      });
+      if (lbl) lbl.textContent = 'Redirecting to Google…';
+      googleGateBtn.disabled = true;
+      var A = window.SangoAuth;
+      if (A && A.signInWithGoogle) {
+        A.signInWithGoogle({ redirectTo: window.location.origin + '/admin/' });
+      } else {
+        window.location.href = directUrl;
+      }
     });
   }
 
