@@ -27,6 +27,11 @@ public class ProductService {
     private final AppProperties appProperties;
 
     @Transactional(readOnly = true)
+    public List<Product> getAllProducts() {
+        return productRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
     public List<Product> getAllActiveProducts() {
         return productRepository.findByIsActiveTrue();
     }
@@ -64,6 +69,10 @@ public class ProductService {
         if (product.getSlug() == null || product.getSlug().trim().isEmpty()) {
             String base = (product.getName() + "-" + (product.getSize() != null ? product.getSize() : ""))
                     .toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-+|-+$", "");
+            if (base.isEmpty()) base = "plant";
+            if (productRepository.findBySlug(base).isPresent()) {
+                base = base + "-" + UUID.randomUUID().toString().substring(0, 5);
+            }
             product.setSlug(base);
         }
         if (product.getRating() == null) product.setRating(java.math.BigDecimal.valueOf(4.8));

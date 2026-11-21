@@ -102,7 +102,7 @@ public class Order {
     @Column(name = "tracking_notes", columnDefinition = "TEXT")
     private String trackingNotes;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonManagedReference
     @Builder.Default
     private List<OrderItem> items = new ArrayList<>();
