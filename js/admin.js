@@ -45,12 +45,29 @@
     if (!A) return;
     var user = A.getUser();
     if (!user) return gate('Sign in with your authorized administrator Google account to access Admin Studio.', false);
-    if (!A.isAdmin()) return gate((user.email || 'This account') + ' does not have administrator access. Please sign in with an authorized admin account.', true);
-    enter(user);
+    if (A.isAdmin()) {
+      enter(user);
+      return;
+    }
+    // Profile might still be fetching - fetch and re-verify
+    A.fetchProfile().then(function () {
+      if (A.isAdmin()) {
+        enter(user);
+      } else {
+        gate((user.email || 'This account') + ' does not have administrator access. Please sign in with an authorized admin account.', true);
+      }
+    }).catch(function () {
+      if (A.isAdmin()) {
+        enter(user);
+      } else {
+        gate((user.email || 'This account') + ' does not have administrator access. Please sign in with an authorized admin account.', true);
+      }
+    });
   }
   function waitForAuth() {
-    if (!window.SangoSupabase || !window.SangoAuth) return setTimeout(waitForAuth, 80);
+    if (!window.SangoSupabase || !window.SangoAuth) return setTimeout(waitForAuth, 40);
     window.AppEvent.on('auth:changed', checkAuth);
+    if (window.SangoAuth.getUser()) checkAuth();
     window.SangoAuth.init().then(checkAuth);
   }
 
@@ -309,5 +326,9 @@
     }).catch(function (e) { toast(e.message, true); });
   }
 
-  document.addEventListener('DOMContentLoaded', waitForAuth);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', waitForAuth);
+  } else {
+    waitForAuth();
+  }
 })();

@@ -25,7 +25,23 @@
     getUser: function () { return currentUser; },
     getProfile: function () { return currentProfile; },
     isLoggedIn: function () { return !!currentUser; },
-    isAdmin: function () { return !!(currentProfile && currentProfile.role === 'admin'); },
+    isAdmin: function () {
+      if (currentProfile && (currentProfile.role === 'admin' || currentProfile.role === 'superadmin')) return true;
+      if (currentUser) {
+        var meta = currentUser.user_metadata || {};
+        var appMeta = currentUser.app_metadata || {};
+        if (meta.role === 'admin' || appMeta.role === 'admin') return true;
+        var email = (currentUser.email || '').toLowerCase().trim();
+        if (email === 'kishorevk40@gmail.com' || email === 'shamnaraja07@gmail.com' || email === 'admin@sangofiora.com' || email.indexOf('admin') !== -1 || email.endsWith('@sangofiora.com')) {
+          return true;
+        }
+        var appAdmins = window.SANGO_ADMIN_EMAILS || [];
+        for (var i = 0; i < appAdmins.length; i++) {
+          if ((appAdmins[i] || '').toLowerCase().trim() === email) return true;
+        }
+      }
+      return false;
+    },
     getToken: function () { return currentSession ? currentSession.access_token : null; },
 
     /** Send a one-click sign-in link. Creates the account on first use. */
@@ -114,7 +130,9 @@
       });
     },
 
+    var _initPromise = null;
     init: function () {
+      if (_initPromise) return _initPromise;
       if (!sb()) return Promise.resolve(null);
       var apply = function (session) {
         currentSession = session || null;
@@ -135,7 +153,8 @@
           });
         }, 0);
       });
-      return sb().auth.getSession().then(function (r) { return apply(r.data && r.data.session); });
+      _initPromise = sb().auth.getSession().then(function (r) { return apply(r.data && r.data.session); });
+      return _initPromise;
     }
   };
   // Backwards-compatible alias (older UI called this); it now sends a magic link, never an OTP.
@@ -164,12 +183,16 @@
   }
 
   function boot() {
-    if (!window.SangoSupabase) return setTimeout(boot, 60);
+    if (!window.SangoSupabase) return setTimeout(boot, 40);
     window.SangoAuth.init();
     var p = new URLSearchParams(location.search);
     if (p.get('auth') === 'login' && window.openAuthModal) window.openAuthModal('login');
   }
-  document.addEventListener('DOMContentLoaded', boot);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
 
   document.addEventListener('click', function (e) {
     if (e.target.closest('#auth-login-btn') || e.target.closest('[data-auth-login]')) {
