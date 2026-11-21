@@ -9,6 +9,7 @@
   var currentUser = null;
   var currentProfile = null;
   var currentSession = null;
+  var _initPromise = null;
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
   function sb() { return window.SangoSupabase || null; }
@@ -130,7 +131,6 @@
       });
     },
 
-    var _initPromise = null;
     init: function () {
       if (_initPromise) return _initPromise;
       if (!sb()) return Promise.resolve(null);
@@ -187,6 +187,9 @@
     window.SangoAuth.init();
     var p = new URLSearchParams(location.search);
     if (p.get('auth') === 'login' && window.openAuthModal) window.openAuthModal('login');
+  }
+  if (window.AppEvent) {
+    window.AppEvent.on('supabase:ready', boot);
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);

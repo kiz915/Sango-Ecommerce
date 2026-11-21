@@ -116,7 +116,27 @@
   }
 
   function send(email, btn, label) {
-    if (!window.SangoAuth) { showError('Sign-in is still loading. Please try again in a moment.'); return Promise.resolve(); }
+    if (!window.SangoAuth) {
+      btn.disabled = true;
+      var original = label.textContent;
+      label.textContent = 'Connecting…';
+      var retries = 10;
+      var poll = setInterval(function () {
+        retries--;
+        if (window.SangoAuth) {
+          clearInterval(poll);
+          label.textContent = original;
+          btn.disabled = false;
+          send(email, btn, label);
+        } else if (retries <= 0) {
+          clearInterval(poll);
+          label.textContent = original;
+          btn.disabled = false;
+          showError('Authentication service is still initializing. Please refresh and try again.');
+        }
+      }, 250);
+      return Promise.resolve();
+    }
     btn.disabled = true; var original = label.textContent; label.textContent = 'Sending…';
     showError('');
     return window.SangoAuth.sendMagicLink(email).then(function () {
@@ -137,19 +157,31 @@
     var googleLabel = $('auth-google-label');
     if (googleBtn) {
       googleBtn.addEventListener('click', function () {
-        if (!window.SangoAuth || !window.SangoAuth.signInWithGoogle) {
-          showError('Authentication service is still loading. Please wait a moment.');
-          return;
-        }
         showError('');
-        googleBtn.disabled = true;
         var originalText = googleLabel ? googleLabel.textContent : 'Continue with Google';
-        if (googleLabel) googleLabel.textContent = 'Redirecting to Google…';
-        window.SangoAuth.signInWithGoogle().catch(function (err) {
-          showError(err.message || 'Google sign-in could not be initiated.');
-          googleBtn.disabled = false;
-          if (googleLabel) googleLabel.textContent = originalText;
-        });
+
+        function trySignIn(attemptsLeft) {
+          if (window.SangoAuth && window.SangoAuth.signInWithGoogle) {
+            googleBtn.disabled = true;
+            if (googleLabel) googleLabel.textContent = 'Redirecting to Google…';
+            window.SangoAuth.signInWithGoogle().catch(function (err) {
+              showError(err.message || 'Google sign-in could not be initiated.');
+              googleBtn.disabled = false;
+              if (googleLabel) googleLabel.textContent = originalText;
+            });
+            return;
+          }
+          if (attemptsLeft > 0) {
+            if (googleLabel) googleLabel.textContent = 'Connecting…';
+            setTimeout(function () { trySignIn(attemptsLeft - 1); }, 250);
+          } else {
+            googleBtn.disabled = false;
+            if (googleLabel) googleLabel.textContent = originalText;
+            showError('Authentication service is still initializing. Please refresh and try again.');
+          }
+        }
+
+        trySignIn(12);
       });
     }
 

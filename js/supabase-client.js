@@ -30,25 +30,33 @@
     return;
   }
 
-  // Initialize Supabase client (loaded via CDN in HTML)
-  if (typeof supabase === 'undefined' || !supabase.createClient) {
-    console.error('[Sango Fiora] Supabase JS library not loaded. Make sure the CDN script tag is present.');
-    window.SangoSupabase = null;
-    window.SUPABASE_CONFIGURED = false;
-    return;
+  // Initialize Supabase client (loaded via CDN in HTML, with retry if CDN is still downloading)
+  function initClient(retries) {
+    if (typeof supabase === 'undefined' || !supabase.createClient) {
+      if (retries > 0) {
+        setTimeout(function () { initClient(retries - 1); }, 100);
+        return;
+      }
+      console.error('[Sango Fiora] Supabase JS library not loaded. Make sure the CDN script tag is present.');
+      window.SangoSupabase = null;
+      window.SUPABASE_CONFIGURED = false;
+      return;
+    }
+
+    var client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storage: window.localStorage
+      }
+    });
+
+    window.SangoSupabase = client;
+    window.SUPABASE_CONFIGURED = true;
+    if (window.AppEvent) window.AppEvent.emit('supabase:ready', client);
+    console.log('%c[Sango Fiora] Supabase connected', 'color: #27ae60; font-weight: bold;');
   }
 
-  var client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-      storage: window.localStorage
-    }
-  });
-
-  window.SangoSupabase = client;
-  window.SUPABASE_CONFIGURED = true;
-
-  console.log('%c[Sango Fiora] Supabase connected', 'color: #27ae60; font-weight: bold;');
+  initClient(50);
 })();
