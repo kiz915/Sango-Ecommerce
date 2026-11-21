@@ -47,6 +47,42 @@
       });
     },
 
+    /** Sign in with Google OAuth */
+    signInWithGoogle: function (opts) {
+      opts = opts || {};
+      if (!sb()) return Promise.reject(new Error('Sign-in is temporarily unavailable. Please refresh and try again.'));
+      return sb().auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: opts.redirectTo || cleanRedirect(),
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'select_account'
+          }
+        }
+      }).then(function (res) {
+        if (res && res.error) {
+          throw new Error(res.error.message || 'Google sign-in could not be started');
+        }
+        return res;
+      });
+    },
+
+    /** Sign in with Google Identity Services ID token */
+    signInWithGoogleIdToken: function (idToken, nonce) {
+      if (!sb()) return Promise.reject(new Error('Sign-in is temporarily unavailable. Please refresh and try again.'));
+      return sb().auth.signInWithIdToken({
+        provider: 'google',
+        token: idToken,
+        nonce: nonce
+      }).then(function (res) {
+        if (res && res.error) {
+          throw new Error(res.error.message || 'Google authentication failed');
+        }
+        return res;
+      });
+    },
+
     signOut: function () {
       var done = function () {
         currentUser = null; currentProfile = null; currentSession = null;
