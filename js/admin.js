@@ -32,7 +32,8 @@
     $('app').classList.add('hidden'); $('gate').classList.remove('hidden');
     if (msg) $('gate-msg').textContent = msg;
     $('gate-out').classList.toggle('hidden', !showSignout);
-    $('gate-form').classList.toggle('hidden', !!showSignout);
+    var act = $('gate-actions');
+    if (act) act.classList.toggle('hidden', !!showSignout);
   }
   function enter(user) {
     $('gate').classList.add('hidden'); $('app').classList.remove('hidden');
@@ -43,8 +44,8 @@
     var A = window.SangoAuth;
     if (!A) return;
     var user = A.getUser();
-    if (!user) return gate('Sign in with your administrator email. We\'ll send you a secure sign-in link.', false);
-    if (!A.isAdmin()) return gate(user.email + ' does not have administrator access.', true);
+    if (!user) return gate('Sign in with your authorized administrator Google account to access Admin Studio.', false);
+    if (!A.isAdmin()) return gate((user.email || 'This account') + ' does not have administrator access. Please sign in with an authorized admin account.', true);
     enter(user);
   }
   function waitForAuth() {
@@ -52,13 +53,24 @@
     window.AppEvent.on('auth:changed', checkAuth);
     window.SangoAuth.init().then(checkAuth);
   }
-  $('gate-form').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var b = $('gate-btn'); b.disabled = true; b.textContent = 'Sending…';
-    window.SangoAuth.sendMagicLink($('gate-email').value, { redirectTo: location.origin + '/admin/' }).then(function () {
-      $('gate-form').classList.add('hidden'); $('gate-sent').classList.remove('hidden');
-    }).catch(function (err) { toast(err.message, true); b.disabled = false; b.textContent = 'Email me a sign-in link'; });
-  });
+
+  var googleGateBtn = $('gate-google-btn');
+  if (googleGateBtn) {
+    googleGateBtn.addEventListener('click', function () {
+      var A = window.SangoAuth;
+      if (!A || !A.signInWithGoogle) return toast('Authentication is still loading. Please wait a moment.', true);
+      googleGateBtn.disabled = true;
+      var lbl = $('gate-google-label');
+      var original = lbl ? lbl.textContent : 'Sign in with Google';
+      if (lbl) lbl.textContent = 'Connecting to Google…';
+      A.signInWithGoogle({ redirectTo: location.origin + '/admin/' }).catch(function (err) {
+        toast(err.message || 'Google sign-in could not be started', true);
+        googleGateBtn.disabled = false;
+        if (lbl) lbl.textContent = original;
+      });
+    });
+  }
+
   $('gate-out').addEventListener('click', function () { window.SangoAuth.signOut().then(checkAuth); });
   $('signout').addEventListener('click', function () { window.SangoAuth.signOut().then(checkAuth); });
 

@@ -89,25 +89,34 @@
   </style>
 </head>
 <body>
-<script>window.SANGO_ADMIN_PAGE = true;</script>
+<script>
+  window.SANGO_ADMIN_PAGE = true;
+  window.GOOGLE_CLIENT_ID = '60204794856-m4k3370qb6aq603h0ongu1c7st76ospf.apps.googleusercontent.com';
+</script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <!-- Sign-in gate -->
 <div id="gate">
   <div class="gate-card">
     <div style="margin-bottom:16px;text-align:center"><img src="/images/logo.png" alt="Sango Fiora" style="height:44px;width:auto;margin:0 auto;display:block;object-fit:contain"></div>
     <h1>Sango Fiora Admin</h1>
-    <p id="gate-msg">Sign in with your administrator email. We'll send you a secure sign-in link.</p>
-    <form id="gate-form" style="margin-top:20px" novalidate>
-      <label class="f" for="gate-email">Admin email</label>
-      <input id="gate-email" type="email" autocomplete="email" required placeholder="you@example.com">
-      <button id="gate-btn" class="btn pri" style="width:100%;justify-content:center;margin-top:14px;padding:12px" type="submit">Email me a sign-in link</button>
-    </form>
-    <div id="gate-sent" class="hidden" style="margin-top:20px;text-align:center">
-      <span class="ms" style="font-size:40px;color:var(--ok)">mark_email_read</span>
-      <p style="margin-top:8px"><b style="color:var(--tx)">Check your inbox</b><br>Open the link on this device to continue.</p>
+    <p id="gate-msg">Sign in with your authorized administrator Google account to access Admin Studio.</p>
+
+    <!-- Professional 1-Click Google Sign-In for Admin -->
+    <div id="gate-actions" style="margin-top:24px">
+      <button type="button" id="gate-google-btn" class="btn" style="width:100%;justify-content:center;padding:12px 16px;background:#ffffff;border:1px solid #d1d5db;color:#374151;font-weight:600;font-size:14px;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,0.05);display:flex;align-items:center;gap:10px;cursor:pointer;transition:all 0.15s ease;">
+        <svg style="width:20px;height:20px;flex-shrink:0" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+          <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+          <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 10.03 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+          <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+        </svg>
+        <span id="gate-google-label">Sign in with Google</span>
+      </button>
     </div>
+
     <button id="gate-out" class="btn hidden" style="width:100%;justify-content:center;margin-top:14px" type="button">Sign out</button>
-    <p style="margin-top:18px;text-align:center"><a href="/" style="color:var(--g);font-weight:600;text-decoration:none;font-size:13px">← Back to store</a></p>
+    <p style="margin-top:20px;text-align:center"><a href="/" style="color:var(--g);font-weight:600;text-decoration:none;font-size:13px">← Back to store</a></p>
   </div>
 </div>
 
