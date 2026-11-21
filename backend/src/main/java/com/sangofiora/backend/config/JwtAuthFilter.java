@@ -38,7 +38,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             token = authHeader.substring(7).trim();
         }
 
-        // 1. Direct admin credential token support (e.g. "Bearer admin:kishorevk40@gmail.com" or "Bearer sango-admin-*")
+        // 1. Direct admin credential token support (e.g. "Bearer admin:admin@sangofiora.com" or "Bearer sango-admin-*")
         if (token != null && (token.startsWith("admin:") || token.startsWith("sango-admin") || "admin".equalsIgnoreCase(token))) {
             String email = token.startsWith("admin:") ? token.substring(6).trim().toLowerCase() : (adminEmailHeader != null ? adminEmailHeader : "admin@sangofiora.com");
             setAdminAuthentication(email.isEmpty() ? "admin@sangofiora.com" : email);
@@ -106,9 +106,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (adminList != null && adminList.stream().anyMatch(e -> e.equalsIgnoreCase(normalized))) {
             return true;
         }
-        return "kishorevk40@gmail.com".equalsIgnoreCase(normalized)
-                || "shamnaraja07@gmail.com".equalsIgnoreCase(normalized)
-                || normalized.contains("admin")
+        return normalized.contains("admin")
                 || normalized.endsWith("@sangofiora.com");
     }
 

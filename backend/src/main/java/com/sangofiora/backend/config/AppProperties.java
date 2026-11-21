@@ -14,7 +14,7 @@ public class AppProperties {
     private Payment payment = new Payment();
     private Stripe stripe = new Stripe();
     private String googleSheetsWebhookUrl;
-    private List<String> adminEmails = new ArrayList<>(List.of("kishorevk40@gmail.com", "shamnaraja07@gmail.com"));
+    private List<String> adminEmails = new ArrayList<>();
 
     public static class Payment {
         private String secret = "sango_botanical_sec_9941a8dbf2e4c19a";
@@ -53,7 +53,7 @@ public class AppProperties {
     }
 
     public List<String> adminEmails() {
-        return adminEmails != null ? adminEmails : List.of("kishorevk40@gmail.com", "shamnaraja07@gmail.com");
+        return adminEmails != null ? adminEmails : List.of();
     }
 
     public String getPaymentSecret() { return paymentSecret; }

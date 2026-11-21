@@ -141,7 +141,9 @@
         }
       } catch (e) {}
       if (!headers['Authorization']) {
-        headers['Authorization'] = 'Bearer admin:kishorevk40@gmail.com';
+        var user = (window.SangoAuth && window.SangoAuth.getUser) ? window.SangoAuth.getUser() : null;
+        var adminEmail = (user && user.email) ? user.email : 'admin@sangofiora.com';
+        headers['Authorization'] = 'Bearer admin:' + adminEmail;
       }
       headers['X-Admin-Role'] = 'admin';
 

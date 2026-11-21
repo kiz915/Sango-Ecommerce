@@ -33,10 +33,10 @@ description: Track your handcrafted artificial plant delivery status across Indi
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 id="banner-order-id" class="text-xl md:text-2xl font-bold font-sans tracking-tight text-white">
-              Order #SANGO-92418 • Tracking Pipeline
+              Order Tracking Pipeline
             </h2>
             <p id="banner-order-meta" class="text-xs md:text-sm text-amber-gold font-medium mt-1.5">
-              Placed on Today, 04:30 PM • Estimated White-Glove Handover: 4 Business Days • Carrier: BlueDart Air Express
+              Live status updates for your botanical delivery.
             </p>
           </div>
           <div class="shrink-0">
@@ -113,22 +113,22 @@ description: Track your handcrafted artificial plant delivery status across Indi
 
         <div class="space-y-2.5 text-xs text-gray-700 leading-relaxed font-body-md">
           <p>
-            <strong class="text-gray-900">Customer:</strong> <span id="detail-customer-name">Kishore V</span>
+            <strong class="text-gray-900">Customer:</strong> <span id="detail-customer-name">—</span>
           </p>
           <p>
-            <strong class="text-gray-900">Phone:</strong> <span id="detail-customer-phone">+91 98765 43210</span>
+            <strong class="text-gray-900">Phone:</strong> <span id="detail-customer-phone">—</span>
           </p>
           <p>
-            <strong class="text-gray-900">Destination:</strong> <span id="detail-customer-address">Flat 4B, Emerald Heights, Bangalore, Karnataka - 560001</span>
+            <strong class="text-gray-900">Destination:</strong> <span id="detail-customer-address">—</span>
           </p>
           <p>
-            <strong class="text-gray-900">Payment Gateway:</strong> <span id="detail-payment-gateway">Stripe International (Card ending 4242)</span>
+            <strong class="text-gray-900">Payment Gateway:</strong> <span id="detail-payment-gateway">—</span>
           </p>
           <p>
-            <strong class="text-gray-900">Transaction Ref:</strong> <span id="detail-txn-ref" class="font-mono bg-gray-100 px-2 py-0.5 rounded text-deep-forest">ch_stripe_sango_991823</span>
+            <strong class="text-gray-900">Transaction Ref:</strong> <span id="detail-txn-ref" class="font-mono bg-gray-100 px-2 py-0.5 rounded text-deep-forest">—</span>
           </p>
           <p>
-            <strong class="text-gray-900">Items:</strong> <span id="detail-items-list">Fiddle Leaf Fig (180cm), Rose Plant (White, 90cm)</span>
+            <strong class="text-gray-900">Items:</strong> <span id="detail-items-list">—</span>
           </p>
           <p>
             <strong class="text-gray-900">Includes:</strong> <span id="detail-inclusions" class="text-emerald-800 font-medium">Ceramic Designer Pots + Moisture-proof Moss Inlay + Care Kit</span>
@@ -263,33 +263,33 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
 
-    // Consignment & Customer Details matching Figma
+    // Consignment & Customer Details from real order
     var cust = order.customer || {};
-    var name = order.customerName || cust.name || 'Kishore V';
-    var phone = cust.phone || '+91 98765 43210';
-    var addr = cust.address || 'Flat 4B, Emerald Heights, Botanical Garden Road';
-    var city = cust.city || 'Bangalore';
-    var state = cust.state || 'Karnataka';
-    var pin = cust.pincode || '560001';
+    var name = order.customerName || cust.name || 'Valued Customer';
+    var phone = order.customerPhone || cust.phone || 'Phone on file';
+    var addr = order.shippingAddress || cust.address || 'Address on file';
+    var city = order.city || cust.city || '';
+    var state = order.state || cust.state || '';
+    var pin = order.pincode || cust.pincode || '';
+    var fullAddr = addr + (city ? ', ' + city : '') + (state ? ', ' + state : '') + (pin ? ' - ' + pin : '');
 
     if (detailCustName) detailCustName.textContent = name;
     if (detailCustPhone) detailCustPhone.textContent = phone;
-    if (detailCustAddr) detailCustAddr.textContent = addr + ', ' + city + ', ' + state + ' - ' + pin;
+    if (detailCustAddr) detailCustAddr.textContent = fullAddr;
 
-    var gw = order.paymentMethod || 'Stripe International (Card ending 4242)';
-    if (gw === 'STRIPE' || gw === 'stripe') gw = 'Stripe International (Card ending 4242)';
+    var gw = order.paymentMethod || 'Online Payment';
     if (detailPayGw) detailPayGw.textContent = gw;
 
-    var txn = order.txnId || order.txn_id || 'ch_stripe_sango_991823';
+    var txn = order.txnId || order.txn_id || order.paymentId || 'Confirmed';
     if (detailTxnRef) detailTxnRef.textContent = txn;
 
     if (detailItems) {
       if (order.items && order.items.length > 0) {
         detailItems.textContent = order.items.map(function (it) {
-          return (it.name || 'Botanical Item') + (it.size ? ' (' + it.size + ')' : '');
+          return (it.productName || it.name || 'Botanical Item') + (it.size ? ' (' + it.size + ')' : '') + (it.qty ? ' x' + it.qty : '');
         }).join(', ');
       } else {
-        detailItems.textContent = 'Fiddle Leaf Fig (180cm), Rose Plant (White, 90cm), Areca Palm Tree (180cm)';
+        detailItems.textContent = 'Botanical items';
       }
     }
 
@@ -398,35 +398,27 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+  function escapeHTML(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str == null ? '' : String(str)));
+    return div.innerHTML;
+  }
+
   function searchLocal(id) {
     try {
       var orders = JSON.parse(localStorage.getItem('sango-orders-v1')) || [];
-      var found = orders.find(function (o) { return o.orderId.toLowerCase() === id.toLowerCase(); });
+      var found = orders.find(function (o) { return o.orderId && o.orderId.toLowerCase() === id.toLowerCase(); });
       if (found) {
         displayOrder(found);
       } else {
-        // Fallback default sample order matching Figma Artboard 3
-        displayOrder({
-          orderId: id || 'SANGO-92418',
-          status: 'In Transit',
-          statusStep: 4,
-          createdAt: new Date().toISOString(),
-          customer: {
-            name: 'Kishore V',
-            phone: '+91 98765 43210',
-            address: 'Bangalore, Karnataka',
-            city: 'Bangalore',
-            state: 'Karnataka',
-            pincode: '560001'
-          },
-          paymentMethod: 'Stripe International (Card ending 4242)',
-          txnId: 'ch_stripe_sango_991823',
-          items: [
-            { name: 'Fiddle Leaf Fig', size: '180cm' },
-            { name: 'Rose Plant (White)', size: '90cm' },
-            { name: 'Areca Palm Tree', size: '180cm' }
-          ]
-        });
+        var trackResult = document.getElementById('track-result');
+        if (trackResult) {
+          trackResult.innerHTML = '<div class="p-8 text-center bg-white rounded-3xl border border-outline-variant/30 shadow-sm">' +
+            '<div class="w-14 h-14 mx-auto rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-2xl font-bold mb-3">🔍</div>' +
+            '<h3 class="text-lg font-bold text-deep-forest mb-1">Order Not Found</h3>' +
+            '<p class="text-xs text-gray-500 max-w-sm mx-auto">No order found with reference "<strong class="text-deep-forest font-mono">' + escapeHTML(id) + '</strong>". Please check the order reference number from your confirmation SMS or email.</p>' +
+            '</div>';
+        }
       }
     } catch (e) {
       displayOrder(null);
@@ -440,9 +432,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Auto-search if URL has ?orderId= or default demo
+  // Auto-search if URL has ?orderId=
   var params = new URLSearchParams(window.location.search);
-  var initialId = params.get('orderId') || 'SANGO-92418';
+  var initialId = params.get('orderId') || '';
   if (initialId) {
     if (input) input.value = initialId;
     searchOrder(initialId);

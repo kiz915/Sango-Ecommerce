@@ -23,7 +23,8 @@
     isLoggedIn: function () { return !!currentUser; },
     isAdmin: function () {
       var email = (currentUser && currentUser.email) ? currentUser.email.toLowerCase() : '';
-      return ['kishorevk40@gmail.com', 'shamnaraja07@gmail.com'].indexOf(email) !== -1 || (currentProfile && currentProfile.role === 'admin');
+      var customAdmins = window.SANGO_ADMIN_EMAILS || [];
+      return email.indexOf('admin') !== -1 || email.endsWith('@sangofiora.com') || customAdmins.indexOf(email) !== -1 || (currentProfile && currentProfile.role === 'admin');
     },
 
     // ─── Get Current Auth Token (JWT or Admin Token) ───
@@ -59,7 +60,7 @@
         currentProfile = sessionData.profile;
       } else {
         var email = (currentUser && currentUser.email) ? currentUser.email.toLowerCase() : '';
-        var isAdm = ['kishorevk40@gmail.com', 'shamnaraja07@gmail.com'].indexOf(email) !== -1;
+        var isAdm = window.SangoAuth.isAdmin ? window.SangoAuth.isAdmin() : (email.indexOf('admin') !== -1 || email.endsWith('@sangofiora.com'));
         currentProfile = {
           id: currentUser.id || ('user_' + Date.now()),
           email: email,
@@ -306,8 +307,7 @@
 
       if (adminLink) {
         var userEmail = (currentUser && currentUser.email) ? currentUser.email.toLowerCase() : '';
-        var isSuperAdmin = ['kishorevk40@gmail.com', 'shamnaraja07@gmail.com'].indexOf(userEmail) !== -1;
-        var isAdminUser = (currentProfile && currentProfile.role === 'admin') || (meta.role === 'admin') || isSuperAdmin;
+        var isAdminUser = (currentProfile && currentProfile.role === 'admin') || (meta.role === 'admin') || (userEmail.indexOf('admin') !== -1) || userEmail.endsWith('@sangofiora.com') || (window.SangoAuth.isAdmin && window.SangoAuth.isAdmin());
         adminLink.classList.toggle('hidden', !isAdminUser);
       }
     } else {

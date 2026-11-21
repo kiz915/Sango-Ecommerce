@@ -221,8 +221,8 @@ document.addEventListener('DOMContentLoaded', function () {
   function performDirectSignIn(email) {
     if (!email) return;
     var em = email.toLowerCase();
-    var isAdm = (em.indexOf('admin') !== -1 || ['kishorevk40@gmail.com', 'shamnaraja07@gmail.com'].indexOf(em) !== -1 || em.endsWith('@sangofiora.com'));
-    var userId = (em === 'kishorevk40@gmail.com') ? 'f27c6c6f-a0a8-4963-8ff7-c2d5f6deddd9' : ('user_' + Math.random().toString(36).slice(2, 10));
+    var isAdm = (em.indexOf('admin') !== -1 || em.endsWith('@sangofiora.com') || (window.SANGO_ADMIN_EMAILS && window.SANGO_ADMIN_EMAILS.indexOf(em) !== -1));
+    var userId = 'usr_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
 
     window.SangoAuth.setSession({
       user: {
