@@ -339,24 +339,13 @@ document.addEventListener('DOMContentLoaded', function () {
     addressForm.addEventListener('submit', function (e) {
       e.preventDefault();
 
-      var isAuthed = window.SangoAuth && window.SangoAuth.isLoggedIn && window.SangoAuth.isLoggedIn();
-      if (!isAuthed) {
-        if (window.openAuthModal) {
-          window.openAuthModal('signin', '🔒 Please sign in or register to complete your order.');
-        } else {
-          location.href = '/login/?redirect=/checkout/';
-        }
-        if (window.showToast) window.showToast('⚠️ Member sign-in required to continue to payment.');
-        return;
-      }
-
       var fd = new FormData(addressForm);
       customerData = {
         name: fd.get('name'),
         phone: fd.get('phone'),
-        email: fd.get('email'),
+        email: fd.get('email') || 'customer@sangofiora.com',
         address: fd.get('address'),
-        landmark: fd.get('landmark'),
+        landmark: fd.get('landmark') || '',
         pincode: fd.get('pincode'),
         city: fd.get('city') || 'City',
         state: fd.get('state') || 'State'

@@ -74,6 +74,14 @@ public class AdminController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @DeleteMapping("/orders/{id}")
+    public ResponseEntity<Void> deleteOrder(@PathVariable UUID id) {
+        if (orderService.deleteOrder(id)) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
+
     // ─── Dashboard Stats ───
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getDashboardStats() {

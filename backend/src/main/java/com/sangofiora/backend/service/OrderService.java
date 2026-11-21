@@ -326,6 +326,15 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+    @Transactional
+    public boolean deleteOrder(UUID id) {
+        if (orderRepository.existsById(id)) {
+            orderRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
+
     private String generateUniqueOrderId() {
         String datePrefix = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         int rand = ThreadLocalRandom.current().nextInt(10000, 99999);

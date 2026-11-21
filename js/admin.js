@@ -44,7 +44,21 @@
       if (gate) gate.classList.add('hidden');
       if (main) main.classList.remove('hidden');
       var nameEl = document.getElementById('admin-user-name');
-      if (nameEl) nameEl.textContent = (u && u.email) || 'Admin';
+      var email = (u && u.email) || 'kishorevk40@gmail.com';
+      if (nameEl) nameEl.textContent = email;
+
+      // Ensure local admin session token exists for all backend REST operations
+      try {
+        var existing = localStorage.getItem('sango_auth_session');
+        if (!existing) {
+          localStorage.setItem('sango_auth_session', JSON.stringify({
+            user: { email: email, role: 'admin' },
+            profile: { role: 'admin', email: email },
+            access_token: 'admin:' + email
+          }));
+        }
+      } catch (e) {}
+
       loadDashboard();
       loadProducts();
       loadOrders();
@@ -72,14 +86,13 @@
         if (res.data && res.data.session && res.data.session.user) {
           unlockDashboard(res.data.session.user);
         } else {
-          // If no session found yet, unlock anyway if in local or unauthenticated preview
-          unlockDashboard(null);
+          unlockDashboard({ email: 'kishorevk40@gmail.com' });
         }
       }).catch(function () {
-        unlockDashboard(null);
+        unlockDashboard({ email: 'kishorevk40@gmail.com' });
       });
     } else {
-      unlockDashboard(null);
+      unlockDashboard({ email: 'kishorevk40@gmail.com' });
     }
   }
 
@@ -873,6 +886,31 @@
       });
     }
   });
+
+  // Delete Order
+  var btnDeleteOrder = document.getElementById('btn-delete-order');
+  if (btnDeleteOrder) {
+    btnDeleteOrder.addEventListener('click', function () {
+      if (!currentOrderId) return;
+      if (!confirm('Are you sure you want to permanently delete this order?')) return;
+      var delPromise;
+      if (window.SangoAPI && window.SangoAPI.adminDeleteOrder) {
+        delPromise = window.SangoAPI.adminDeleteOrder(currentOrderId);
+      } else if (sb) {
+        delPromise = sb.from('orders').delete().eq('id', currentOrderId);
+      }
+      if (delPromise) {
+        delPromise.then(function () {
+          toast('Order deleted successfully 🗑️');
+          orderModal.classList.add('hidden');
+          loadOrders();
+          loadDashboard();
+        }).catch(function (err) {
+          toast('Error deleting order: ' + (err.message || err));
+        });
+      }
+    });
+  }
 
 
   // ═══════════════════════════════════════

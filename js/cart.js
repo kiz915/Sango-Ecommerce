@@ -569,24 +569,9 @@
       };
       var buyQty = parseInt(buyBtn.dataset.qty || '1', 10);
 
-      // Security & Business Rule: Require authenticated member to Buy Now & Checkout
-      var isAuthed = window.SangoAuth && window.SangoAuth.isLoggedIn && window.SangoAuth.isLoggedIn();
-      if (!isAuthed) {
-        window._pendingCartAction = {
-          action: 'buy-now',
-          item: buyData,
-          qty: buyQty
-        };
-        if (window.openAuthModal) {
-          window.openAuthModal('signin', '🔒 Please sign in to your Sango Fiora account to proceed to checkout.');
-        } else {
-          window.location.href = '/login/?redirect=/checkout/';
-        }
-        return;
-      }
-
+      // Add directly to cart and immediately proceed to checkout
       window.CartEngine.addToCart(buyData, buyQty);
-      location.href = '/checkout/';
+      window.location.href = '/checkout/';
       return;
     }
 

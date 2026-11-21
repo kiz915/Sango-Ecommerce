@@ -28,13 +28,14 @@
   </script>
   <style>
     .hidden { display: none !important; }
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #F8F7F4; }
+    body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; background-color: #F8F7F4; margin: 0; color: #111827; }
     .mono { font-family: 'JetBrains Mono', monospace; }
     .tab-active { background-color: #0F291E !important; color: #FFFFFF !important; box-shadow: 0 4px 12px rgba(15, 41, 30, 0.25); }
     .fade-in { animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     .admin-card { transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
     .admin-card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.06); }
+    header.bg-deep-forest { background-color: #0F291E; }
   </style>
 </head>
 <body class="text-gray-900 min-h-screen">
@@ -520,6 +521,9 @@
         <textarea id="order-tracking-notes" rows="2" class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-deep-forest resize-none" placeholder="e.g. Shipped via BlueDart, AWB #12345"></textarea>
         <button id="btn-update-order-status" class="w-full bg-amber-gold hover:bg-amber-400 text-deep-forest py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md">
           Update Order Status
+        </button>
+        <button id="btn-delete-order" type="button" class="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all border border-rose-200 cursor-pointer">
+          Delete Order 🗑️
         </button>
       </div>
     </div>
