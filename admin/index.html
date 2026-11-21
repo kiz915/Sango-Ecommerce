@@ -87,6 +87,13 @@
         </button>
       </form>
 
+      <div class="mt-2.5">
+        <button type="button" id="btn-admin-magic-link" onclick="var em = (document.getElementById('admin-login-email').value || '').trim(); if (!em) { alert('Please enter your administrator email first.'); return; } this.textContent = 'Sending Magic Link...'; this.disabled = true; var self = this; if (window.SangoAuth && window.SangoAuth.sendEmailOtp) { window.SangoAuth.sendEmailOtp(em).then(function() { alert('Magic sign-in link dispatched to ' + em + '! Check your inbox ✉️'); self.textContent = 'Link Dispatched ✓'; }).catch(function(e) { alert('Error: ' + e.message); self.textContent = 'Send Sign-In Link ✉️'; self.disabled = false; }); } else { location.href='/?auth=login&redirect=/admin/'; }"
+          class="w-full bg-emerald-50 hover:bg-emerald-100 text-[#1B4332] border border-emerald-300/80 py-2.5 rounded-xl font-bold text-xs transition-all shadow-xs cursor-pointer flex items-center justify-center gap-1.5">
+          <span>✉️ Send Sign-In Link to Email</span>
+        </button>
+      </div>
+
       <div class="relative flex py-2 items-center">
         <div class="flex-grow border-t border-gray-200"></div>
         <span class="flex-shrink mx-3 text-gray-400 text-[10px] uppercase font-bold">Or</span>
