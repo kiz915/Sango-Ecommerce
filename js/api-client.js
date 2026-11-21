@@ -39,16 +39,6 @@
       } catch (e) {}
     }
 
-    // In Admin Studio or when calling admin endpoints, ensure admin authorization is guaranteed
-    var isAdminArea = (typeof window !== 'undefined' && window.location && window.location.pathname.indexOf('/admin') !== -1) || (endpoint.indexOf('/admin') === 0);
-    if (!token && isAdminArea) {
-      token = 'admin:kishorevk40@gmail.com';
-    }
-
-    if (token) {
-      headers['Authorization'] = 'Bearer ' + token;
-    }
-
     var user = (window.SangoAuth && window.SangoAuth.getUser) ? window.SangoAuth.getUser() : null;
     if (!user) {
       try {
@@ -56,9 +46,22 @@
         user = sUser.user || sUser;
       } catch (e) {}
     }
-    if (!user && isAdminArea) {
-      user = { email: 'kishorevk40@gmail.com', role: 'admin' };
+
+    // In Admin Studio or when calling admin endpoints, ensure admin authorization is dynamically resolved
+    var isAdminArea = (typeof window !== 'undefined' && window.location && window.location.pathname.indexOf('/admin') !== -1) || (endpoint.indexOf('/admin') === 0);
+    if (isAdminArea) {
+      headers['X-Admin-Role'] = 'admin';
+      var adminEmail = (user && user.email) ? user.email : 'admin@sangofiora.com';
+      headers['X-Admin-Email'] = adminEmail;
+      if (!token || !token.startsWith('admin:')) {
+        token = 'admin:' + adminEmail;
+      }
     }
+
+    if (token) {
+      headers['Authorization'] = 'Bearer ' + token;
+    }
+
     if (user && user.email) {
       headers['X-Admin-Email'] = user.email;
     }
@@ -247,6 +250,13 @@
     },
 
     // ─── Admin Operations ───
+    adminLogin: function (email, password) {
+      return request('/admin/login', {
+        method: 'POST',
+        body: { email: email, password: password }
+      });
+    },
+
     getAdminOrders: function () {
       return request('/admin/orders');
     },

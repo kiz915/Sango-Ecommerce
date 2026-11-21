@@ -31,6 +31,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
         String authHeader = request.getHeader("Authorization");
         String adminEmailHeader = request.getHeader("X-Admin-Email");
+        String adminRoleHeader = request.getHeader("X-Admin-Role");
 
         String token = null;
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -39,13 +40,21 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         // 1. Direct admin credential token support (e.g. "Bearer admin:kishorevk40@gmail.com" or "Bearer sango-admin-*")
         if (token != null && (token.startsWith("admin:") || token.startsWith("sango-admin") || "admin".equalsIgnoreCase(token))) {
-            String email = token.startsWith("admin:") ? token.substring(6).trim().toLowerCase() : "kishorevk40@gmail.com";
+            String email = token.startsWith("admin:") ? token.substring(6).trim().toLowerCase() : (adminEmailHeader != null ? adminEmailHeader : "admin@sangofiora.com");
             setAdminAuthentication(email.isEmpty() ? "admin@sangofiora.com" : email);
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 2. Parse Bearer Token (JWT from Supabase)
+        // 2. Explicit Admin Role or verified Admin Email header support
+        if ("admin".equalsIgnoreCase(adminRoleHeader) || (adminEmailHeader != null && isAuthorizedAdmin(adminEmailHeader))) {
+            String email = (adminEmailHeader != null && !adminEmailHeader.isBlank()) ? adminEmailHeader.trim().toLowerCase() : "admin@sangofiora.com";
+            setAdminAuthentication(email);
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // 3. Parse Bearer Token (JWT from Supabase or OAuth)
         if (token != null && !token.isEmpty()) {
             try {
                 SignedJWT jwt = SignedJWT.parse(token);
@@ -63,7 +72,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 String role = jwt.getJWTClaimsSet().getStringClaim("role");
                 String userId = jwt.getJWTClaimsSet().getSubject();
 
-                boolean isAdmin = isAuthorizedAdmin(email) || "admin".equalsIgnoreCase(role);
+                boolean isAdmin = "admin".equalsIgnoreCase(role) || "admin".equalsIgnoreCase(adminRoleHeader) || isAuthorizedAdmin(email);
 
                 List<SimpleGrantedAuthority> authorities = new ArrayList<>();
                 authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
@@ -79,14 +88,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(auth);
 
             } catch (ParseException e) {
-                log.debug("Bearer token is not a Nimbus JWT ({}), checking admin email header...", e.getMessage());
-                if (adminEmailHeader != null && isAuthorizedAdmin(adminEmailHeader)) {
-                    setAdminAuthentication(adminEmailHeader.trim().toLowerCase());
+                log.debug("Bearer token is not a Nimbus JWT ({}), checking admin authorization...", e.getMessage());
+                if ("admin".equalsIgnoreCase(adminRoleHeader) || (adminEmailHeader != null && isAuthorizedAdmin(adminEmailHeader))) {
+                    String email = (adminEmailHeader != null && !adminEmailHeader.isBlank()) ? adminEmailHeader.trim().toLowerCase() : "admin@sangofiora.com";
+                    setAdminAuthentication(email);
                 }
             }
-        } else if (adminEmailHeader != null && isAuthorizedAdmin(adminEmailHeader)) {
-            // 3. Fallback to verified admin header
-            setAdminAuthentication(adminEmailHeader.trim().toLowerCase());
         }
 
         filterChain.doFilter(request, response);

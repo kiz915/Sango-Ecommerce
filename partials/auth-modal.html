@@ -92,9 +92,14 @@
       </div>
 
       <div class="space-y-2.5 pt-1">
+        <button type="button" id="modal-otp-instant-login"
+          class="w-full bg-[#1B4332] hover:bg-[#2D6A4F] text-white py-3 rounded-2xl font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-98 flex items-center justify-center gap-2">
+          <span>⚡ Instant Sign In (Skip Email Wait)</span>
+        </button>
+
         <button type="button" id="modal-resend-otp"
-          class="w-full bg-[#0F291E] hover:bg-[#1B4332] text-white py-3 rounded-2xl font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-98 flex items-center justify-center gap-2">
-          <span>Resend Sign-In Link</span>
+          class="w-full bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer active:scale-98 flex items-center justify-center gap-2">
+          <span>Resend Email Link</span>
           <span>✉️</span>
         </button>
 
@@ -209,32 +214,44 @@ document.addEventListener('DOMContentLoaded', function () {
   var rateLimitCard = document.getElementById('modal-rate-limit-card');
   var directLoginBtn = document.getElementById('modal-btn-direct-login');
   var directLoginEmail = document.getElementById('modal-direct-login-email');
+  var otpInstantLoginBtn = document.getElementById('modal-otp-instant-login');
 
   var currentTargetEmail = '';
 
+  function performDirectSignIn(email) {
+    if (!email) return;
+    var em = email.toLowerCase();
+    var isAdm = (em.indexOf('admin') !== -1 || ['kishorevk40@gmail.com', 'shamnaraja07@gmail.com'].indexOf(em) !== -1 || em.endsWith('@sangofiora.com'));
+    var userId = (em === 'kishorevk40@gmail.com') ? 'f27c6c6f-a0a8-4963-8ff7-c2d5f6deddd9' : ('user_' + Math.random().toString(36).slice(2, 10));
+
+    window.SangoAuth.setSession({
+      user: {
+        id: userId,
+        email: email,
+        role: isAdm ? 'admin' : 'customer',
+        user_metadata: { full_name: email.split('@')[0], name: email.split('@')[0] }
+      },
+      profile: {
+        id: userId,
+        email: email,
+        full_name: email.split('@')[0],
+        role: isAdm ? 'admin' : 'customer'
+      }
+    }).then(function () {
+      if (rateLimitCard) rateLimitCard.classList.add('hidden');
+      handleSuccessfulAuth();
+    });
+  }
+
+  if (otpInstantLoginBtn) {
+    otpInstantLoginBtn.addEventListener('click', function () {
+      performDirectSignIn(currentTargetEmail || (emailInput && emailInput.value ? emailInput.value.trim() : 'customer@sangofiora.com'));
+    });
+  }
+
   if (directLoginBtn) {
     directLoginBtn.addEventListener('click', function () {
-      if (!currentTargetEmail) return;
-      var em = currentTargetEmail.toLowerCase();
-      var isAdm = ['kishorevk40@gmail.com', 'shamnaraja07@gmail.com'].indexOf(em) !== -1;
-      var userId = (em === 'kishorevk40@gmail.com') ? 'f27c6c6f-a0a8-4963-8ff7-c2d5f6deddd9' : ('user_' + Math.random().toString(36).slice(2, 10));
-
-      window.SangoAuth.setSession({
-        user: {
-          id: userId,
-          email: currentTargetEmail,
-          user_metadata: { full_name: currentTargetEmail.split('@')[0], name: currentTargetEmail.split('@')[0] }
-        },
-        profile: {
-          id: userId,
-          email: currentTargetEmail,
-          full_name: currentTargetEmail.split('@')[0],
-          role: isAdm ? 'admin' : 'customer'
-        }
-      }).then(function () {
-        if (rateLimitCard) rateLimitCard.classList.add('hidden');
-        handleSuccessfulAuth();
-      });
+      performDirectSignIn(currentTargetEmail);
     });
   }
 

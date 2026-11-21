@@ -31,6 +31,7 @@ public class SecurityConfig {
                     "/api/spreadsheet/**",
                     "/api/orders/**",
                     "/api/payments/**",
+                    "/api/admin/login",
                     "/uploads/**",
                     "/h2-console/**",
                     "/error"

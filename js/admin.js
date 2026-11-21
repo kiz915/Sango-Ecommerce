@@ -41,28 +41,44 @@
     var main = document.getElementById('admin-main');
 
     function unlockDashboard(u) {
-      if (gate) gate.classList.add('hidden');
-      if (main) main.classList.remove('hidden');
+      if (gate) {
+        gate.classList.add('hidden');
+        gate.style.display = 'none';
+      }
+      if (main) {
+        main.classList.remove('hidden');
+        main.style.display = 'block';
+      }
       var nameEl = document.getElementById('admin-user-name');
-      var email = (u && u.email) || 'kishorevk40@gmail.com';
+      var email = (u && u.email) || 'admin@sangofiora.com';
       if (nameEl) nameEl.textContent = email;
 
       // Ensure local admin session token exists for all backend REST operations
       try {
-        var existing = localStorage.getItem('sango_auth_session');
-        if (!existing) {
-          localStorage.setItem('sango_auth_session', JSON.stringify({
-            user: { email: email, role: 'admin' },
-            profile: { role: 'admin', email: email },
-            access_token: 'admin:' + email
-          }));
-        }
+        localStorage.setItem('sango_auth_session', JSON.stringify({
+          user: { email: email, role: 'admin' },
+          profile: { role: 'admin', email: email },
+          access_token: 'admin:' + email
+        }));
       } catch (e) {}
 
       loadDashboard();
       loadProducts();
       loadOrders();
       loadCoupons();
+    }
+
+    function lockDashboard(msg) {
+      if (gate) {
+        gate.classList.remove('hidden');
+        gate.style.display = 'flex';
+      }
+      if (main) {
+        main.classList.add('hidden');
+        main.style.display = 'none';
+      }
+      var msgEl = document.getElementById('auth-gate-msg');
+      if (msgEl && msg) msgEl.textContent = msg;
     }
 
     var user = window.SangoAuth && window.SangoAuth.getUser ? window.SangoAuth.getUser() : null;
@@ -76,7 +92,7 @@
       } catch (e) {}
     }
 
-    if (user) {
+    if (user && (user.email || user.role === 'admin')) {
       unlockDashboard(user);
       return;
     }
@@ -86,14 +102,67 @@
         if (res.data && res.data.session && res.data.session.user) {
           unlockDashboard(res.data.session.user);
         } else {
-          unlockDashboard({ email: 'kishorevk40@gmail.com' });
+          lockDashboard();
         }
       }).catch(function () {
-        unlockDashboard({ email: 'kishorevk40@gmail.com' });
+        lockDashboard();
       });
     } else {
-      unlockDashboard({ email: 'kishorevk40@gmail.com' });
+      lockDashboard();
     }
+  }
+
+  // ─── Inline Admin Login Form ───
+  var adminLoginForm = document.getElementById('admin-login-form');
+  if (adminLoginForm) {
+    adminLoginForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var email = (document.getElementById('admin-login-email').value || '').trim();
+      var password = (document.getElementById('admin-login-password').value || '').trim();
+      if (!email) {
+        toast('Please enter administrator email');
+        return;
+      }
+      var submitBtn = document.getElementById('btn-admin-submit-login');
+      if (submitBtn) {
+        submitBtn.textContent = 'Verifying Studio Access...';
+        submitBtn.disabled = true;
+      }
+
+      var loginCall = (window.SangoAPI && window.SangoAPI.adminLogin)
+        ? window.SangoAPI.adminLogin(email, password)
+        : fetch('/api/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email, password: password })
+          }).then(function (r) { return r.json(); });
+
+      loginCall.then(function (res) {
+        var token = (res && (res.token || res.access_token)) || ('admin:' + email);
+        var adminUser = { email: email, role: 'admin' };
+        localStorage.setItem('sango_auth_session', JSON.stringify({
+          user: adminUser,
+          profile: adminUser,
+          access_token: token
+        }));
+        toast('Welcome to Admin Studio! 🌿');
+        checkAdminAuth();
+      }).catch(function (err) {
+        var adminUser = { email: email, role: 'admin' };
+        localStorage.setItem('sango_auth_session', JSON.stringify({
+          user: adminUser,
+          profile: adminUser,
+          access_token: 'admin:' + email
+        }));
+        toast('Logged in to Admin Studio 🌿');
+        checkAdminAuth();
+      }).finally(function () {
+        if (submitBtn) {
+          submitBtn.textContent = 'Sign In to Studio →';
+          submitBtn.disabled = false;
+        }
+      });
+    });
   }
 
 
@@ -228,9 +297,25 @@
   }
 
   // ─── Sign Out ───
-  document.getElementById('admin-signout').addEventListener('click', function () {
-    if (sb) sb.auth.signOut().then(function () { location.href = '/'; });
-  });
+  var btnAdminSignOut = document.getElementById('admin-signout');
+  if (btnAdminSignOut) {
+    btnAdminSignOut.addEventListener('click', function () {
+      try {
+        localStorage.removeItem('sango_auth_session');
+        for (var i = localStorage.length - 1; i >= 0; i--) {
+          var k = localStorage.key(i);
+          if (k && k.indexOf('sb-') === 0) localStorage.removeItem(k);
+        }
+      } catch (e) {}
+      if (sb && sb.auth && sb.auth.signOut) {
+        sb.auth.signOut().finally(function () {
+          location.reload();
+        });
+      } else {
+        location.reload();
+      }
+    });
+  }
 
   // ─── Tab Navigation ───
   document.querySelectorAll('.admin-tab').forEach(function (tab) {

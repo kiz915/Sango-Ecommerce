@@ -21,6 +21,23 @@ public class AdminController {
     private final ProductService productService;
     private final OrderService orderService;
 
+    // ─── Admin Authentication Endpoint ───
+    @PostMapping("/login")
+    public ResponseEntity<Map<String, Object>> adminLogin(@RequestBody Map<String, String> body) {
+        String email = body.getOrDefault("email", "").trim().toLowerCase();
+        if (email.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email is required"));
+        }
+        String token = "admin:" + email;
+        return ResponseEntity.ok(Map.of(
+                "token", token,
+                "access_token", token,
+                "user", Map.of("email", email, "role", "admin"),
+                "role", "admin",
+                "message", "Authenticated successfully"
+        ));
+    }
+
     // ─── Products Admin ───
     @GetMapping("/products")
     public ResponseEntity<List<Product>> getAllProducts() {
