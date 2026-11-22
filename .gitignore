@@ -37,7 +37,7 @@ _xlsx-media/
 .gsd/
 .vscode/
 tests/
-assets/
+!assets/originals/
 scripts/audit-mobile.js
 scripts/validate-*.ps1
 scripts/validate-*.sh

@@ -136,6 +136,22 @@ async function removeBackgroundAndFit(cfg) {
     }
   }
 
+  // Eliminate any trapped background islands between leaves for foliage plants
+  if (cfg.name !== "White Rose Plant") {
+    for (let i = 0; i < w * h; i++) {
+      if (isBg[i] === 0) {
+        const r = data[i * ch];
+        const g = data[i * ch + 1];
+        const b = data[i * ch + 2];
+        const minVal = Math.min(r, g, b);
+        const sat = Math.max(r, g, b) - minVal;
+        if (minVal >= 215 && sat <= 14) {
+          isBg[i] = 1;
+        }
+      }
+    }
+  }
+
   // Build alpha channel with edge smoothing (alpha matting)
   const alphaBuffer = Buffer.alloc(w * h * 4);
 
