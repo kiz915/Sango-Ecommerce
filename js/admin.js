@@ -65,14 +65,18 @@
     });
   }
   function waitForAuth(attempt) {
+    if (window.__SANGO_INSTANT_ADMIN) {
+      enter(window.__SANGO_INSTANT_ADMIN);
+    }
     attempt = attempt || 0;
     if (!window.SangoSupabase || !window.SangoAuth) {
-      if (attempt > 20) {
-        // Fallback after 800ms if scripts are delayed
-        gate('Sign in with your authorized administrator Google account to access Admin Studio.', false);
+      if (attempt > 40) {
+        if (!window.__SANGO_INSTANT_ADMIN) {
+          gate('Sign in with your authorized administrator Google account to access Admin Studio.', false);
+        }
         return;
       }
-      return setTimeout(function () { waitForAuth(attempt + 1); }, 40);
+      return setTimeout(function () { waitForAuth(attempt + 1); }, 50);
     }
     window.AppEvent.on('auth:changed', checkAuth);
     if (window.SangoAuth.getUser()) checkAuth();

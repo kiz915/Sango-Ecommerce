@@ -182,6 +182,15 @@
     var userName = document.getElementById('auth-user-name');
     var userAvatar = document.getElementById('auth-user-avatar');
     var adminLink = document.getElementById('auth-admin-link');
+
+    // Mobile drawer elements
+    var mLoginBtn = document.getElementById('mobile-auth-login-btn');
+    var mUserSection = document.getElementById('mobile-auth-user-section');
+    var mUserName = document.getElementById('mobile-user-name');
+    var mUserEmail = document.getElementById('mobile-user-email');
+    var mUserAvatar = document.getElementById('mobile-user-avatar');
+    var mAdminLink = document.getElementById('mobile-auth-admin-link');
+
     if (currentUser) {
       if (loginBtn) loginBtn.style.display = 'none';
       if (userMenu) userMenu.classList.remove('hidden');
@@ -190,11 +199,28 @@
       if (userName) userName.textContent = name;
       var avatar = (currentProfile && currentProfile.avatar_url) || meta.avatar_url || meta.picture || '';
       if (userAvatar) { if (avatar) { userAvatar.src = avatar; userAvatar.classList.remove('hidden'); } else userAvatar.classList.add('hidden'); }
-      if (adminLink) adminLink.classList.toggle('hidden', !window.SangoAuth.isAdmin());
+      var isAdm = window.SangoAuth.isAdmin();
+      if (adminLink) adminLink.classList.toggle('hidden', !isAdm);
+
+      // Mobile sync
+      if (mLoginBtn) mLoginBtn.classList.add('hidden');
+      if (mUserSection) mUserSection.classList.remove('hidden');
+      if (mUserName) mUserName.textContent = name;
+      if (mUserEmail) mUserEmail.textContent = currentUser.email || '';
+      if (mUserAvatar) {
+        if (avatar) { mUserAvatar.src = avatar; mUserAvatar.classList.remove('hidden'); }
+        else mUserAvatar.classList.add('hidden');
+      }
+      if (mAdminLink) mAdminLink.classList.toggle('hidden', !isAdm);
     } else {
       if (loginBtn) loginBtn.style.display = '';
       if (userMenu) userMenu.classList.add('hidden');
       if (adminLink) adminLink.classList.add('hidden');
+
+      // Mobile sync
+      if (mLoginBtn) mLoginBtn.classList.remove('hidden');
+      if (mUserSection) mUserSection.classList.add('hidden');
+      if (mAdminLink) mAdminLink.classList.add('hidden');
     }
   }
 
@@ -219,7 +245,7 @@
       if (window.openAuthModal) window.openAuthModal('login'); else location.href = '/?auth=login';
       return;
     }
-    if (e.target.closest('#auth-signout-btn') || e.target.closest('[data-auth-signout]')) {
+    if (e.target.closest('#auth-signout-btn') || e.target.closest('#mobile-auth-signout-btn') || e.target.closest('[data-auth-signout]')) {
       e.preventDefault(); window.SangoAuth.signOut();
     }
   });

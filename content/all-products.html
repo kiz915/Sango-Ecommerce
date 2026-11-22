@@ -212,8 +212,8 @@ permalink: /products/
 
       // Render compact HTML structure (responsive, no clipping, no scroll hijacking)
       container.innerHTML = `
-        <div class="dsh-trk" style="height: auto;">
-          <div class="dsh-root" style="height: 510px; touch-action: pan-y;" role="region" aria-roledescription="carousel" aria-label="Artificial Plants" tabindex="0">
+        <div class="dsh-trk">
+          <div class="dsh-root" style="touch-action: pan-y;" role="region" aria-roledescription="carousel" aria-label="Artificial Plants" tabindex="0">
             <div class="dsh-canvas">
               <svg class="dsh-arc" viewBox="0 0 1080 520" aria-hidden="true">
                 <path id="orbit-arc-path" style="opacity: 0.34; fill: ${PLANTS[0].accent};" />
@@ -480,10 +480,13 @@ permalink: /products/
         const tl = gsap.timeline({ onComplete: () => { tlActive = null; } });
         tlActive = tl;
 
+        const isMobile = window.innerWidth < 640;
+        const swingAngle = isMobile ? 12 : SWING;
+
         // Orbit rotation
-        tl.to(aOrbit, { rotation: SWING * dir, duration: 0.62, ease: "power2.in", force3D: true }, 0)
+        tl.to(aOrbit, { rotation: swingAngle * dir, duration: 0.62, ease: "power2.in", force3D: true }, 0)
           .set(aOrbit, { autoAlpha: 0, rotation: 0 }, 0.62)
-          .fromTo(bOrbit, { autoAlpha: 1, rotation: -SWING * dir }, { rotation: 0, duration: 0.95, ease: "power3.out", force3D: true }, 0.3);
+          .fromTo(bOrbit, { autoAlpha: 1, rotation: -swingAngle * dir }, { rotation: 0, duration: 0.95, ease: "power3.out", force3D: true }, 0.3);
 
         // Title clip wipes
         tl.to(aT1, { clipPath: HIDE_1, duration: 0.42, ease: "power2.in" }, 0)

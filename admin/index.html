@@ -86,7 +86,28 @@
     @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
     .menu-btn{display:none}
     @media(max-width:860px){.shell{grid-template-columns:1fr}aside{position:fixed;left:0;top:0;width:240px;z-index:50;transform:translateX(-100%);transition:.2s}aside.open{transform:none}main{padding:18px 16px 50px}.menu-btn{display:inline-flex}.grid2,.grid3{grid-template-columns:1fr}}
+    html.admin-authed #gate { display: none !important; }
+    html.admin-authed #app { display: grid !important; }
   </style>
+  <script>
+    (function () {
+      try {
+        var appAdmins = ['kishorevk40@gmail.com', 'shamnaraja07@gmail.com', 'admin@sangofiora.com'];
+        for (var i = 0; i < localStorage.length; i++) {
+          var k = localStorage.key(i);
+          if (k && k.indexOf('auth-token') !== -1) {
+            var val = JSON.parse(localStorage.getItem(k));
+            var u = val && (val.user || (val.currentSession && val.currentSession.user));
+            if (u && u.email && appAdmins.indexOf(u.email.toLowerCase().trim()) !== -1) {
+              document.documentElement.classList.add('admin-authed');
+              window.__SANGO_INSTANT_ADMIN = u;
+              break;
+            }
+          }
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
 <script>

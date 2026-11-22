@@ -14,9 +14,9 @@
     "strict": false,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-      "@/components/ui/*": ["./components/ui/*"]
+      "@/*": ["./*"]
     }
   },
-  "include": ["components", "lib", "src"]
+  "include": ["lib", "src"],
+  "exclude": ["node_modules", "components", "_site", "backend"]
 }
