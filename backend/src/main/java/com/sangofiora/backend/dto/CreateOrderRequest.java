@@ -38,6 +38,8 @@ public class CreateOrderRequest {
 
     private String couponCode;
 
+    private String idempotencyKey;
+
     @NotEmpty(message = "Order must contain at least one item")
     @Valid
     private List<OrderItemRequest> items;

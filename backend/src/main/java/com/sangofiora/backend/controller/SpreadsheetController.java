@@ -1,9 +1,11 @@
 package com.sangofiora.backend.controller;
 
 import com.sangofiora.backend.service.SpreadsheetService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -12,45 +14,16 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/spreadsheet")
-@CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 public class SpreadsheetController {
 
     private final SpreadsheetService spreadsheetService;
 
-    public SpreadsheetController(SpreadsheetService spreadsheetService) {
-        this.spreadsheetService = spreadsheetService;
-    }
-
     /**
-     * Records an order's delivery details into the Delivery Orders Spreadsheet
-     */
-    @PostMapping("/delivery")
-    public ResponseEntity<Map<String, Object>> recordDelivery(@RequestBody Map<String, Object> deliveryData) {
-        spreadsheetService.recordDeliveryOrder(deliveryData);
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Delivery details successfully recorded in spreadsheet",
-                "orderId", deliveryData.getOrDefault("orderId", "")
-        ));
-    }
-
-    /**
-     * Records a contact inquiry into the Contact Inquiries Spreadsheet
-     */
-    @PostMapping("/contact")
-    public ResponseEntity<Map<String, Object>> recordContact(@RequestBody Map<String, Object> contactData) {
-        spreadsheetService.recordContactInquiry(contactData);
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Contact inquiry successfully recorded in spreadsheet",
-                "ticketId", contactData.getOrDefault("ticketId", "")
-        ));
-    }
-
-    /**
-     * Download the official Delivery Orders Spreadsheet (.csv)
+     * Download the official Delivery Orders Spreadsheet (.csv) — strictly Admin only.
      */
     @GetMapping("/deliveries/download")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<byte[]> downloadDeliverySpreadsheet() throws IOException {
         byte[] csvBytes = spreadsheetService.getDeliverySpreadsheetBytes();
         return ResponseEntity.ok()
@@ -60,9 +33,10 @@ public class SpreadsheetController {
     }
 
     /**
-     * Download the official Contact Inquiries Spreadsheet (.csv)
+     * Download the official Contact Inquiries Spreadsheet (.csv) — strictly Admin only.
      */
     @GetMapping("/contacts/download")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<byte[]> downloadContactSpreadsheet() throws IOException {
         byte[] csvBytes = spreadsheetService.getContactSpreadsheetBytes();
         return ResponseEntity.ok()
@@ -72,17 +46,19 @@ public class SpreadsheetController {
     }
 
     /**
-     * Fetch delivery rows as JSON for admin viewing
+     * Fetch delivery rows as JSON — strictly Admin only.
      */
     @GetMapping("/deliveries")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Map<String, String>>> getDeliveryRows() {
         return ResponseEntity.ok(spreadsheetService.getDeliveryRows());
     }
 
     /**
-     * Fetch contact rows as JSON for admin viewing
+     * Fetch contact rows as JSON — strictly Admin only.
      */
     @GetMapping("/contacts")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Map<String, String>>> getContactRows() {
         return ResponseEntity.ok(spreadsheetService.getContactRows());
     }

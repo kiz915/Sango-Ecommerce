@@ -17,6 +17,8 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 
     Optional<Order> findByOrderId(String orderId);
 
+    Optional<Order> findByIdempotencyKey(String idempotencyKey);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT o FROM Order o WHERE o.id = :id")
     Optional<Order> findByIdWithLock(@Param("id") UUID id);
