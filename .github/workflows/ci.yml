@@ -10,6 +10,9 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
+      - name: Make Maven Wrapper Executable
+        run: chmod +x backend/mvnw
+
       - name: Run Maven Tests & Package
         run: cd backend && ./mvnw verify -DskipTests=false
 

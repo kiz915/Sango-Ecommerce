@@ -90,9 +90,6 @@ public class CartController {
 
         // Dynamic MRP Savings calculation (MRP list price vs actual Selling price)
         int mrpSavings = Math.max(0, mrpTotal - subtotal);
-        int volumeDiscountPercent = 0;
-        int volumeDiscount = 0;
-        String volumeMessage = "";
 
         // Apply Coupon Validation (includes First-Time Buyer check)
         int couponDiscount = 0;
