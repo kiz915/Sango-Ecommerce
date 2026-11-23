@@ -102,6 +102,9 @@ public class Order {
     @Column(name = "tracking_notes", columnDefinition = "TEXT")
     private String trackingNotes;
 
+    @Column(name = "idempotency_key", unique = true)
+    private String idempotencyKey;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonManagedReference
     @Builder.Default

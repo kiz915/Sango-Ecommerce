@@ -10,14 +10,17 @@ import java.util.List;
 @ConfigurationProperties(prefix = "app")
 public class AppProperties {
 
-    private String paymentSecret = "sango_botanical_sec_9941a8dbf2e4c19a";
+    private String paymentSecret;
     private Payment payment = new Payment();
     private Stripe stripe = new Stripe();
+    private Jwt jwt = new Jwt();
+    private Cors cors = new Cors();
+    private Upload upload = new Upload();
     private String googleSheetsWebhookUrl;
     private List<String> adminEmails = new ArrayList<>();
 
     public static class Payment {
-        private String secret = "sango_botanical_sec_9941a8dbf2e4c19a";
+        private String secret;
         private String merchantVpa = "pay@sangofiora";
 
         public String getSecret() { return secret; }
@@ -39,11 +42,50 @@ public class AppProperties {
         public void setWebhookSecret(String webhookSecret) { this.webhookSecret = webhookSecret; }
     }
 
+    public static class Jwt {
+        private String issuer = "https://hyecifzfswwrhsyrrxmw.supabase.co/auth/v1";
+        private String audience = "authenticated";
+        private String secret = "";
+        private String jwksUrl = "";
+
+        public String getIssuer() { return issuer; }
+        public void setIssuer(String issuer) { this.issuer = issuer; }
+        public String getAudience() { return audience; }
+        public void setAudience(String audience) { this.audience = audience; }
+        public String getSecret() { return secret; }
+        public void setSecret(String secret) { this.secret = secret; }
+        public String getJwksUrl() { return jwksUrl; }
+        public void setJwksUrl(String jwksUrl) { this.jwksUrl = jwksUrl; }
+    }
+
+    public static class Cors {
+        private List<String> allowedOrigins = List.of(
+                "https://sango-storefront-production.up.railway.app",
+                "https://sangofiora.com",
+                "https://www.sangofiora.com",
+                "http://localhost:8080",
+                "http://localhost:3000"
+        );
+
+        public List<String> getAllowedOrigins() { return allowedOrigins; }
+        public void setAllowedOrigins(List<String> allowedOrigins) { this.allowedOrigins = allowedOrigins; }
+    }
+
+    public static class Upload {
+        private String dir = "uploads/plants";
+        private long maxFileSize = 15 * 1024 * 1024; // 15MB
+
+        public String getDir() { return dir; }
+        public void setDir(String dir) { this.dir = dir; }
+        public long getMaxFileSize() { return maxFileSize; }
+        public void setMaxFileSize(long maxFileSize) { this.maxFileSize = maxFileSize; }
+    }
+
     public String paymentSecret() {
         if (payment != null && payment.getSecret() != null && !payment.getSecret().isBlank()) {
             return payment.getSecret();
         }
-        return (paymentSecret != null && !paymentSecret.isBlank()) ? paymentSecret : "sango_botanical_sec_9941a8dbf2e4c19a";
+        return (paymentSecret != null && !paymentSecret.isBlank()) ? paymentSecret : "";
     }
 
     public String merchantVpa() {
@@ -64,6 +106,15 @@ public class AppProperties {
 
     public Stripe getStripe() { return stripe; }
     public void setStripe(Stripe stripe) { this.stripe = stripe; }
+
+    public Jwt getJwt() { return jwt; }
+    public void setJwt(Jwt jwt) { this.jwt = jwt; }
+
+    public Cors getCors() { return cors; }
+    public void setCors(Cors cors) { this.cors = cors; }
+
+    public Upload getUpload() { return upload; }
+    public void setUpload(Upload upload) { this.upload = upload; }
 
     public String getGoogleSheetsWebhookUrl() { return googleSheetsWebhookUrl; }
     public void setGoogleSheetsWebhookUrl(String googleSheetsWebhookUrl) { this.googleSheetsWebhookUrl = googleSheetsWebhookUrl; }

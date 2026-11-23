@@ -1,5 +1,7 @@
 package com.sangofiora.backend.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sangofiora.backend.config.AppProperties;
 import com.sangofiora.backend.dto.CodConfirmRequest;
 import com.sangofiora.backend.dto.CreatePaymentIntentRequest;
@@ -21,7 +23,9 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -39,9 +43,11 @@ public class PaymentService {
     private final OrderRepository orderRepository;
     private final SpreadsheetService spreadsheetService;
     private final AppProperties appProperties;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String HMAC_ALGORITHM = "HmacSHA256";
     private static final String MERCHANT_NAME = "Sango Fiora Botanicals Pvt Ltd";
+    private static final long WEBHOOK_TOLERANCE_SECONDS = 300L; // 5 minutes replay protection
 
     @Transactional
     public PaymentIntentResponse createPaymentIntent(CreatePaymentIntentRequest request) {
@@ -105,19 +111,7 @@ public class PaymentService {
 
         // Idempotency: If already completed, return receipt
         if ("COMPLETED".equals(payment.getStatus())) {
-            return PaymentVerificationResponse.builder()
-                    .success(true)
-                    .paymentId(payment.getPaymentId())
-                    .orderId(payment.getOrderId())
-                    .status("COMPLETED")
-                    .txnId(payment.getGatewayPaymentId() != null ? payment.getGatewayPaymentId() : payment.getPaymentId())
-                    .receiptNumber("RCPT-" + payment.getPaymentId().replace("PAY-", ""))
-                    .amount(payment.getAmount())
-                    .currency(payment.getCurrency())
-                    .paymentMethod(payment.getPaymentMethod())
-                    .message("Payment already verified and completed.")
-                    .verifiedAt(payment.getVerifiedAt())
-                    .build();
+            return buildCompletedResponse(payment, "Payment already verified and completed.");
         }
 
         // Expiration check
@@ -132,7 +126,6 @@ public class PaymentService {
         boolean isCod = "COD".equalsIgnoreCase(payment.getPaymentMethod());
 
         if (isCod) {
-            // Anti-Fraud COD verification
             log.info("[Payment] Processing COD confirmation for order: {}", order.getOrderId());
             payment.setStatus("COMPLETED");
             payment.setGatewayPaymentId("COD-" + ThreadLocalRandom.current().nextInt(100000, 999999));
@@ -141,28 +134,41 @@ public class PaymentService {
             order.setStatus("Order Placed");
             order.setTxnId(payment.getGatewayPaymentId());
         } else {
-            // Online Gateway (UPI, Card, NetBanking) Cryptographic Signature & Integrity Check
+            // Online Gateway (UPI, Card, NetBanking) Cryptographic Signature Verification
             String gatewayPaymentId = request.getGatewayPaymentId();
             if (gatewayPaymentId == null || gatewayPaymentId.trim().isEmpty()) {
                 throw new IllegalArgumentException("Gateway payment ID is required");
             }
 
-            // Verify or compute signature
+            String secret = appProperties != null ? appProperties.paymentSecret() : "";
+            if (secret == null || secret.isBlank()) {
+                log.error("[Payment Security] Payment secret is not configured. Cannot verify payment.");
+                throw new IllegalStateException("Payment provider secret is not configured on server.");
+            }
+
             String expectedSignature = calculateHmacSha256(payment.getGatewayOrderId() + "|" + gatewayPaymentId);
-            String clientChecksum = calculateHmacSha256(payment.getOrderId() + ":" + payment.getPaymentId() + ":" + payment.getAmount());
-            if (request.getGatewaySignature() != null && !request.getGatewaySignature().trim().isEmpty()) {
-                boolean validSig = request.getGatewaySignature().equalsIgnoreCase(expectedSignature)
-                        || request.getGatewaySignature().equalsIgnoreCase(clientChecksum)
-                        || request.getGatewaySignature().equalsIgnoreCase(payment.getGatewayOrderId())
-                        || request.getGatewaySignature().startsWith("mock_sig_");
-                if (!validSig) {
-                    log.warn("[Payment Security] Invalid gateway signature received for payment: {}", payment.getPaymentId());
-                    payment.setStatus("FAILED");
-                    payment.setErrorCode("INVALID_SIGNATURE");
-                    payment.setErrorMessage("Cryptographic signature check failed.");
-                    paymentRepository.save(payment);
-                    throw new SecurityException("Payment verification failed: Invalid HMAC signature.");
-                }
+            String receivedSignature = request.getGatewaySignature();
+
+            if (receivedSignature == null || receivedSignature.trim().isEmpty()) {
+                log.warn("[Payment Security] Missing gateway signature for payment: {}", payment.getPaymentId());
+                payment.setStatus("FAILED");
+                payment.setErrorCode("MISSING_SIGNATURE");
+                payment.setErrorMessage("Signature is required for online payment verification.");
+                paymentRepository.save(payment);
+                throw new SecurityException("Payment verification failed: Missing cryptographic signature.");
+            }
+
+            // Constant-time comparison to prevent timing attacks
+            byte[] expectedBytes = expectedSignature.toLowerCase().getBytes(StandardCharsets.UTF_8);
+            byte[] receivedBytes = receivedSignature.trim().toLowerCase().getBytes(StandardCharsets.UTF_8);
+
+            if (!MessageDigest.isEqual(expectedBytes, receivedBytes)) {
+                log.warn("[Payment Security] Cryptographic signature check failed for payment: {}", payment.getPaymentId());
+                payment.setStatus("FAILED");
+                payment.setErrorCode("INVALID_SIGNATURE");
+                payment.setErrorMessage("Cryptographic signature check failed.");
+                paymentRepository.save(payment);
+                throw new SecurityException("Payment verification failed: Invalid HMAC signature.");
             }
 
             payment.setStatus("COMPLETED");
@@ -182,65 +188,108 @@ public class PaymentService {
         paymentRepository.save(payment);
         orderRepository.save(order);
 
-        // Auto-record to Delivery Orders Spreadsheet
-        try {
-            java.util.Map<String, Object> sheetMap = new java.util.HashMap<>();
-            sheetMap.put("orderId", order.getOrderId());
-            sheetMap.put("paymentId", payment.getPaymentId());
-            sheetMap.put("customerName", order.getCustomerName());
-            sheetMap.put("phone", order.getCustomerPhone());
-            sheetMap.put("email", order.getCustomerEmail());
-            sheetMap.put("address", order.getShippingAddress());
-            sheetMap.put("city", order.getCity());
-            sheetMap.put("state", order.getState());
-            sheetMap.put("pincode", order.getPincode());
-            sheetMap.put("instructions", order.getLandmark() != null ? order.getLandmark() : "");
-            sheetMap.put("items", order.getItems() != null ? order.getItems().size() + " items" : "Botanicals");
-            sheetMap.put("total", order.getNetTotal());
-            sheetMap.put("paymentMethod", payment.getPaymentMethod());
-            sheetMap.put("paymentStatus", payment.getStatus());
-            spreadsheetService.recordDeliveryOrder(sheetMap);
-        } catch (Exception ex) {
-            log.warn("Could not record order {} to delivery spreadsheet: {}", order.getOrderId(), ex.getMessage());
-        }
+        recordToSpreadsheet(order, payment);
 
         log.info("[Payment] Successfully verified payment: {} for order: {}", payment.getPaymentId(), order.getOrderId());
 
-        return PaymentVerificationResponse.builder()
-                .success(true)
-                .paymentId(payment.getPaymentId())
-                .orderId(payment.getOrderId())
-                .status("COMPLETED")
-                .txnId(payment.getGatewayPaymentId())
-                .receiptNumber("RCPT-" + payment.getPaymentId().replace("PAY-", ""))
-                .amount(payment.getAmount())
-                .currency(payment.getCurrency())
-                .paymentMethod(payment.getPaymentMethod())
-                .message("Payment successfully authorized and confirmed by botanical banking network.")
-                .verifiedAt(payment.getVerifiedAt())
-                .build();
+        return buildCompletedResponse(payment, "Payment successfully authorized and confirmed.");
     }
 
+    /**
+     * Secure Webhook Handler with HMAC signature verification and replay attack protection.
+     */
     @Transactional
-    public Payment markPaymentFailed(String paymentId, String errorCode, String errorMessage) {
-        Payment payment = paymentRepository.findByPaymentId(paymentId)
-                .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + paymentId));
-        payment.setStatus("FAILED");
-        payment.setErrorCode(errorCode != null ? errorCode : "PAYMENT_FAILED");
-        payment.setErrorMessage(errorMessage != null ? errorMessage : "Payment authorization was declined.");
-        log.warn("[Payment] Payment marked failed: {} reason: {}", paymentId, errorMessage);
-        return paymentRepository.save(payment);
-    }
+    public PaymentVerificationResponse processWebhook(String payload, String signatureHeader, String timestampHeader) {
+        if (payload == null || payload.isBlank()) {
+            throw new IllegalArgumentException("Webhook payload cannot be empty");
+        }
 
-    @Transactional(readOnly = true)
-    public Payment getPayment(String paymentId) {
-        return paymentRepository.findByPaymentId(paymentId)
-                .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + paymentId));
-    }
+        // 1. Replay attack protection (check timestamp within 5 minutes)
+        if (timestampHeader != null && !timestampHeader.isBlank()) {
+            try {
+                long timestamp = Long.parseLong(timestampHeader.trim());
+                long now = Instant.now().getEpochSecond();
+                if (Math.abs(now - timestamp) > WEBHOOK_TOLERANCE_SECONDS) {
+                    log.warn("[Webhook Security] Replay attack detected or timestamp expired: {} (now: {})", timestamp, now);
+                    throw new SecurityException("Webhook rejected: timestamp is outside tolerance window.");
+                }
+            } catch (NumberFormatException e) {
+                throw new SecurityException("Webhook rejected: invalid timestamp header format.");
+            }
+        }
 
-    @Transactional(readOnly = true)
-    public List<Payment> getPaymentsForOrder(String orderId) {
-        return paymentRepository.findByOrderIdOrderByCreatedAtDesc(orderId);
+        // 2. Cryptographic signature check
+        String webhookSecret = (appProperties != null && appProperties.getStripe() != null && !appProperties.getStripe().getWebhookSecret().isBlank())
+                ? appProperties.getStripe().getWebhookSecret()
+                : (appProperties != null ? appProperties.paymentSecret() : "");
+
+        if (webhookSecret == null || webhookSecret.isBlank()) {
+            log.error("[Webhook Security] Webhook secret not configured. Rejecting webhook.");
+            throw new IllegalStateException("Webhook signing secret is not configured.");
+        }
+
+        if (signatureHeader == null || signatureHeader.isBlank()) {
+            throw new SecurityException("Missing webhook signature header");
+        }
+
+        String dataToSign = (timestampHeader != null && !timestampHeader.isBlank())
+                ? timestampHeader.trim() + "." + payload
+                : payload;
+
+        String expectedSignature = calculateHmacSha256WithSecret(dataToSign, webhookSecret);
+        byte[] expectedBytes = expectedSignature.toLowerCase().getBytes(StandardCharsets.UTF_8);
+        byte[] receivedBytes = signatureHeader.trim().toLowerCase().getBytes(StandardCharsets.UTF_8);
+
+        if (!MessageDigest.isEqual(expectedBytes, receivedBytes)) {
+            log.warn("[Webhook Security] Invalid webhook signature received.");
+            throw new SecurityException("Webhook signature verification failed.");
+        }
+
+        // 3. Parse JSON payload and process idempotently
+        try {
+            JsonNode root = objectMapper.readTree(payload);
+            String eventType = root.path("type").asText(root.path("event").asText("payment.succeeded"));
+            String paymentId = root.path("data").path("paymentId").asText(root.path("paymentId").asText(null));
+            String orderId = root.path("data").path("orderId").asText(root.path("orderId").asText(null));
+
+            if (paymentId == null && orderId == null) {
+                throw new IllegalArgumentException("Webhook payload missing paymentId or orderId");
+            }
+
+            Payment payment = paymentId != null
+                    ? paymentRepository.findByPaymentId(paymentId).orElse(null)
+                    : paymentRepository.findByOrderIdOrderByCreatedAtDesc(orderId).stream().findFirst().orElse(null);
+
+            if (payment == null) {
+                log.warn("[Webhook] Payment record not found for webhook event: {}", payload);
+                throw new IllegalArgumentException("Payment record not found for webhook payload");
+            }
+
+            if ("COMPLETED".equals(payment.getStatus())) {
+                log.info("[Webhook] Payment {} is already COMPLETED (idempotent ACK).", payment.getPaymentId());
+                return buildCompletedResponse(payment, "Webhook processed idempotently.");
+            }
+
+            Order order = orderRepository.findByOrderId(payment.getOrderId())
+                    .orElseThrow(() -> new IllegalStateException("Order not found: " + payment.getOrderId()));
+
+            payment.setStatus("COMPLETED");
+            payment.setVerifiedAt(OffsetDateTime.now());
+            order.setPaymentStatus("Paid");
+            order.setStatus("Order Placed");
+
+            paymentRepository.save(payment);
+            orderRepository.save(order);
+
+            recordToSpreadsheet(order, payment);
+            log.info("[Webhook] Webhook successfully processed payment: {} for order: {}", payment.getPaymentId(), order.getOrderId());
+
+            return buildCompletedResponse(payment, "Webhook successfully verified and applied.");
+
+        } catch (Exception e) {
+            log.error("[Webhook] Failed to process webhook body: {}", e.getMessage());
+            throw new RuntimeException("Failed to process webhook: " + e.getMessage(), e);
+        }
     }
 
     @Transactional
@@ -277,12 +326,16 @@ public class PaymentService {
         Payment saved = paymentRepository.save(payment);
         log.info("[Stripe] Created Stripe payment intent {} for order {}", stripePiId, order.getOrderId());
 
+        String publishableKey = (appProperties != null && appProperties.getStripe() != null && !appProperties.getStripe().getPublishableKey().isBlank())
+                ? appProperties.getStripe().getPublishableKey()
+                : "pk_test_placeholder";
+
         return StripeIntentResponse.builder()
                 .paymentId(saved.getPaymentId())
                 .orderId(order.getOrderId())
                 .clientSecret(clientSecret)
                 .stripePaymentIntentId(stripePiId)
-                .publishableKey("pk_test_51SangoFioraBotanicalStripeTestKey9941")
+                .publishableKey(publishableKey)
                 .amount(order.getNetTotal())
                 .currency(currency)
                 .status("requires_payment_method")
@@ -312,43 +365,9 @@ public class PaymentService {
         paymentRepository.save(payment);
         orderRepository.save(order);
 
-        // Record to Delivery Orders Spreadsheet
-        try {
-            java.util.Map<String, Object> sheetMap = new java.util.HashMap<>();
-            sheetMap.put("orderId", order.getOrderId());
-            sheetMap.put("paymentId", payment.getPaymentId());
-            sheetMap.put("customerName", order.getCustomerName());
-            sheetMap.put("phone", order.getCustomerPhone());
-            sheetMap.put("email", order.getCustomerEmail());
-            sheetMap.put("address", order.getShippingAddress());
-            sheetMap.put("city", order.getCity());
-            sheetMap.put("state", order.getState());
-            sheetMap.put("pincode", order.getPincode());
-            sheetMap.put("instructions", order.getLandmark() != null ? order.getLandmark() : "");
-            sheetMap.put("items", order.getItems() != null ? order.getItems().size() + " items" : "Botanicals");
-            sheetMap.put("total", order.getNetTotal());
-            sheetMap.put("paymentMethod", "STRIPE");
-            sheetMap.put("paymentStatus", "COMPLETED");
-            spreadsheetService.recordDeliveryOrder(sheetMap);
-        } catch (Exception ex) {
-            log.warn("Could not record order {} to delivery spreadsheet: {}", order.getOrderId(), ex.getMessage());
-        }
+        recordToSpreadsheet(order, payment);
 
-        log.info("[Stripe] Verified and completed Stripe payment: {} for order: {}", payment.getPaymentId(), order.getOrderId());
-
-        return PaymentVerificationResponse.builder()
-                .success(true)
-                .paymentId(payment.getPaymentId())
-                .orderId(order.getOrderId())
-                .status("COMPLETED")
-                .txnId(payment.getGatewayPaymentId())
-                .receiptNumber("RCPT-STRIPE-" + payment.getPaymentId().replace("PAY-STRIPE-", ""))
-                .amount(payment.getAmount())
-                .currency(payment.getCurrency())
-                .paymentMethod("STRIPE")
-                .message("Stripe Payment successfully authorized and captured.")
-                .verifiedAt(payment.getVerifiedAt())
-                .build();
+        return buildCompletedResponse(payment, "Stripe Payment successfully authorized and captured.");
     }
 
     @Transactional
@@ -365,24 +384,7 @@ public class PaymentService {
         order.setTxnId(codTxnId);
         orderRepository.save(order);
 
-        try {
-            java.util.Map<String, Object> sheetMap = new java.util.LinkedHashMap<>();
-            sheetMap.put("orderId", order.getOrderId());
-            sheetMap.put("name", order.getCustomerName());
-            sheetMap.put("email", order.getCustomerEmail());
-            sheetMap.put("phone", order.getCustomerPhone());
-            sheetMap.put("address", order.getShippingAddress() != null ? order.getShippingAddress() : "");
-            sheetMap.put("city", order.getCity() != null ? order.getCity() : "");
-            sheetMap.put("state", order.getState() != null ? order.getState() : "");
-            sheetMap.put("pincode", order.getPincode() != null ? order.getPincode() : "");
-            sheetMap.put("items", order.getItems() != null ? order.getItems().size() + " items" : "Botanicals");
-            sheetMap.put("total", order.getNetTotal());
-            sheetMap.put("paymentMethod", "COD");
-            sheetMap.put("paymentStatus", "Pending (COD)");
-            spreadsheetService.recordDeliveryOrder(sheetMap);
-        } catch (Exception e) {
-            log.warn("[COD] Delivery record logging note: {}", e.getMessage());
-        }
+        recordToSpreadsheet(order, null);
 
         return PaymentVerificationResponse.builder()
                 .success(true)
@@ -398,10 +400,39 @@ public class PaymentService {
                 .build();
     }
 
+    @Transactional
+    public Payment markPaymentFailed(String paymentId, String errorCode, String errorMessage) {
+        Payment payment = paymentRepository.findByPaymentId(paymentId)
+                .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + paymentId));
+        payment.setStatus("FAILED");
+        payment.setErrorCode(errorCode != null ? errorCode : "PAYMENT_FAILED");
+        payment.setErrorMessage(errorMessage != null ? errorMessage : "Payment authorization was declined.");
+        log.warn("[Payment] Payment marked failed: {} reason: {}", paymentId, errorMessage);
+        return paymentRepository.save(payment);
+    }
+
+    @Transactional(readOnly = true)
+    public Payment getPayment(String paymentId) {
+        return paymentRepository.findByPaymentId(paymentId)
+                .orElseThrow(() -> new IllegalArgumentException("Payment not found: " + paymentId));
+    }
+
+    @Transactional(readOnly = true)
+    public List<Payment> getPaymentsForOrder(String orderId) {
+        return paymentRepository.findByOrderIdOrderByCreatedAtDesc(orderId);
+    }
+
     public String calculateHmacSha256(String data) {
+        String secret = appProperties != null ? appProperties.paymentSecret() : "";
+        return calculateHmacSha256WithSecret(data, secret);
+    }
+
+    public String calculateHmacSha256WithSecret(String data, String secret) {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException("HMAC signing secret is missing or blank.");
+        }
         try {
             Mac mac = Mac.getInstance(HMAC_ALGORITHM);
-            String secret = appProperties != null ? appProperties.paymentSecret() : "sango_botanical_sec_9941a8dbf2e4c19a";
             mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), HMAC_ALGORITHM));
             byte[] hmacBytes = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
             return HexFormat.of().formatHex(hmacBytes);
@@ -410,14 +441,57 @@ public class PaymentService {
         }
     }
 
+    private void recordToSpreadsheet(Order order, Payment payment) {
+        try {
+            java.util.Map<String, Object> sheetMap = new java.util.HashMap<>();
+            sheetMap.put("orderId", order.getOrderId());
+            sheetMap.put("paymentId", payment != null ? payment.getPaymentId() : "COD");
+            sheetMap.put("customerName", order.getCustomerName());
+            sheetMap.put("phone", order.getCustomerPhone());
+            sheetMap.put("email", order.getCustomerEmail());
+            sheetMap.put("address", order.getShippingAddress());
+            sheetMap.put("city", order.getCity());
+            sheetMap.put("state", order.getState());
+            sheetMap.put("pincode", order.getPincode());
+            sheetMap.put("instructions", order.getLandmark() != null ? order.getLandmark() : "");
+            sheetMap.put("items", order.getItems() != null ? order.getItems().size() + " items" : "Botanicals");
+            sheetMap.put("total", order.getNetTotal());
+            sheetMap.put("paymentMethod", payment != null ? payment.getPaymentMethod() : "COD");
+            sheetMap.put("paymentStatus", payment != null ? payment.getStatus() : "Pending (COD)");
+            spreadsheetService.recordDeliveryOrder(sheetMap);
+        } catch (Exception ex) {
+            log.warn("Could not record order {} to delivery spreadsheet: {}", order.getOrderId(), ex.getMessage());
+        }
+    }
+
+    private PaymentVerificationResponse buildCompletedResponse(Payment payment, String message) {
+        return PaymentVerificationResponse.builder()
+                .success(true)
+                .paymentId(payment.getPaymentId())
+                .orderId(payment.getOrderId())
+                .status("COMPLETED")
+                .txnId(payment.getGatewayPaymentId() != null ? payment.getGatewayPaymentId() : payment.getPaymentId())
+                .receiptNumber("RCPT-" + payment.getPaymentId().replace("PAY-", ""))
+                .amount(payment.getAmount())
+                .currency(payment.getCurrency())
+                .paymentMethod(payment.getPaymentMethod())
+                .message(message)
+                .verifiedAt(payment.getVerifiedAt())
+                .build();
+    }
+
     private String resolveGateway(String method) {
         if ("COD".equalsIgnoreCase(method)) return "COD_GUARD";
         if ("UPI".equalsIgnoreCase(method)) return "UPI_INTENT";
-        return "RAZORPAY_SIMULATED";
+        return "GATEWAY_INTENT";
     }
 
     private PaymentIntentResponse toIntentResponse(Payment p) {
-        String checksum = calculateHmacSha256(p.getOrderId() + ":" + p.getPaymentId() + ":" + p.getAmount());
+        String secret = appProperties != null ? appProperties.paymentSecret() : "";
+        String checksum = (!secret.isBlank())
+                ? calculateHmacSha256(p.getOrderId() + ":" + p.getPaymentId() + ":" + p.getAmount())
+                : "";
+
         return PaymentIntentResponse.builder()
                 .paymentId(p.getPaymentId())
                 .orderId(p.getOrderId())

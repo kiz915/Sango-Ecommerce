@@ -43,56 +43,68 @@ public class OrderService {
 
     @Transactional
     public Order createOrder(CreateOrderRequest request) {
+        // Idempotency: return existing order if same key already submitted
+        if (request.getIdempotencyKey() != null && !request.getIdempotencyKey().trim().isEmpty()) {
+            Optional<Order> existing = orderRepository.findByIdempotencyKey(request.getIdempotencyKey().trim());
+            if (existing.isPresent()) {
+                log.info("[Order] Idempotent order request matched existing order: {}", existing.get().getOrderId());
+                return existing.get();
+            }
+        }
+
         int calculatedSubtotal = 0;
         int calculatedMrpTotal = 0;
 
         List<OrderItem> items = new ArrayList<>();
 
         for (OrderItemRequest itemReq : request.getItems()) {
-            int unitPrice = itemReq.getPrice();
-            int unitMrp = itemReq.getMrp() != null && itemReq.getMrp() > 0 ? itemReq.getMrp() : unitPrice;
-
-            // Look up product by ID or by Slug in database
+            // Look up product by ID or by Slug in database with pessimistic write lock
             Optional<Product> prodOpt = Optional.empty();
             if (itemReq.getProductId() != null) {
-                prodOpt = productRepository.findById(itemReq.getProductId());
+                prodOpt = productRepository.findByIdWithLock(itemReq.getProductId());
             } else if (itemReq.getProductSlug() != null && !itemReq.getProductSlug().trim().isEmpty()) {
-                prodOpt = productRepository.findBySlug(itemReq.getProductSlug().trim());
+                prodOpt = productRepository.findBySlugWithLock(itemReq.getProductSlug().trim());
             }
 
-            if (prodOpt.isPresent()) {
-                Product prod = prodOpt.get();
-                if (Boolean.TRUE.equals(prod.getIsSoldOut())) {
-                    throw new IllegalStateException("Product '" + prod.getName() + "' is sold out.");
-                }
-                if (prod.getStock() != null && prod.getStock() < itemReq.getQty()) {
-                    throw new IllegalStateException("Insufficient stock for '" + prod.getName() + "'. Available: " + prod.getStock());
-                }
-
-                // Enforce canonical server-side price to prevent client tampering
-                unitPrice = prod.getPrice();
-                unitMrp = prod.getMrp() != null ? prod.getMrp() : unitPrice;
-
-                // Deduct inventory
-                prod.setStock(prod.getStock() - itemReq.getQty());
-                if (prod.getStock() <= 0) {
-                    prod.setIsSoldOut(true);
-                }
-                productRepository.save(prod);
-                itemReq.setProductId(prod.getId());
+            if (prodOpt.isEmpty()) {
+                throw new IllegalArgumentException("Unknown or invalid product: " +
+                        (itemReq.getProductSlug() != null ? itemReq.getProductSlug() : itemReq.getProductName()));
             }
+
+            Product prod = prodOpt.get();
+            if (!Boolean.TRUE.equals(prod.getIsActive())) {
+                throw new IllegalStateException("Product '" + prod.getName() + "' is currently inactive.");
+            }
+            if (Boolean.TRUE.equals(prod.getIsSoldOut())) {
+                throw new IllegalStateException("Product '" + prod.getName() + "' is sold out.");
+            }
+            if (prod.getStock() == null || prod.getStock() < itemReq.getQty()) {
+                throw new IllegalStateException("Insufficient stock for '" + prod.getName() + "'. Available: " + (prod.getStock() != null ? prod.getStock() : 0));
+            }
+
+            // Enforce canonical server-side price to prevent client tampering
+            int unitPrice = prod.getPrice();
+            int unitMrp = prod.getMrp() != null ? prod.getMrp() : unitPrice;
+
+            // Deduct inventory atomically with write lock
+            prod.setStock(prod.getStock() - itemReq.getQty());
+            if (prod.getStock() <= 0) {
+                prod.setIsSoldOut(true);
+            }
+            productRepository.save(prod);
+            itemReq.setProductId(prod.getId());
 
             calculatedSubtotal += (unitPrice * itemReq.getQty());
             calculatedMrpTotal += (unitMrp * itemReq.getQty());
 
             OrderItem item = OrderItem.builder()
-                    .productId(itemReq.getProductId())
-                    .productName(itemReq.getProductName())
-                    .productSlug(itemReq.getProductSlug())
-                    .productImage(itemReq.getProductImage())
-                    .productVariant(itemReq.getProductVariant())
-                    .productCategory(itemReq.getProductCategory())
-                    .size(itemReq.getSize())
+                    .productId(prod.getId())
+                    .productName(prod.getName())
+                    .productSlug(prod.getSlug())
+                    .productImage(prod.getImage())
+                    .productVariant(prod.getVariant())
+                    .productCategory(prod.getCategory())
+                    .size(prod.getSize())
                     .price(unitPrice)
                     .mrp(unitMrp)
                     .qty(itemReq.getQty())
@@ -132,6 +144,7 @@ public class OrderService {
 
         Order order = Order.builder()
                 .orderId(uniqueOrderId)
+                .idempotencyKey(request.getIdempotencyKey())
                 .userId(request.getUserId())
                 .customerName(request.getCustomerName())
                 .customerPhone(request.getCustomerPhone())

@@ -33,6 +33,11 @@ class PaymentServiceTest {
     @Autowired
     private AppProperties appProperties;
 
+    @BeforeEach
+    void setup() {
+        appProperties.setPaymentSecret("test_hmac_secret_for_unit_tests_only_32bytes");
+    }
+
     @Test
     void testHmacSha256Verification() {
         String data = "ORD-1234:PAY-5678:4904";
