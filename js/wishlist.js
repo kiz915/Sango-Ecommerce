@@ -39,29 +39,51 @@
     // Sync user's private wishlist to Supabase user_wishlists table
     if (window.SangoSupabase && window.SangoAuth && window.SangoAuth.isLoggedIn()) {
       var user = window.SangoAuth.getUser();
-      window.SangoSupabase.from('user_wishlists').upsert({
-        user_id: user.id,
-        items: list,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'user_id' }).then(function (res) {
-        if (res.error) console.warn('[Sango] Supabase wishlist sync error:', res.error.message);
-      });
+      var isUuid = user && user.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(user.id);
+      if (isUuid) {
+        window.SangoSupabase.from('user_wishlists').upsert({
+          user_id: user.id,
+          items: list,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' }).then(function (res) {
+          if (res.error) console.warn('[Sango] Supabase wishlist sync notice:', res.error.message);
+        });
+      }
     }
   }
 
   // Handle Auth Changes — Load User's Private Wishlist on Sign-In, Clear on Sign-Out
   if (window.AppEvent) {
     window.AppEvent.on('auth:changed', function (authData) {
-      if (authData.user && window.SangoSupabase) {
-        window.SangoSupabase.from('user_wishlists').select('*').eq('user_id', authData.user.id).maybeSingle().then(function (res) {
-          if (res.data && res.data.items) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(res.data.items || []));
-            if (window.AppEvent) window.AppEvent.emit('wishlist:updated', res.data.items || []);
-            console.log('[Sango] Loaded private wishlist for user:', authData.user.email);
-          }
-        });
-      } else if (!authData.user) {
-        localStorage.removeItem(STORAGE_KEY);
+      if (authData && authData.user && window.SangoSupabase) {
+        var isUuid = authData.user.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(authData.user.id);
+        if (isUuid) {
+          window.SangoSupabase.from('user_wishlists').select('*').eq('user_id', authData.user.id).maybeSingle().then(function (res) {
+            var local = readWishlist();
+            var remote = (res.data && Array.isArray(res.data.items)) ? res.data.items : [];
+            // Merge local and remote favorites without duplicates
+            var itemMap = new Map();
+            local.forEach(function (i) { if (i && i.slug) itemMap.set(i.slug, i); });
+            remote.forEach(function (i) { if (i && i.slug) itemMap.set(i.slug, i); });
+            var merged = Array.from(itemMap.values());
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: STORAGE_VERSION, items: merged }));
+            if (window.AppEvent) window.AppEvent.emit('wishlist:updated', merged);
+
+            // If local had items not yet in remote, sync merged back
+            if (local.length > 0 && merged.length > remote.length) {
+              writeWishlist(merged);
+            }
+          }).catch(function (err) {
+            console.warn('[Wishlist] Sync query notice:', err);
+          });
+        }
+      } else if (!authData || !authData.user) {
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem('sango-wishlist-v1');
+          localStorage.removeItem('sango_wishlist');
+        } catch (e) {}
         if (window.AppEvent) window.AppEvent.emit('wishlist:updated', []);
       }
     });

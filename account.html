@@ -236,8 +236,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function loadLocalOrders() {
     try {
+      var user = window.SangoAuth ? window.SangoAuth.getUser() : null;
+      if (!user) {
+        renderOrders([]);
+        return;
+      }
+      var userEmail = (user.email || '').toLowerCase().trim();
       var orders = JSON.parse(localStorage.getItem('sango-orders-v1')) || [];
-      renderOrders(orders);
+      var userOrders = orders.filter(function (o) {
+        if (o.userId && o.userId === user.id) return true;
+        if (o.customer && o.customer.email && o.customer.email.toLowerCase().trim() === userEmail) return true;
+        return false;
+      });
+      renderOrders(userOrders);
     } catch (e) {
       renderOrders([]);
     }

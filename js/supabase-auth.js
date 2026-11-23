@@ -127,6 +127,10 @@
           localStorage.removeItem('sango-cart');
           localStorage.removeItem('sango_cart');
           localStorage.removeItem('sango_checkout_profile');
+          localStorage.removeItem('sango-orders-v1');
+          localStorage.removeItem('sango-wishlist-v2');
+          localStorage.removeItem('sango-wishlist-v1');
+          localStorage.removeItem('sango_wishlist');
         } catch (e) {}
         if (window.CartEngine && window.CartEngine.resetLocalCart) {
           window.CartEngine.resetLocalCart();
