@@ -249,6 +249,7 @@ public class PaymentService {
         try {
             JsonNode root = objectMapper.readTree(payload);
             String eventType = root.path("type").asText(root.path("event").asText("payment.succeeded"));
+            log.info("[Webhook] Processing event type: {}", eventType);
             String paymentId = root.path("data").path("paymentId").asText(root.path("paymentId").asText(null));
             String orderId = root.path("data").path("orderId").asText(root.path("orderId").asText(null));
 

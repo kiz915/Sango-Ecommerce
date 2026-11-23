@@ -197,6 +197,7 @@ public class SupabaseJwtValidator {
         return false;
     }
 
+    @SuppressWarnings("deprecation")
     private ConfigurableJWTProcessor<SecurityContext> getOrCreateJwkProcessor(String jwksUrl, JWSAlgorithm alg) {
         return jwkProcessorCache.computeIfAbsent(jwksUrl + ":" + alg.getName(), key -> {
             try {
