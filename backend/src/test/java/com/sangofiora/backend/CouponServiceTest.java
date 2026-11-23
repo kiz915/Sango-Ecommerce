@@ -1,8 +1,6 @@
 package com.sangofiora.backend;
 
 import com.sangofiora.backend.dto.CouponValidationResponse;
-import com.sangofiora.backend.model.Coupon;
-import com.sangofiora.backend.repository.CouponRepository;
 import com.sangofiora.backend.service.CouponService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +15,6 @@ class CouponServiceTest {
 
     @Autowired
     private CouponService couponService;
-
-    @Autowired
-    private CouponRepository couponRepository;
 
     @Test
     void testWelcome10Validation() {
