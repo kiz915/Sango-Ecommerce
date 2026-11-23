@@ -13,8 +13,9 @@ revoke usage on schema api from anon, authenticated;
 revoke execute on function public.place_order(jsonb), public.cancel_order(text, text), public.admin_stats(),
   public.release_unpaid_orders(), public.handle_new_user(), public.protect_profile_columns() from public, anon, authenticated;
 grant execute on function public.place_order(jsonb), public.cancel_order(text, text), public.admin_stats() to authenticated;
-revoke execute on function public.is_admin(), public.validate_coupon(text, int), public.get_order_public(text, text) from public;
-grant execute on function public.is_admin(), public.validate_coupon(text, int), public.get_order_public(text, text) to anon, authenticated;
+revoke execute on function public.is_admin(), public.validate_coupon(text, int), public.get_order_public(text, text) from public, anon;
+grant execute on function public.is_admin() to authenticated;
+grant execute on function public.validate_coupon(text, int), public.get_order_public(text, text) to anon, authenticated;
 
 -- 3. is_admin(): app_metadata.role (shared with the Spring backend) OR profile role OR bootstrap email with a strong sign-in method.
 create or replace function public.is_admin() returns boolean
