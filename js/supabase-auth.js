@@ -13,7 +13,15 @@
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
   function sb() { return window.SangoSupabase || null; }
-  function emit() { if (window.AppEvent) window.AppEvent.emit('auth:changed', { user: currentUser, profile: currentProfile }); }
+  // Only broadcast when the signed-in identity actually changes. Token refreshes and duplicate
+  // session events must not re-trigger cart / wishlist / admin handlers (this caused a request loop).
+  var lastSig = null;
+  function emit() {
+    var sig = (currentUser ? currentUser.id : 'anon') + '|' + (currentProfile ? (currentProfile.role || '') + '|' + (currentProfile.full_name || '') : '');
+    if (sig === lastSig) return;
+    lastSig = sig;
+    if (window.AppEvent) window.AppEvent.emit('auth:changed', { user: currentUser, profile: currentProfile });
+  }
 
   function cleanRedirect() {
     var u = new URL(window.location.href);
@@ -114,6 +122,19 @@
     signOut: function () {
       var done = function () {
         currentUser = null; currentProfile = null; currentSession = null;
+        try {
+          localStorage.removeItem('sango_cart_v2');
+          localStorage.removeItem('sango-cart');
+          localStorage.removeItem('sango_cart');
+          localStorage.removeItem('sango_checkout_profile');
+          localStorage.removeItem('sango-orders-v1');
+          localStorage.removeItem('sango-wishlist-v2');
+          localStorage.removeItem('sango-wishlist-v1');
+          localStorage.removeItem('sango_wishlist');
+        } catch (e) {}
+        if (window.CartEngine && window.CartEngine.resetLocalCart) {
+          window.CartEngine.resetLocalCart();
+        }
         updateAuthUI(); emit();
         if (window.showToast) window.showToast('You have been signed out');
         if (location.pathname.indexOf('/admin') === 0 && !window.SANGO_ADMIN_PAGE) location.href = '/';
@@ -158,6 +179,8 @@
         return Promise.resolve(currentUser);
       };
       sb().auth.onAuthStateChange(function (event, session) {
+        // A token refresh keeps the same user: just keep the newest token, never re-run app handlers
+        if (event === 'TOKEN_REFRESHED') { currentSession = session || currentSession; return; }
         // never call other Supabase APIs synchronously inside this callback
         setTimeout(function () {
           apply(session).then(function () {

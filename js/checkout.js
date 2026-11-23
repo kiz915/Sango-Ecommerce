@@ -216,6 +216,20 @@
       document.querySelectorAll('[data-summary-total]').forEach(function (el) { el.textContent = formatCurrency(totals.netTotal); });
 
       var couponMsg = document.getElementById('checkout-coupon-msg');
+      var couponRow = document.getElementById('cart-applied-coupon-row');
+      var couponCodeText = document.getElementById('cart-applied-coupon-code');
+
+      if (couponRow && couponCodeText) {
+        if (totals.couponCode) {
+          couponRow.classList.remove('hidden');
+          couponRow.classList.add('flex');
+          couponCodeText.textContent = totals.couponCode + (totals.couponLabel ? ' (' + totals.couponLabel + ')' : '');
+        } else {
+          couponRow.classList.add('hidden');
+          couponRow.classList.remove('flex');
+        }
+      }
+
       if (couponMsg) {
         if (totals.couponCode) {
           couponMsg.textContent = '' + totals.couponLabel + ' (' + totals.couponCode + ') applied!';
@@ -254,9 +268,26 @@
     var couponInput = document.getElementById('checkout-coupon-input');
     if (applyCouponBtn && couponInput) {
       applyCouponBtn.addEventListener('click', function () {
-        var res = window.CartEngine.applyCoupon(couponInput.value);
-        if (window.showToast) window.showToast(res.message);
+        var res = window.CartEngine.applyCoupon(couponInput.value, function (cbRes) {
+          if (window.showToast) window.showToast(cbRes.message);
+          renderCheckoutView();
+        });
+        if (window.showToast && res && res.message) window.showToast(res.message);
         renderCheckoutView();
+      });
+    }
+
+    // Coupon Remove Button
+    var removeCouponBtn = document.getElementById('btn-remove-coupon');
+    if (removeCouponBtn) {
+      removeCouponBtn.addEventListener('click', function () {
+        if (window.CartEngine && window.CartEngine.removeCoupon) {
+          window.CartEngine.removeCoupon(function (res) {
+            if (window.showToast) window.showToast(res.message);
+            if (couponInput) couponInput.value = '';
+            renderCheckoutView();
+          });
+        }
       });
     }
 
@@ -307,41 +338,68 @@
       });
     }
 
-    // 1-Click Checkout: Auto-fill returning customer profile from Spring Boot
+    // 1-Click Checkout: Auto-fill returning customer profile (STRICTLY SCOPED TO CURRENT USER)
     function autoFillCustomerProfile() {
       var user = window.SangoAuth && window.SangoAuth.getUser ? window.SangoAuth.getUser() : null;
-      if (!user || !user.email) return;
+      var banner = document.getElementById('one-click-profile-banner');
 
+      var nameInput = shippingForm ? shippingForm.querySelector('input[name="name"]') : null;
+      var phoneInput = shippingForm ? shippingForm.querySelector('input[name="phone"]') : null;
       var emailInput = shippingForm ? shippingForm.querySelector('input[name="email"]') : null;
-      if (emailInput && !emailInput.value) emailInput.value = user.email;
+      var addrInput = shippingForm ? shippingForm.querySelector('textarea[name="address"]') : null;
+      var pinInput = shippingForm ? shippingForm.querySelector('input[name="pincode"]') : null;
+      var cityInput = shippingForm ? shippingForm.querySelector('input[name="city"]') : null;
+      var stateInput = shippingForm ? shippingForm.querySelector('input[name="state"]') : null;
+      var lmkInput = shippingForm ? shippingForm.querySelector('input[name="landmark"]') : null;
+
+      if (!user || !user.email) {
+        if (banner) banner.classList.add('hidden');
+        if (emailInput) { emailInput.value = ''; emailInput.readOnly = false; }
+        if (nameInput) nameInput.value = '';
+        if (phoneInput) phoneInput.value = '';
+        if (addrInput) addrInput.value = '';
+        if (pinInput) pinInput.value = '';
+        if (cityInput) cityInput.value = '';
+        if (stateInput) stateInput.value = '';
+        if (lmkInput) lmkInput.value = '';
+        return;
+      }
+
+      if (emailInput) {
+        emailInput.value = user.email;
+        emailInput.readOnly = true;
+      }
 
       var profileCall = (window.SangoAPI && window.SangoAPI.getCustomerProfile)
         ? window.SangoAPI.getCustomerProfile(user.email)
-        : fetch('/api/customer/profile?email=' + encodeURIComponent(user.email)).then(function (res) { return res.json(); });
+        : Promise.resolve(null);
 
       profileCall
         .then(function (data) {
-          if (data && data.shippingAddress) {
-            var banner = document.getElementById('one-click-profile-banner');
+          if (data && data.shippingAddress && (!data.email || data.email.toLowerCase() === user.email.toLowerCase())) {
             if (banner) banner.classList.remove('hidden');
 
-            var nameInput = shippingForm.querySelector('input[name="name"]');
-            var phoneInput = shippingForm.querySelector('input[name="phone"]');
-            var addrInput = shippingForm.querySelector('textarea[name="address"]');
-            var pinInput = shippingForm.querySelector('input[name="pincode"]');
-            var cityInput = shippingForm.querySelector('input[name="city"]');
-            var stateInput = shippingForm.querySelector('input[name="state"]');
-            var lmkInput = shippingForm.querySelector('input[name="landmark"]');
-
-            if (nameInput && !nameInput.value && data.fullName) nameInput.value = data.fullName;
-            if (phoneInput && !phoneInput.value && data.phone) phoneInput.value = data.phone;
-            if (addrInput && !addrInput.value && data.shippingAddress) addrInput.value = data.shippingAddress;
-            if (pinInput && !pinInput.value && data.pincode) pinInput.value = data.pincode;
-            if (cityInput && !cityInput.value && data.city) cityInput.value = data.city;
-            if (stateInput && !stateInput.value && data.state) stateInput.value = data.state;
-            if (lmkInput && !lmkInput.value && data.landmark) lmkInput.value = data.landmark;
+            if (nameInput && data.fullName) nameInput.value = data.fullName;
+            if (phoneInput && data.phone) phoneInput.value = data.phone;
+            if (addrInput && data.shippingAddress) addrInput.value = data.shippingAddress;
+            if (pinInput && data.pincode) pinInput.value = data.pincode;
+            if (cityInput && data.city) cityInput.value = data.city;
+            if (stateInput && data.state) stateInput.value = data.state;
+            if (lmkInput && data.landmark) lmkInput.value = data.landmark;
+          } else {
+            // No prior address on record for this specific account: clean form
+            if (banner) banner.classList.add('hidden');
+            if (nameInput) nameInput.value = '';
+            if (phoneInput) phoneInput.value = '';
+            if (addrInput) addrInput.value = '';
+            if (pinInput) pinInput.value = '';
+            if (cityInput) cityInput.value = '';
+            if (stateInput) stateInput.value = '';
+            if (lmkInput) lmkInput.value = '';
           }
-        }).catch(function () {});
+        }).catch(function () {
+          if (banner) banner.classList.add('hidden');
+        });
     }
 
     autoFillCustomerProfile();

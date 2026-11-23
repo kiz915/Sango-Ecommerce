@@ -52,7 +52,7 @@ class PaymentServiceTest {
     @Test
     void testIdempotencyAndExpiry() {
         String orderId = "ORD-" + UUID.randomUUID();
-        Order order = orderRepository.save(Order.builder()
+        orderRepository.save(Order.builder()
                 .orderId(orderId)
                 .customerName("Alice")
                 .customerEmail("alice@example.com")

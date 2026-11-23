@@ -33,6 +33,9 @@ public class UserCart {
     @Column(name = "subtotal")
     private Integer subtotal;
 
+    @Column(name = "coupon_code")
+    private String couponCode;
+
     @Builder.Default
     @Column(name = "is_recovered")
     private Boolean isRecovered = false;

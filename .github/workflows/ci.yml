@@ -28,10 +28,12 @@ jobs:
           cache: 'maven'
 
       - name: Make Maven Wrapper Executable
-        run: chmod +x backend/mvnw
+        run: |
+          sed -i 's/\r$//' backend/mvnw
+          chmod +x backend/mvnw
 
       - name: Run Maven Tests & Package
-        run: cd backend && ./mvnw test -B
+        run: cd backend && (mvn test -B || ./mvnw test -B)
 
       - name: Archive Test Results
         if: always()

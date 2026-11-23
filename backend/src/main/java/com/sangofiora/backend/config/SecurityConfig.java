@@ -73,6 +73,9 @@ public class SecurityConfig {
                 auth.requestMatchers(HttpMethod.POST, "/api/products/upload-image").hasRole("ADMIN");
                 auth.requestMatchers(HttpMethod.POST, "/api/admin/products/upload-image").hasRole("ADMIN");
 
+                // Public Cart validation (allows guests & logged in users to validate price/stock)
+                auth.requestMatchers(HttpMethod.POST, "/api/cart/validate").permitAll();
+
                 // Protected Customer & Order endpoints (Ownership verified in controller)
                 auth.requestMatchers("/api/orders/**").authenticated();
                 auth.requestMatchers("/api/cart/**").authenticated();

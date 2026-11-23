@@ -26,7 +26,7 @@ COPY backend/mvnw backend/pom.xml ./
 COPY backend/.mvn ./.mvn
 
 # Download dependencies
-RUN chmod +x ./mvnw && ./mvnw -B dependency:go-offline -DskipTests
+RUN sed -i 's/\r$//' ./mvnw && chmod +x ./mvnw && ./mvnw -B dependency:go-offline -DskipTests
 
 # Copy backend source
 COPY backend/src ./src

@@ -114,7 +114,6 @@ public class OrderService {
         }
 
         // Dynamic MRP Savings calculation
-        int totalQty = items.stream().mapToInt(OrderItem::getQty).sum();
         int volumeDiscountPercent = 0;
         int volumeDiscount = 0;
 

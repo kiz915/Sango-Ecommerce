@@ -6,11 +6,13 @@ import com.sangofiora.backend.model.Product;
 import com.sangofiora.backend.model.UserCart;
 import com.sangofiora.backend.repository.ProductRepository;
 import com.sangofiora.backend.repository.UserCartRepository;
+import com.sangofiora.backend.security.UserPrincipal;
 import com.sangofiora.backend.service.CouponService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.OffsetDateTime;
@@ -42,6 +44,7 @@ public class CartController {
         private String itemsJson;
         private Integer itemCount;
         private Integer subtotal;
+        private String couponCode;
     }
 
     @PostMapping("/validate")
@@ -129,18 +132,27 @@ public class CartController {
     }
 
     @PostMapping("/sync")
-    public ResponseEntity<?> syncCart(@RequestBody CartSyncRequest request) {
-        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+    public ResponseEntity<?> syncCart(
+            @RequestBody CartSyncRequest request,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        String email = (principal != null && principal.getEmail() != null)
+                ? principal.getEmail().trim()
+                : (request.getEmail() != null ? request.getEmail().trim() : null);
+
+        if (email == null || email.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Email is required to sync cart"));
         }
 
-        String email = request.getEmail().trim();
         UserCart cart = userCartRepository.findByUserEmailIgnoreCase(email)
                 .orElseGet(() -> UserCart.builder().userEmail(email).build());
 
         cart.setItemsJson(request.getItemsJson());
         cart.setItemCount(request.getItemCount() != null ? request.getItemCount() : 0);
         cart.setSubtotal(request.getSubtotal() != null ? request.getSubtotal() : 0);
+        if (request.getCouponCode() != null) {
+            cart.setCouponCode(request.getCouponCode().trim());
+        }
         cart.setIsRecovered(false);
 
         UserCart saved = userCartRepository.save(cart);
@@ -148,12 +160,19 @@ public class CartController {
     }
 
     @GetMapping("/sync")
-    public ResponseEntity<?> getSyncedCart(@RequestParam String email) {
-        if (email == null || email.trim().isEmpty()) {
+    public ResponseEntity<?> getSyncedCart(
+            @RequestParam(required = false) String email,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        String targetEmail = (principal != null && principal.getEmail() != null)
+                ? principal.getEmail().trim()
+                : (email != null ? email.trim() : null);
+
+        if (targetEmail == null || targetEmail.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Email is required"));
         }
 
-        Optional<UserCart> cartOpt = userCartRepository.findByUserEmailIgnoreCase(email.trim());
+        Optional<UserCart> cartOpt = userCartRepository.findByUserEmailIgnoreCase(targetEmail);
         if (cartOpt.isPresent()) {
             return ResponseEntity.ok(cartOpt.get());
         }
@@ -161,12 +180,19 @@ public class CartController {
     }
 
     @DeleteMapping("/sync")
-    public ResponseEntity<?> clearSyncedCart(@RequestParam String email) {
-        if (email == null || email.trim().isEmpty()) {
+    public ResponseEntity<?> clearSyncedCart(
+            @RequestParam(required = false) String email,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        String targetEmail = (principal != null && principal.getEmail() != null)
+                ? principal.getEmail().trim()
+                : (email != null ? email.trim() : null);
+
+        if (targetEmail == null || targetEmail.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Email is required"));
         }
 
-        userCartRepository.findByUserEmailIgnoreCase(email.trim()).ifPresent(userCartRepository::delete);
+        userCartRepository.findByUserEmailIgnoreCase(targetEmail).ifPresent(userCartRepository::delete);
         return ResponseEntity.ok(Map.of("success", true, "message", "Cart cleared"));
     }
 

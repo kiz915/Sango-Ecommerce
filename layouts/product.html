@@ -140,13 +140,15 @@ title: Product
           </div>
           {% endif %}
 
+          {% if product.mrp > product.price %}
           <div class="flex items-center justify-between p-3 bg-emerald-50/80 border border-emerald-200/70 rounded-2xl text-xs text-emerald-950 font-medium">
             <span class="flex items-center gap-1.5">
-              <span><span class="material-symbols-outlined ico" aria-hidden="true">eco</span></span>
-              <span><strong>Bulk Styling:</strong> Buy 3+ plants for 5% off, 5+ for 10% off!</span>
+              <span><span class="material-symbols-outlined ico text-emerald-700" aria-hidden="true">savings</span></span>
+              <span><strong>Botanical Value:</strong> Save ₹{{ product.mrp - product.price }} off MRP immediately!</span>
             </span>
-            <span class="text-[11px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">Auto-applied</span>
+            <span class="text-[11px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">{{ ((product.mrp - product.price) / product.mrp * 100) | round }}% Off</span>
           </div>
+          {% endif %}
 
           <!-- Action Buttons (Add to Cart & Direct Buy Now) -->
           <div class="space-y-3 pt-2">
