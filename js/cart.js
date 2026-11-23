@@ -140,7 +140,7 @@
         // Try Supabase user_carts first
         var isUuid = authData.user.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(authData.user.id);
         if (window.SangoSupabase && isUuid) {
-          window.SangoSupabase.from('user_carts').select('*').eq('user_id', authData.user.id).single().then(function (res) {
+          window.SangoSupabase.from('user_carts').select('*').eq('user_id', authData.user.id).maybeSingle().then(function (res) {
             if (res.data && res.data.items && res.data.items.length > 0) {
               var current = readCartData();
               if (!current.items || current.items.length === 0) {
@@ -430,6 +430,23 @@
       if (subEl) subEl.textContent = formatCurrency(0);
       if (totEl) totEl.textContent = formatCurrency(0);
       if (delEl) delEl.textContent = '—';
+
+      // Cleanly hide all discount and savings elements when cart is empty
+      var emptySavingsTier = document.getElementById('drawer-savings-tier') || document.getElementById('drawer-volume-tier');
+      if (emptySavingsTier) {
+        emptySavingsTier.classList.add('hidden');
+        emptySavingsTier.classList.remove('flex');
+      }
+      var emptySavingsRow = document.getElementById('drawer-savings-row') || document.getElementById('drawer-volume-row');
+      if (emptySavingsRow) {
+        emptySavingsRow.classList.add('hidden');
+        emptySavingsRow.classList.remove('flex');
+      }
+      var emptyCouponRow = document.getElementById('drawer-coupon-row');
+      if (emptyCouponRow) {
+        emptyCouponRow.classList.add('hidden');
+        emptyCouponRow.classList.remove('flex');
+      }
       return;
     }
 

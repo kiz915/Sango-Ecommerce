@@ -53,7 +53,7 @@
   if (window.AppEvent) {
     window.AppEvent.on('auth:changed', function (authData) {
       if (authData.user && window.SangoSupabase) {
-        window.SangoSupabase.from('user_wishlists').select('*').eq('user_id', authData.user.id).single().then(function (res) {
+        window.SangoSupabase.from('user_wishlists').select('*').eq('user_id', authData.user.id).maybeSingle().then(function (res) {
           if (res.data && res.data.items) {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(res.data.items || []));
             if (window.AppEvent) window.AppEvent.emit('wishlist:updated', res.data.items || []);

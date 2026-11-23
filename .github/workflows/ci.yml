@@ -31,7 +31,7 @@ jobs:
         run: chmod +x backend/mvnw
 
       - name: Run Maven Tests & Package
-        run: cd backend && ./mvnw test -B
+        run: cd backend && (mvn test -B || ./mvnw test -B)
 
       - name: Archive Test Results
         if: always()
