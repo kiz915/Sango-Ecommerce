@@ -263,10 +263,37 @@
     failPayment: function (d) { return callPayments({ action: 'fail', orderId: d.orderId, reason: d.reason }); },
     confirmCod: function (orderId) { return this.getOrderById(orderId).then(function (o) { return { paymentId: 'COD-' + o.orderId, orderId: o.orderId }; }); },
 
-    // ─── Cart sync (handled directly against user_carts by cart.js) ───
-    syncCart: function () { return Promise.resolve(null); },
-    getSyncedCart: function () { return Promise.resolve(null); },
-    deleteSyncedCart: function () { return Promise.resolve(null); },
+    // ─── Cart sync (Spring Boot Backend + Supabase synchronization) ───
+    syncCart: function (d) {
+      var token = window.SangoAuth && window.SangoAuth.getToken ? window.SangoAuth.getToken() : null;
+      var headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+      return fetch('/api/cart/sync', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(d)
+      }).then(function (res) { return res.ok ? res.json() : null; }).catch(function () { return null; });
+    },
+
+    getSyncedCart: function (email) {
+      var token = window.SangoAuth && window.SangoAuth.getToken ? window.SangoAuth.getToken() : null;
+      var headers = {};
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+      return fetch('/api/cart/sync?email=' + encodeURIComponent(email), {
+        method: 'GET',
+        headers: headers
+      }).then(function (res) { return res.ok ? res.json() : null; }).catch(function () { return null; });
+    },
+
+    deleteSyncedCart: function (email) {
+      var token = window.SangoAuth && window.SangoAuth.getToken ? window.SangoAuth.getToken() : null;
+      var headers = {};
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+      return fetch('/api/cart/sync?email=' + encodeURIComponent(email), {
+        method: 'DELETE',
+        headers: headers
+      }).then(function (res) { return res.ok ? res.json() : null; }).catch(function () { return null; });
+    },
 
     // ─── Contact enquiries ───
     submitContact: function (d) {

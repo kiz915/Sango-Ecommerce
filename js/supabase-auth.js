@@ -128,8 +128,8 @@
           localStorage.removeItem('sango_cart');
           localStorage.removeItem('sango_checkout_profile');
         } catch (e) {}
-        if (window.CartEngine && window.CartEngine.clearCart) {
-          window.CartEngine.clearCart();
+        if (window.CartEngine && window.CartEngine.resetLocalCart) {
+          window.CartEngine.resetLocalCart();
         }
         updateAuthUI(); emit();
         if (window.showToast) window.showToast('You have been signed out');
