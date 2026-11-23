@@ -114,6 +114,15 @@
     signOut: function () {
       var done = function () {
         currentUser = null; currentProfile = null; currentSession = null;
+        try {
+          localStorage.removeItem('sango_cart_v2');
+          localStorage.removeItem('sango-cart');
+          localStorage.removeItem('sango_cart');
+          localStorage.removeItem('sango_checkout_profile');
+        } catch (e) {}
+        if (window.CartEngine && window.CartEngine.clearCart) {
+          window.CartEngine.clearCart();
+        }
         updateAuthUI(); emit();
         if (window.showToast) window.showToast('You have been signed out');
         if (location.pathname.indexOf('/admin') === 0 && !window.SANGO_ADMIN_PAGE) location.href = '/';

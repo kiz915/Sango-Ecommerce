@@ -119,6 +119,11 @@
   // Handle Auth Changes — Load User's Synced Cart on Sign-In, Clear on Sign-Out
   if (window.AppEvent) {
     window.AppEvent.on('auth:changed', function (authData) {
+      if (!authData || !authData.user) {
+        // User signed out: reset local cart and coupon so they do not bleed into the next account
+        writeCartData({ version: STORAGE_VERSION, items: [], coupon: null });
+        return;
+      }
       if (authData.user) {
         // Execute pending cart action that required sign-in
         if (window._pendingCartAction) {
@@ -336,6 +341,10 @@
       });
 
       return { success: true, message: 'Validating coupon with botanical server...' };
+    },
+
+    removeCoupon: function (callback) {
+      return this.applyCoupon('', callback);
     },
 
     clearCart: function () {

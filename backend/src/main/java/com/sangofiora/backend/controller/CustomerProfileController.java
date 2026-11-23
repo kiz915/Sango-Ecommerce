@@ -2,8 +2,11 @@ package com.sangofiora.backend.controller;
 
 import com.sangofiora.backend.model.CustomerProfile;
 import com.sangofiora.backend.repository.CustomerProfileRepository;
+import com.sangofiora.backend.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -17,9 +20,18 @@ public class CustomerProfileController {
     private final CustomerProfileRepository customerProfileRepository;
 
     @GetMapping("/profile")
-    public ResponseEntity<?> getProfile(@RequestParam String email) {
+    public ResponseEntity<?> getProfile(
+            @RequestParam String email,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
         if (email == null || email.trim().isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Email is required"));
+        }
+
+        // Ownership enforcement: Caller can only view their own profile (or must be ADMIN)
+        if (principal == null || (!principal.isAdmin() && !email.trim().equalsIgnoreCase(principal.getEmail()))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Access denied: cannot view another customer's profile."));
         }
 
         Optional<CustomerProfile> profile = customerProfileRepository.findByEmailIgnoreCase(email.trim());
@@ -33,12 +45,22 @@ public class CustomerProfileController {
     }
 
     @PutMapping("/profile")
-    public ResponseEntity<?> updateProfile(@RequestBody CustomerProfile updated) {
+    public ResponseEntity<?> updateProfile(
+            @RequestBody CustomerProfile updated,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
         if (updated.getEmail() == null || updated.getEmail().trim().isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Email is required"));
         }
 
         String email = updated.getEmail().trim();
+
+        // Ownership enforcement: Caller can only update their own profile (or must be ADMIN)
+        if (principal == null || (!principal.isAdmin() && !email.equalsIgnoreCase(principal.getEmail()))) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Access denied: cannot modify another customer's profile."));
+        }
+
         CustomerProfile profile = customerProfileRepository.findByEmailIgnoreCase(email)
                 .orElseGet(() -> CustomerProfile.builder().email(email).build());
 

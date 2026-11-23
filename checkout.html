@@ -168,10 +168,21 @@ description: Secure checkout for premium handcrafted artificial plants & trees. 
 
           <!-- Coupon Input -->
           <div class="pt-2">
-            <div class="flex gap-2">
+            <div id="co-coupon-input-group" class="flex gap-2">
               <input type="text" id="co-coupon-input" placeholder="Promo code (e.g. WELCOME10)" class="flex-1 bg-surface-container-low border border-outline-variant/40 rounded-xl px-3 py-2 text-xs uppercase font-bold focus:bg-white focus:outline-none">
-              <button id="co-apply-coupon" class="bg-amber-gold hover:bg-amber-400 text-deep-forest px-4 py-2 rounded-xl text-xs font-bold transition-all">Apply</button>
+              <button id="co-apply-coupon" type="button" class="bg-amber-gold hover:bg-amber-400 text-deep-forest px-4 py-2 rounded-xl text-xs font-bold transition-all">Apply</button>
             </div>
+
+            <!-- Applied Coupon Display with Remove Button -->
+            <div id="co-applied-coupon-row" class="hidden items-center justify-between bg-emerald-50 border border-emerald-200/80 rounded-xl px-3 py-2 mt-2">
+              <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined ico text-emerald-700 text-sm" aria-hidden="true">sell</span>
+                <span id="co-applied-coupon-text" class="text-xs font-bold text-emerald-900"></span>
+                <span class="text-[10px] bg-emerald-200 text-emerald-800 font-bold px-1.5 py-0.5 rounded">Applied</span>
+              </div>
+              <button type="button" id="co-remove-coupon" class="text-xs text-red-600 hover:text-red-800 font-bold underline transition-colors cursor-pointer">Remove</button>
+            </div>
+
             <p id="co-coupon-status" class="text-[11px] mt-1 font-semibold text-gray-500"></p>
           </div>
 
@@ -230,41 +241,68 @@ document.addEventListener('DOMContentLoaded', function () {
 
   var customerData = {};
 
-  // 1-Click Checkout: Auto-fill from returning customer profile
+  // 1-Click Checkout: Auto-fill from returning customer profile (STRICTLY SCOPED TO LOGGED IN USER)
   function autoFillCustomerProfile() {
     var user = window.SangoAuth && window.SangoAuth.getUser ? window.SangoAuth.getUser() : null;
-    if (!user || !user.email) return;
+    var banner = document.getElementById('one-click-profile-banner');
 
+    var nameInput = addressForm.querySelector('input[name="name"]');
+    var phoneInput = addressForm.querySelector('input[name="phone"]');
     var emailInput = addressForm.querySelector('input[name="email"]');
-    if (emailInput && !emailInput.value) emailInput.value = user.email;
+    var addrInput = addressForm.querySelector('textarea[name="address"]');
+    var pinInput = addressForm.querySelector('input[name="pincode"]');
+    var cityInput = addressForm.querySelector('input[name="city"]');
+    var stateInput = addressForm.querySelector('input[name="state"]');
+    var lmkInput = addressForm.querySelector('input[name="landmark"]');
+
+    if (!user || !user.email) {
+      if (banner) banner.classList.add('hidden');
+      if (emailInput) { emailInput.value = ''; emailInput.readOnly = false; }
+      if (nameInput) nameInput.value = '';
+      if (phoneInput) phoneInput.value = '';
+      if (addrInput) addrInput.value = '';
+      if (pinInput) pinInput.value = '';
+      if (cityInput) cityInput.value = '';
+      if (stateInput) stateInput.value = '';
+      if (lmkInput) lmkInput.value = '';
+      return;
+    }
+
+    if (emailInput) {
+      emailInput.value = user.email;
+      emailInput.readOnly = true;
+    }
 
     var profileCall = (window.SangoAPI && window.SangoAPI.getCustomerProfile)
       ? window.SangoAPI.getCustomerProfile(user.email)
-      : fetch('/api/customer/profile?email=' + encodeURIComponent(user.email)).then(function (res) { return res.json(); });
+      : Promise.resolve(null);
 
     profileCall
       .then(function (data) {
-        if (data && data.shippingAddress) {
-          var banner = document.getElementById('one-click-profile-banner');
+        if (data && data.shippingAddress && (!data.email || data.email.toLowerCase() === user.email.toLowerCase())) {
           if (banner) banner.classList.remove('hidden');
 
-          var nameInput = addressForm.querySelector('input[name="name"]');
-          var phoneInput = addressForm.querySelector('input[name="phone"]');
-          var addrInput = addressForm.querySelector('textarea[name="address"]');
-          var pinInput = addressForm.querySelector('input[name="pincode"]');
-          var cityInput = addressForm.querySelector('input[name="city"]');
-          var stateInput = addressForm.querySelector('input[name="state"]');
-          var lmkInput = addressForm.querySelector('input[name="landmark"]');
-
-          if (nameInput && !nameInput.value && data.fullName) nameInput.value = data.fullName;
-          if (phoneInput && !phoneInput.value && data.phone) phoneInput.value = data.phone;
-          if (addrInput && !addrInput.value && data.shippingAddress) addrInput.value = data.shippingAddress;
-          if (pinInput && !pinInput.value && data.pincode) pinInput.value = data.pincode;
-          if (cityInput && !cityInput.value && data.city) cityInput.value = data.city;
-          if (stateInput && !stateInput.value && data.state) stateInput.value = data.state;
-          if (lmkInput && !lmkInput.value && data.landmark) lmkInput.value = data.landmark;
+          if (nameInput && data.fullName) nameInput.value = data.fullName;
+          if (phoneInput && data.phone) phoneInput.value = data.phone;
+          if (addrInput && data.shippingAddress) addrInput.value = data.shippingAddress;
+          if (pinInput && data.pincode) pinInput.value = data.pincode;
+          if (cityInput && data.city) cityInput.value = data.city;
+          if (stateInput && data.state) stateInput.value = data.state;
+          if (lmkInput && data.landmark) lmkInput.value = data.landmark;
+        } else {
+          // No prior address on record for this specific account: clean form
+          if (banner) banner.classList.add('hidden');
+          if (nameInput) nameInput.value = '';
+          if (phoneInput) phoneInput.value = '';
+          if (addrInput) addrInput.value = '';
+          if (pinInput) pinInput.value = '';
+          if (cityInput) cityInput.value = '';
+          if (stateInput) stateInput.value = '';
+          if (lmkInput) lmkInput.value = '';
         }
-      }).catch(function () {});
+      }).catch(function () {
+        if (banner) banner.classList.add('hidden');
+      });
   }
 
   function renderSidebar() {
@@ -311,9 +349,23 @@ document.addEventListener('DOMContentLoaded', function () {
     if (gstEl) gstEl.textContent = '₹' + Number(totals.gstAmount || 0).toLocaleString('en-IN');
     if (netTotalEl) netTotalEl.textContent = '₹' + Number(totals.netTotal || 0).toLocaleString('en-IN');
 
-    if (totals.couponCode && couponStatus) {
-      couponStatus.textContent = '' + totals.couponCode + ' applied!';
-      couponStatus.className = 'text-[11px] mt-1 font-semibold text-green-700';
+    var appliedRow = document.getElementById('co-applied-coupon-row');
+    var appliedText = document.getElementById('co-applied-coupon-text');
+
+    if (totals.couponCode) {
+      if (appliedRow) {
+        appliedRow.classList.remove('hidden');
+        appliedRow.classList.add('flex');
+      }
+      if (appliedText) appliedText.textContent = totals.couponCode;
+      if (couponStatus && couponStatus.textContent.indexOf('applied') !== -1) {
+        couponStatus.textContent = '';
+      }
+    } else {
+      if (appliedRow) {
+        appliedRow.classList.add('hidden');
+        appliedRow.classList.remove('flex');
+      }
     }
   }
 
@@ -367,6 +419,23 @@ document.addEventListener('DOMContentLoaded', function () {
             couponStatus.textContent = res.message;
             couponStatus.className = res.success ? 'text-[11px] mt-1 font-semibold text-green-700' : 'text-[11px] mt-1 font-semibold text-red-600';
           }
+          renderSidebar();
+        });
+      }
+    });
+  }
+
+  // Remove Coupon
+  var removeCouponBtn = document.getElementById('co-remove-coupon');
+  if (removeCouponBtn) {
+    removeCouponBtn.addEventListener('click', function () {
+      if (window.CartEngine && window.CartEngine.removeCoupon) {
+        window.CartEngine.removeCoupon(function (res) {
+          if (couponStatus) {
+            couponStatus.textContent = res.message;
+            couponStatus.className = 'text-[11px] mt-1 font-semibold text-gray-500';
+          }
+          if (couponInput) couponInput.value = '';
           renderSidebar();
         });
       }
