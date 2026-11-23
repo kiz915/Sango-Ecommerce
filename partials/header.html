@@ -160,18 +160,21 @@
     </div>
   </div>
 
-  <!-- Multi-Item Volume Tier Discount Notice (B2B / Bulk Gifting) -->
-  <div id="drawer-volume-tier" class="bg-emerald-50 border-b border-emerald-200/60 px-6 py-2.5 text-xs text-emerald-900 font-medium flex items-center justify-between">
-    <span id="drawer-volume-text"><span class="material-symbols-outlined ico" aria-hidden="true">eco</span> Add plants to unlock up to 10% Bulk Volume Discount</span>
-    <span id="drawer-volume-tag" class="hidden font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full text-[10px]">Tier Active</span>
+  <!-- Dynamic MRP Savings Notice (MRP minus Selling Price) -->
+  <div id="drawer-savings-tier" class="hidden bg-emerald-50 border-b border-emerald-200/60 px-6 py-2.5 text-xs text-emerald-900 font-medium items-center justify-between">
+    <span id="drawer-savings-text" class="flex items-center gap-1.5"><span class="material-symbols-outlined ico text-emerald-700" aria-hidden="true">savings</span> You are saving <strong id="drawer-savings-amount-banner">₹0</strong> on this order!</span>
+    <span id="drawer-savings-tag" class="font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full text-[10px]">MRP Discount</span>
   </div>
 
   <div id="drawer-items" class="flex-1 overflow-y-auto p-6 space-y-4 divide-y divide-gray-100"></div>
   <div class="p-6 bg-surface-container-low border-t border-outline-variant/30 space-y-3">
     <div class="flex justify-between text-sm text-gray-600"><span>Subtotal</span><span id="drawer-subtotal" class="font-bold text-gray-900">₹0</span></div>
-    <div id="drawer-volume-row" class="hidden justify-between text-sm text-emerald-700 font-medium">
-      <span id="drawer-volume-label">Bulk Volume Discount</span>
-      <span id="drawer-volume-discount" class="font-bold">-₹0</span>
+    <div id="drawer-savings-row" class="hidden justify-between text-sm text-emerald-700 font-medium">
+      <span id="drawer-savings-label" class="flex items-center gap-1">
+        <span class="material-symbols-outlined ico text-base" aria-hidden="true">savings</span>
+        <span>Total Savings (MRP)</span>
+      </span>
+      <span id="drawer-savings-discount" class="font-bold">-₹0</span>
     </div>
     <div id="drawer-coupon-row" class="hidden justify-between text-sm text-amber-700 font-medium">
       <span id="drawer-coupon-label">Coupon Discount</span>

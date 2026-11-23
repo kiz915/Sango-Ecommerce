@@ -178,9 +178,12 @@ description: Secure checkout for premium handcrafted artificial plants & trees. 
           <!-- Totals -->
           <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-2 text-xs">
             <div class="flex justify-between text-gray-600"><span>Subtotal</span><span id="co-subtotal" class="font-bold text-gray-900">₹0</span></div>
-            <div id="co-volume-row" class="hidden justify-between text-emerald-700 font-semibold">
-              <span id="co-volume-label">Bulk Volume Discount</span>
-              <span id="co-volume-discount">-₹0</span>
+            <div id="co-savings-row" class="hidden justify-between text-emerald-700 font-semibold">
+              <span id="co-savings-label" class="flex items-center gap-1">
+                <span class="material-symbols-outlined ico text-sm" aria-hidden="true">savings</span>
+                <span>Total Savings (MRP)</span>
+              </span>
+              <span id="co-savings-discount">-₹0</span>
             </div>
             <div class="flex justify-between text-gray-600"><span>Coupon Discount</span><span id="co-discount" class="font-bold text-green-700">-₹0</span></div>
             <div class="flex justify-between text-gray-600"><span>Delivery</span><span id="co-delivery" class="font-bold text-deep-forest">FREE</span></div>
@@ -218,9 +221,8 @@ document.addEventListener('DOMContentLoaded', function () {
   var deliveryEl = document.getElementById('co-delivery');
   var gstEl = document.getElementById('co-gst');
   var netTotalEl = document.getElementById('co-net-total');
-  var volRow = document.getElementById('co-volume-row');
-  var volLabel = document.getElementById('co-volume-label');
-  var volDiscount = document.getElementById('co-volume-discount');
+  var savingsRow = document.getElementById('co-savings-row') || document.getElementById('co-volume-row');
+  var savingsDiscount = document.getElementById('co-savings-discount') || document.getElementById('co-volume-discount');
 
   var couponInput = document.getElementById('co-coupon-input');
   var couponBtn = document.getElementById('co-apply-coupon');
@@ -292,16 +294,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (subtotalEl) subtotalEl.textContent = '₹' + Number(totals.subtotal || 0).toLocaleString('en-IN');
     
-    // Multi-Item Volume Tier Discount
-    if (volRow) {
-      if (totals.volumeDiscount > 0) {
-        volRow.classList.remove('hidden');
-        volRow.classList.add('flex');
-        if (volLabel) volLabel.textContent = totals.volumeLabel || 'Bulk Volume Discount';
-        if (volDiscount) volDiscount.textContent = '-₹' + Number(totals.volumeDiscount).toLocaleString('en-IN');
+    // Dynamic MRP Savings (MRP list price vs actual Selling price)
+    if (savingsRow && savingsDiscount) {
+      if (totals.mrpSavings > 0) {
+        savingsRow.classList.remove('hidden');
+        savingsRow.classList.add('flex');
+        savingsDiscount.textContent = '-₹' + Number(totals.mrpSavings).toLocaleString('en-IN');
       } else {
-        volRow.classList.add('hidden');
-        volRow.classList.remove('flex');
+        savingsRow.classList.add('hidden');
+        savingsRow.classList.remove('flex');
       }
     }
 

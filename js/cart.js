@@ -191,12 +191,6 @@
       var mrpSavings = Math.max(0, mrpTotal - subtotal);
       var count = items.reduce(function (n, i) { return n + i.qty; }, 0);
 
-      // Multi-Item Volume Tier Discount (B2B / Bulk Gifting) via DiscountEngine
-      var discountInfo = window.DiscountEngine ? window.DiscountEngine.calculateVolumeDiscount(count, subtotal) : { percent: 0, amount: 0, label: '' };
-      var volumeDiscountPercent = discountInfo.percent;
-      var volumeDiscount = discountInfo.amount;
-      var volumeLabel = discountInfo.label;
-
       var couponDiscount = 0;
       if (data.coupon && VALID_COUPONS[data.coupon]) {
         var rule = VALID_COUPONS[data.coupon];
@@ -206,7 +200,7 @@
       }
 
       var delivery = (subtotal >= FREE_SHIP_ABOVE || items.length === 0) ? 0 : DELIVERY_FEE;
-      var taxableSubtotal = Math.max(0, subtotal - couponDiscount - volumeDiscount);
+      var taxableSubtotal = Math.max(0, subtotal - couponDiscount);
       var gstAmount = window.DiscountEngine ? window.DiscountEngine.calculateGst(taxableSubtotal) : Math.round(taxableSubtotal * 0.18);
       var netTotal = taxableSubtotal + delivery;
 
@@ -215,9 +209,9 @@
         subtotal: subtotal,
         mrpTotal: mrpTotal,
         mrpSavings: mrpSavings,
-        volumeDiscountPercent: volumeDiscountPercent,
-        volumeDiscount: volumeDiscount,
-        volumeLabel: volumeLabel,
+        volumeDiscountPercent: 0,
+        volumeDiscount: 0,
+        volumeLabel: '',
         couponCode: data.coupon,
         couponDiscount: couponDiscount,
         couponLabel: data.coupon && VALID_COUPONS[data.coupon] ? VALID_COUPONS[data.coupon].label : '',
@@ -456,46 +450,46 @@
     // Multi-Item Volume Tier Discount & Coupon rendering
     var volTier = document.getElementById('drawer-volume-tier');
     var volText = document.getElementById('drawer-volume-text');
-    var volTag = document.getElementById('drawer-volume-tag');
-    var volRow = document.getElementById('drawer-volume-row');
-    var volDiscountEl = document.getElementById('drawer-volume-discount');
+    // Dynamic MRP Savings (replaces artificial bulk volume tiers)
+    var savingsTier = document.getElementById('drawer-savings-tier') || document.getElementById('drawer-volume-tier');
+    var savingsText = document.getElementById('drawer-savings-text') || document.getElementById('drawer-volume-text');
+    var savingsBannerAmt = document.getElementById('drawer-savings-amount-banner');
+    var savingsTag = document.getElementById('drawer-savings-tag') || document.getElementById('drawer-volume-tag');
+    var savingsRow = document.getElementById('drawer-savings-row') || document.getElementById('drawer-volume-row');
+    var savingsDiscountEl = document.getElementById('drawer-savings-discount') || document.getElementById('drawer-volume-discount');
     var couponRow = document.getElementById('drawer-coupon-row');
     var couponDiscountEl = document.getElementById('drawer-coupon-discount');
 
-    if (volTier && volText) {
-      if (totals.count === 0) {
-        volTier.classList.add('hidden');
-      } else if (totals.count < 3) {
-        volTier.classList.remove('hidden');
-        var need = 3 - totals.count;
-        volText.textContent = 'Add ' + need + ' more plant' + (need > 1 ? 's' : '') + ' for 5% Bulk Volume Discount!';
-        if (volTag) volTag.classList.add('hidden');
-      } else if (totals.count < 5) {
-        volTier.classList.remove('hidden');
-        var need5 = 5 - totals.count;
-        volText.textContent = '5% Bulk Discount Active! Add ' + need5 + ' more for 10% discount!';
-        if (volTag) {
-          volTag.classList.remove('hidden');
-          volTag.textContent = '5% Active';
-        }
+    if (savingsTier && savingsText) {
+      if (totals.count === 0 || totals.mrpSavings <= 0) {
+        savingsTier.classList.add('hidden');
+        savingsTier.classList.remove('flex');
       } else {
-        volTier.classList.remove('hidden');
-        volText.textContent = '10% B2B / Bulk Styling Discount Applied!';
-        if (volTag) {
-          volTag.classList.remove('hidden');
-          volTag.textContent = '10% Active';
+        savingsTier.classList.remove('hidden');
+        savingsTier.classList.add('flex');
+        if (savingsBannerAmt) {
+          savingsBannerAmt.textContent = formatCurrency(totals.mrpSavings);
+        } else {
+          savingsText.innerHTML = '<span class="material-symbols-outlined ico text-emerald-700" aria-hidden="true">savings</span> You are saving <strong>' + formatCurrency(totals.mrpSavings) + '</strong> on this order!';
+        }
+        if (savingsTag) {
+          savingsTag.classList.remove('hidden');
+          var pct = totals.mrpTotal > 0 ? Math.round((totals.mrpSavings / totals.mrpTotal) * 100) : 0;
+          savingsTag.textContent = pct > 0 ? (pct + '% Off MRP') : 'Savings';
         }
       }
     }
 
-    if (volRow && volDiscountEl) {
-      if (totals.volumeDiscount > 0) {
-        volRow.classList.remove('hidden');
-        volRow.classList.add('flex');
-        volDiscountEl.textContent = '-' + formatCurrency(totals.volumeDiscount);
+    if (savingsRow && savingsDiscountEl) {
+      if (totals.mrpSavings > 0) {
+        savingsRow.classList.remove('hidden');
+        savingsRow.classList.add('flex');
+        savingsDiscountEl.textContent = '-' + formatCurrency(totals.mrpSavings);
+        var labelEl = document.getElementById('drawer-savings-label') || document.getElementById('drawer-volume-label');
+        if (labelEl) labelEl.textContent = 'Total Savings (MRP)';
       } else {
-        volRow.classList.add('hidden');
-        volRow.classList.remove('flex');
+        savingsRow.classList.add('hidden');
+        savingsRow.classList.remove('flex');
       }
     }
 

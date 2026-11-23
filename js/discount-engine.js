@@ -9,25 +9,11 @@
   var CONFIG = {
     FREE_SHIPPING_THRESHOLD: 999,
     STANDARD_DELIVERY_FEE: 99,
-    GST_RATE: 0.18,
-    VOLUME_TIERS: [
-      { minQty: 5, percent: 10, label: '10% Bulk Styling Discount (5+ items)' },
-      { minQty: 3, percent: 5, label: '5% Volume Tier Discount (3+ items)' }
-    ]
+    GST_RATE: 0.18
   };
 
   function calculateVolumeDiscount(itemCount, subtotal) {
-    for (var i = 0; i < CONFIG.VOLUME_TIERS.length; i++) {
-      var tier = CONFIG.VOLUME_TIERS[i];
-      if (itemCount >= tier.minQty) {
-        var amount = Math.round(subtotal * tier.percent / 100);
-        return {
-          percent: tier.percent,
-          amount: amount,
-          label: tier.label
-        };
-      }
-    }
+    // Dynamic MRP Savings replaces artificial bulk volume tiers
     return { percent: 0, amount: 0, label: '' };
   }
 
@@ -55,19 +41,19 @@
       return sum + item.qty;
     }, 0);
 
-    var volumeDiscount = calculateVolumeDiscount(itemCount, subtotal);
+    var mrpSavings = Math.max(0, mrpTotal - subtotal);
     var deliveryFee = calculateDeliveryFee(subtotal);
 
-    var taxableSubtotal = Math.max(0, subtotal - couponDiscount - volumeDiscount.amount);
+    var taxableSubtotal = Math.max(0, subtotal - couponDiscount);
     var netTotal = taxableSubtotal + deliveryFee;
     var gstAmount = calculateGst(netTotal);
 
     return {
       subtotal: subtotal,
       mrpTotal: mrpTotal,
-      mrpSavings: Math.max(0, mrpTotal - subtotal),
+      mrpSavings: mrpSavings,
       itemCount: itemCount,
-      volumeDiscount: volumeDiscount,
+      volumeDiscount: { percent: 0, amount: 0, label: '' },
       couponDiscount: couponDiscount,
       deliveryFee: deliveryFee,
       gstAmount: gstAmount,

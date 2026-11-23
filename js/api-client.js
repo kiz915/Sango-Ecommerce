@@ -76,8 +76,8 @@
       paymentMethod: o.payment_method, paymentStatus: o.payment_status, txnId: o.txn_id,
       customerName: o.customer_name, customerPhone: o.customer_phone, customerEmail: o.customer_email,
       shippingAddress: o.shipping_address, landmark: o.landmark, pincode: o.pincode, city: o.city, state: o.state, gstin: o.gstin,
-      subtotal: o.subtotal, mrpTotal: o.mrp_total, couponCode: o.coupon_code, couponDiscount: o.coupon_discount,
-      volumeDiscount: o.volume_discount || 0, deliveryFee: o.delivery_fee, gstAmount: o.gst_amount, netTotal: o.net_total,
+      subtotal: o.subtotal, mrpTotal: o.mrp_total, mrpSavings: o.mrp_savings || (o.mrp_total && o.subtotal ? Math.max(0, o.mrp_total - o.subtotal) : 0), couponCode: o.coupon_code, couponDiscount: o.coupon_discount,
+      volumeDiscount: 0, deliveryFee: o.delivery_fee, gstAmount: o.gst_amount, netTotal: o.net_total,
       customer: { name: o.customer_name, phone: o.customer_phone, email: o.customer_email, address: o.shipping_address,
         landmark: o.landmark, pincode: o.pincode, city: o.city, state: o.state },
       items: items

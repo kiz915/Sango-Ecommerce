@@ -199,9 +199,13 @@
 
       // Update Summary Sidebar Boxes
       document.querySelectorAll('[data-summary-subtotal]').forEach(function (el) { el.textContent = formatCurrency(totals.subtotal); });
+      var cartSavingsRow = document.getElementById('cart-savings-row');
+      if (cartSavingsRow) {
+        cartSavingsRow.classList.toggle('hidden', !totals.mrpSavings || totals.mrpSavings <= 0);
+        cartSavingsRow.classList.toggle('flex', totals.mrpSavings > 0);
+      }
       document.querySelectorAll('[data-summary-mrp-savings]').forEach(function (el) {
-        el.textContent = totals.mrpSavings > 0 ? 'Save ' + formatCurrency(totals.mrpSavings) : '';
-        el.classList.toggle('hidden', totals.mrpSavings === 0);
+        el.textContent = totals.mrpSavings > 0 ? '-' + formatCurrency(totals.mrpSavings) : '';
       });
       document.querySelectorAll('[data-summary-discount]').forEach(function (el) {
         el.textContent = totals.couponDiscount > 0 ? '-' + formatCurrency(totals.couponDiscount) : formatCurrency(0);

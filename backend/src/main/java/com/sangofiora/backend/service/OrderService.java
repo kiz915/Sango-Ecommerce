@@ -101,17 +101,10 @@ public class OrderService {
             items.add(item);
         }
 
-        // Multi-Item Volume Tier Discount (B2B / Bulk Gifting)
+        // Dynamic MRP Savings calculation
         int totalQty = items.stream().mapToInt(OrderItem::getQty).sum();
         int volumeDiscountPercent = 0;
         int volumeDiscount = 0;
-        if (totalQty >= 5) {
-            volumeDiscountPercent = 10;
-            volumeDiscount = (calculatedSubtotal * 10) / 100;
-        } else if (totalQty >= 3) {
-            volumeDiscountPercent = 5;
-            volumeDiscount = (calculatedSubtotal * 5) / 100;
-        }
 
         // Apply Coupon Validation Server-Side (incorporates First-Time Buyer check)
         int couponDiscount = 0;
@@ -128,7 +121,7 @@ public class OrderService {
         int deliveryFee = (calculatedSubtotal >= FREE_SHIPPING_THRESHOLD) ? 0 : STANDARD_DELIVERY_FEE;
 
         // GST calculation (18% embedded)
-        int netTotal = Math.max(0, calculatedSubtotal - couponDiscount - volumeDiscount + deliveryFee);
+        int netTotal = Math.max(0, calculatedSubtotal - couponDiscount + deliveryFee);
         int gstAmount = (int) Math.round((netTotal * 0.18) / 1.18);
 
         // Estimated delivery: 4 days from today

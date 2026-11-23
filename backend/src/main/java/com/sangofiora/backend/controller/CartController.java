@@ -88,19 +88,11 @@ public class CartController {
             }
         }
 
-        // Multi-Item Volume Tier Discount (B2B / Bulk Gifting)
+        // Dynamic MRP Savings calculation (MRP list price vs actual Selling price)
+        int mrpSavings = Math.max(0, mrpTotal - subtotal);
         int volumeDiscountPercent = 0;
         int volumeDiscount = 0;
         String volumeMessage = "";
-        if (totalQty >= 5) {
-            volumeDiscountPercent = 10;
-            volumeDiscount = (subtotal * 10) / 100;
-            volumeMessage = "🎉 10% Bulk Styling Discount applied (5+ botanical items)!";
-        } else if (totalQty >= 3) {
-            volumeDiscountPercent = 5;
-            volumeDiscount = (subtotal * 5) / 100;
-            volumeMessage = "🌿 5% Volume Discount applied (3+ botanical items)!";
-        }
 
         // Apply Coupon Validation (includes First-Time Buyer check)
         int couponDiscount = 0;
@@ -116,7 +108,7 @@ public class CartController {
         }
 
         int deliveryFee = (subtotal >= 999 || verifiedItems.isEmpty()) ? 0 : 99;
-        int netTotal = Math.max(0, subtotal - couponDiscount - volumeDiscount + deliveryFee);
+        int netTotal = Math.max(0, subtotal - couponDiscount + deliveryFee);
         int gstAmount = (int) Math.round((netTotal * 0.18) / 1.18);
 
         Map<String, Object> response = new java.util.LinkedHashMap<>();
@@ -124,11 +116,11 @@ public class CartController {
         response.put("warnings", warnings);
         response.put("subtotal", subtotal);
         response.put("mrpTotal", mrpTotal);
-        response.put("mrpSavings", Math.max(0, mrpTotal - subtotal));
+        response.put("mrpSavings", mrpSavings);
         response.put("totalQty", totalQty);
-        response.put("volumeDiscountPercent", volumeDiscountPercent);
-        response.put("volumeDiscount", volumeDiscount);
-        response.put("volumeMessage", volumeMessage);
+        response.put("volumeDiscountPercent", 0);
+        response.put("volumeDiscount", 0);
+        response.put("volumeMessage", "");
         response.put("couponDiscount", couponDiscount);
         response.put("couponMessage", couponMessage != null ? couponMessage : "");
         response.put("deliveryFee", deliveryFee);
