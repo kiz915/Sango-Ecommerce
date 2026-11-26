@@ -232,9 +232,8 @@
 
       if (couponMsg) {
         if (totals.couponCode) {
-          couponMsg.textContent = '' + totals.couponLabel + ' (' + totals.couponCode + ') applied!';
-          couponMsg.className = 'text-xs text-green-600 font-bold mt-1';
-        } else {
+          couponMsg.textContent = '';
+        } else if (/applied|verifying/i.test(couponMsg.textContent)) {
           couponMsg.textContent = '';
         }
       }
@@ -268,7 +267,17 @@
     var couponInput = document.getElementById('checkout-coupon-input');
     if (applyCouponBtn && couponInput) {
       applyCouponBtn.addEventListener('click', function () {
-        var res = window.CartEngine.applyCoupon(couponInput.value, function (cbRes) {
+        var code = couponInput.value.trim();
+        if (!code) return;
+        applyCouponBtn.disabled = true;
+        var res = window.CartEngine.applyCoupon(code, function (cbRes) {
+          applyCouponBtn.disabled = false;
+          if (cbRes.success && couponInput) couponInput.value = '';
+          var cMsg = document.getElementById('checkout-coupon-msg');
+          if (cMsg) {
+            cMsg.textContent = cbRes.success ? '' : cbRes.message;
+            cMsg.className = cbRes.success ? 'text-xs text-green-600 font-bold mt-1' : 'text-xs text-red-600 font-bold mt-1';
+          }
           if (window.showToast) window.showToast(cbRes.message);
           renderCheckoutView();
         });
@@ -528,6 +537,12 @@
 
     if (window.AppEvent) {
       window.AppEvent.on('cart:updated', renderCheckoutView);
+      window.AppEvent.on('auth:changed', function () {
+        if (couponInput) couponInput.value = '';
+        var cMsg = document.getElementById('checkout-coupon-msg');
+        if (cMsg) cMsg.textContent = '';
+        renderCheckoutView();
+      });
     }
   });
 

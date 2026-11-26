@@ -16,5 +16,7 @@ public class CouponValidationResponse {
     private Integer percent;
     private String label;
     private Integer discountAmount;
+    private Integer minSubtotal;
+    private Boolean firstTimeOnly;
     private String message;
 }

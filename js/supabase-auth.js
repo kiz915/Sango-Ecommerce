@@ -119,19 +119,25 @@
       });
     },
 
+    clearUserLocalStorage: function () {
+      try {
+        localStorage.removeItem('sango-cart-v3');
+        localStorage.removeItem('sango_cart_v2');
+        localStorage.removeItem('sango-cart');
+        localStorage.removeItem('sango_cart');
+        localStorage.removeItem('sango_checkout_profile');
+        localStorage.removeItem('sango-orders-v1');
+        localStorage.removeItem('sango-wishlist-v2');
+        localStorage.removeItem('sango-wishlist-v1');
+        localStorage.removeItem('sango_wishlist');
+      } catch (e) {}
+    },
+
     signOut: function () {
+      var self = this;
       var done = function () {
         currentUser = null; currentProfile = null; currentSession = null;
-        try {
-          localStorage.removeItem('sango_cart_v2');
-          localStorage.removeItem('sango-cart');
-          localStorage.removeItem('sango_cart');
-          localStorage.removeItem('sango_checkout_profile');
-          localStorage.removeItem('sango-orders-v1');
-          localStorage.removeItem('sango-wishlist-v2');
-          localStorage.removeItem('sango-wishlist-v1');
-          localStorage.removeItem('sango_wishlist');
-        } catch (e) {}
+        self.clearUserLocalStorage();
         if (window.CartEngine && window.CartEngine.resetLocalCart) {
           window.CartEngine.resetLocalCart();
         }
@@ -170,8 +176,14 @@
       if (_initPromise) return _initPromise;
       if (!sb()) return Promise.resolve(null);
       var apply = function (session) {
+        var prevUserId = currentUser ? currentUser.id : null;
+        var nextUser = session ? session.user : null;
+        var nextUserId = nextUser ? nextUser.id : null;
+        if (prevUserId && prevUserId !== nextUserId) {
+          window.SangoAuth.clearUserLocalStorage();
+        }
         currentSession = session || null;
-        currentUser = session ? session.user : null;
+        currentUser = nextUser;
         if (!currentUser) { currentProfile = null; updateAuthUI(); emit(); return Promise.resolve(null); }
         updateAuthUI();
         emit();

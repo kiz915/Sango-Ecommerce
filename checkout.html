@@ -357,8 +357,8 @@ document.addEventListener('DOMContentLoaded', function () {
         appliedRow.classList.remove('hidden');
         appliedRow.classList.add('flex');
       }
-      if (appliedText) appliedText.textContent = totals.couponCode;
-      if (couponStatus && couponStatus.textContent.indexOf('applied') !== -1) {
+      if (appliedText) appliedText.textContent = totals.couponCode + (totals.couponLabel ? ' · ' + totals.couponLabel : '');
+      if (couponStatus && /applied|verifying/i.test(couponStatus.textContent)) {
         couponStatus.textContent = '';
       }
     } else {
@@ -366,6 +366,7 @@ document.addEventListener('DOMContentLoaded', function () {
         appliedRow.classList.add('hidden');
         appliedRow.classList.remove('flex');
       }
+      if (appliedText) appliedText.textContent = '';
     }
   }
 
@@ -409,14 +410,19 @@ document.addEventListener('DOMContentLoaded', function () {
     couponBtn.addEventListener('click', function () {
       var code = couponInput.value.trim();
       if (!code) return;
+      couponBtn.disabled = true;
       if (couponStatus) {
         couponStatus.textContent = 'Verifying promo with botanical server...';
         couponStatus.className = 'text-[11px] mt-1 font-semibold text-gray-500';
       }
       if (window.CartEngine) {
         window.CartEngine.applyCoupon(code, function (res) {
+          couponBtn.disabled = false;
+          if (res.success) {
+            if (couponInput) couponInput.value = '';
+          }
           if (couponStatus) {
-            couponStatus.textContent = res.message;
+            couponStatus.textContent = res.success ? '' : res.message;
             couponStatus.className = res.success ? 'text-[11px] mt-1 font-semibold text-green-700' : 'text-[11px] mt-1 font-semibold text-red-600';
           }
           renderSidebar();
@@ -491,7 +497,11 @@ document.addEventListener('DOMContentLoaded', function () {
   updateAuthGate();
   autoFillCustomerProfile();
   if (window.AppEvent) {
+    window.AppEvent.on('cart:updated', renderSidebar);
     window.AppEvent.on('auth:changed', function () {
+      if (couponInput) couponInput.value = '';
+      if (couponStatus) couponStatus.textContent = '';
+      renderSidebar();
       updateAuthGate();
       autoFillCustomerProfile();
     });

@@ -115,7 +115,20 @@ public class CartControllerTest {
         assertEquals(2, retrieved.getItemCount());
         assertEquals(14680, retrieved.getSubtotal());
 
-        // 3. Clear synced cart
+        // 3. Invalid coupon passed to syncCart must be stripped cleanly to null
+        CartController.CartSyncRequest invalidCouponReq = new CartController.CartSyncRequest();
+        invalidCouponReq.setEmail(testEmail);
+        invalidCouponReq.setItemsJson("[{\"slug\":\"fiddle-leaf-fig-80cm\",\"qty\":1,\"price\":3124}]");
+        invalidCouponReq.setItemCount(1);
+        invalidCouponReq.setSubtotal(3124);
+        invalidCouponReq.setCouponCode("RONALDO");
+
+        cartController.syncCart(invalidCouponReq, principal);
+        UserCart afterInvalid = (UserCart) cartController.getSyncedCart(testEmail, principal).getBody();
+        assertNotNull(afterInvalid);
+        assertNull(afterInvalid.getCouponCode(), "Non-existent coupon must be purged during cart sync");
+
+        // 4. Clear synced cart
         ResponseEntity<?> clearRes = cartController.clearSyncedCart(testEmail, principal);
         assertEquals(200, clearRes.getStatusCode().value());
 

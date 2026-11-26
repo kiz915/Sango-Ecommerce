@@ -44,8 +44,8 @@ public class CouponService {
 
         Coupon coupon = opt.get();
 
-        // First-Time Buyer Promo Code Rule: WELCOME10
-        if ("WELCOME10".equalsIgnoreCase(coupon.getCode())) {
+        // Dynamic First-Time Buyer Promo Code Rule (configured per coupon in database)
+        if (Boolean.TRUE.equals(coupon.getFirstTimeOnly())) {
             if (email != null && !email.trim().isEmpty()) {
                 long orderCount = orderRepository.countByCustomerEmailIgnoreCase(email.trim());
                 if (orderCount > 0) {
@@ -96,6 +96,8 @@ public class CouponService {
                 .percent(coupon.getPercent())
                 .label(coupon.getLabel())
                 .discountAmount(discountAmount)
+                .minSubtotal(minSub)
+                .firstTimeOnly(Boolean.TRUE.equals(coupon.getFirstTimeOnly()))
                 .message("Coupon applied successfully!")
                 .build();
     }

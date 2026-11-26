@@ -16,41 +16,36 @@
   var FREE_SHIP_ABOVE = 999;
   var DELIVERY_FEE = 99;
 
-  // Hardcoded coupons (fallback when Supabase not configured)
-  var VALID_COUPONS = {
-    'WELCOME10': { percent: 10, label: '10% New Member Discount' },
-    'PLANTLOVE15': { percent: 15, label: '15% Plant Lover Discount' },
-    'BULK20': { percent: 20, label: '20% Bulk Order Discount', minSubtotal: 5000 },
-    'SANGO10': { percent: 10, label: '10% Welcome Discount' }
-  };
+  // Dynamic server-backed coupon cache (populated solely by Supabase / Spring Boot validation — never hardcoded)
+  var dynamicCouponCache = {};
+  var revalidatingCouponKey = null;
 
-  // Load coupons from Supabase if available (overrides hardcoded)
-  function loadCouponsFromSupabase() {
-    if (!window.SangoSupabase) return;
-    window.SangoSupabase.from('coupons').select('*').eq('is_active', true).then(function (res) {
-      if (res.data && res.data.length > 0) {
-        VALID_COUPONS = {};
-        res.data.forEach(function (c) {
-          VALID_COUPONS[c.code] = {
-            percent: c.percent,
-            label: c.label,
-            minSubtotal: c.min_subtotal || 0
-          };
-        });
-        console.log('[Sango] Coupons loaded from Supabase', Object.keys(VALID_COUPONS).length);
-      }
-    });
+  function validateCouponWithServer(code, subtotal) {
+    if (window.SangoAPI && window.SangoAPI.validateCoupon) {
+      return window.SangoAPI.validateCoupon(code, subtotal);
+    }
+    return fetch('/api/coupons/validate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: code, subtotal: Math.round(subtotal || 0) })
+    }).then(function (res) { return res.json(); });
   }
-  // Load on page ready (after Supabase client is initialized)
-  setTimeout(loadCouponsFromSupabase, 500);
 
   function readCartData() {
     try {
       var d = JSON.parse(localStorage.getItem(STORAGE_KEY));
-      if (d && d.version === STORAGE_VERSION) return d;
+      if (d && d.version === STORAGE_VERSION) {
+        return {
+          version: STORAGE_VERSION,
+          ownerId: d.ownerId || null,
+          items: Array.isArray(d.items) ? d.items : [],
+          coupon: d.coupon || null,
+          couponMeta: d.couponMeta || null
+        };
+      }
       return migrateCart(d);
     } catch (e) {
-      return { version: STORAGE_VERSION, items: [], coupon: null };
+      return { version: STORAGE_VERSION, ownerId: null, items: [], coupon: null, couponMeta: null };
     }
   }
 
@@ -67,8 +62,10 @@
     }
     var migrated = {
       version: STORAGE_VERSION,
+      ownerId: (oldData && oldData.ownerId) || null,
       items: items || [],
-      coupon: (oldData && oldData.coupon) || null
+      coupon: (oldData && oldData.coupon) || null,
+      couponMeta: (oldData && oldData.couponMeta) || null
     };
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated)); } catch (e) {}
     return migrated;
@@ -105,13 +102,20 @@
   }
 
   function writeCartData(data, skipRemoteSync) {
+    var user = window.SangoAuth && window.SangoAuth.getUser ? window.SangoAuth.getUser() : null;
+    data.version = STORAGE_VERSION;
+    data.ownerId = user ? user.id : null;
+    if (!data.items || data.items.length === 0) {
+      data.coupon = null;
+      data.couponMeta = null;
+    }
+
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     if (window.AppEvent) window.AppEvent.emit('cart:updated', data);
 
     if (skipRemoteSync) return;
 
     // Sync user's private cart to PostgreSQL / Spring Boot backend and Supabase user_carts table
-    var user = window.SangoAuth && window.SangoAuth.getUser ? window.SangoAuth.getUser() : null;
     if (user) {
       clearTimeout(syncTimeout);
       syncTimeout = setTimeout(function () {
@@ -148,16 +152,72 @@
     }
   }
 
-  // Handle Auth Changes — Load User's Synced Cart on Sign-In, Clear on Sign-Out
+  function revalidateAppliedCoupon(force) {
+    var data = readCartData();
+    if (!data.coupon) return;
+    if (!data.items || data.items.length === 0) {
+      data.coupon = null;
+      data.couponMeta = null;
+      writeCartData(data);
+      return;
+    }
+    var subtotal = data.items.reduce(function (n, i) { return n + (i.qty * i.price); }, 0);
+    var user = window.SangoAuth && window.SangoAuth.getUser ? window.SangoAuth.getUser() : null;
+    var key = (user ? user.id : 'anon') + '|' + data.coupon + '|' + subtotal;
+    if (!force && revalidatingCouponKey === key) return;
+    revalidatingCouponKey = key;
+
+    validateCouponWithServer(data.coupon, subtotal).then(function (res) {
+      var latest = readCartData();
+      if (!latest.coupon || latest.coupon.toUpperCase() !== data.coupon.toUpperCase()) return;
+
+      if (res && (res.valid || res.discountPercent)) {
+        var canonCode = (res.code || latest.coupon).toUpperCase();
+        var meta = {
+          code: canonCode,
+          percent: Number(res.percent || res.discountPercent || 0),
+          label: res.label || (Number(res.percent || res.discountPercent || 0) + '% Discount'),
+          minSubtotal: Number(res.minSubtotal || 0)
+        };
+        dynamicCouponCache[canonCode] = meta;
+        var changed = latest.coupon !== canonCode || !latest.couponMeta || latest.couponMeta.percent !== meta.percent;
+        latest.coupon = canonCode;
+        latest.couponMeta = meta;
+        if (changed) writeCartData(latest, true);
+      } else {
+        // Invalid/expired/non-existent coupon (e.g. stale RONALDO) — automatically purge everywhere
+        latest.coupon = null;
+        latest.couponMeta = null;
+        writeCartData(latest);
+      }
+    }).catch(function (err) {
+      console.warn('[Cart] Coupon revalidation skipped:', err);
+    });
+  }
+
+  // Handle Auth Changes — Strictly Isolate Per-Account Cart/Coupon, Merge Guest Items Cleanly
   if (window.AppEvent) {
     window.AppEvent.on('auth:changed', function (authData) {
       if (!authData || !authData.user) {
-        // User signed out: reset local cart without deleting remote user_carts in database
-        writeCartData({ version: STORAGE_VERSION, items: [], coupon: null }, true);
+        // User signed out: reset local cart/coupon cleanly without deleting remote user_carts in database
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem('sango_cart_v2');
+          localStorage.removeItem('sango-cart');
+          localStorage.removeItem('sango_cart');
+        } catch (e) {}
+        writeCartData({ version: STORAGE_VERSION, ownerId: null, items: [], coupon: null, couponMeta: null }, true);
         renderDrawer();
         return;
       }
       if (authData.user) {
+        // Strict Cross-Account Guard: if localStorage belonged to another authenticated account, wipe before anything else!
+        var preRead = readCartData();
+        if (preRead.ownerId && preRead.ownerId !== authData.user.id) {
+          preRead = { version: STORAGE_VERSION, ownerId: authData.user.id, items: [], coupon: null, couponMeta: null };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(preRead));
+        }
+
         // Execute pending cart action that required sign-in
         if (window._pendingCartAction) {
           var pending = window._pendingCartAction;
@@ -172,27 +232,45 @@
 
         var applyRemoteCart = function (remoteItems, remoteCoupon) {
           var current = readCartData();
+          if (current.ownerId && current.ownerId !== authData.user.id) {
+            current = { version: STORAGE_VERSION, ownerId: authData.user.id, items: [], coupon: null, couponMeta: null };
+          }
           var localItems = current.items || [];
           var hasRemoteItems = Array.isArray(remoteItems) && remoteItems.length > 0;
+          var cleanRemoteCoupon = (remoteCoupon && String(remoteCoupon).trim()) ? String(remoteCoupon).trim().toUpperCase() : null;
 
           if (!hasRemoteItems) {
             if (localItems.length > 0) {
+              // Push pure guest/same-user cart items to remote, preserve coupon only if valid
               writeCartData(current);
+              revalidateAppliedCoupon(true);
+            } else if (current.coupon || cleanRemoteCoupon) {
+              // Empty cart must never keep stale coupons
+              writeCartData({ version: STORAGE_VERSION, ownerId: authData.user.id, items: [], coupon: null, couponMeta: null });
+            } else {
+              // Claim ownership cleanly without stale data
+              writeCartData({ version: STORAGE_VERSION, ownerId: authData.user.id, items: [], coupon: null, couponMeta: null }, true);
             }
             return;
           }
 
           var mergedItems = mergeCartItems(localItems, remoteItems);
-          var mergedCoupon = current.coupon || remoteCoupon || null;
+          // Account coupon takes priority over guest coupon; never inherit another account's coupon
+          var canUseLocalCoupon = !current.ownerId || current.ownerId === authData.user.id;
+          var mergedCoupon = cleanRemoteCoupon || (canUseLocalCoupon ? current.coupon : null) || null;
+          var mergedMeta = (mergedCoupon && current.couponMeta && current.couponMeta.code === mergedCoupon) ? current.couponMeta : null;
 
           var mergedCart = {
             version: STORAGE_VERSION,
+            ownerId: authData.user.id,
             items: mergedItems,
-            coupon: mergedCoupon
+            coupon: mergedCoupon,
+            couponMeta: mergedMeta
           };
 
           writeCartData(mergedCart);
           renderDrawer();
+          revalidateAppliedCoupon(true);
 
           if (window.showToast) {
             if (localItems.length > 0) {
@@ -264,9 +342,21 @@
       var mrpSavings = Math.max(0, mrpTotal - subtotal);
       var count = items.reduce(function (n, i) { return n + i.qty; }, 0);
 
+      var couponCode = (items.length > 0 && data.coupon) ? data.coupon : null;
+      var rule = null;
+      if (couponCode) {
+        if (data.couponMeta && data.couponMeta.code === couponCode) {
+          rule = data.couponMeta;
+        } else if (dynamicCouponCache[couponCode]) {
+          rule = dynamicCouponCache[couponCode];
+        } else {
+          // Dynamically validate unknown restored coupon asynchronously instead of trusting unverified codes
+          setTimeout(function () { revalidateAppliedCoupon(false); }, 0);
+        }
+      }
+
       var couponDiscount = 0;
-      if (data.coupon && VALID_COUPONS[data.coupon]) {
-        var rule = VALID_COUPONS[data.coupon];
+      if (couponCode && rule) {
         if (!rule.minSubtotal || subtotal >= rule.minSubtotal) {
           couponDiscount = Math.round(subtotal * (rule.percent / 100));
         }
@@ -285,9 +375,9 @@
         volumeDiscountPercent: 0,
         volumeDiscount: 0,
         volumeLabel: '',
-        couponCode: data.coupon,
+        couponCode: (couponCode && rule) ? couponCode : null,
         couponDiscount: couponDiscount,
-        couponLabel: data.coupon && VALID_COUPONS[data.coupon] ? VALID_COUPONS[data.coupon].label : '',
+        couponLabel: (couponCode && rule) ? (rule.label || '') : '',
         deliveryFee: delivery,
         gstAmount: gstAmount,
         netTotal: netTotal
@@ -357,6 +447,7 @@
         }
       }
       writeCartData(data);
+      if (data.coupon && data.items.length > 0) revalidateAppliedCoupon(true);
     },
 
     applyCoupon: function (code, callback) {
@@ -364,6 +455,7 @@
       if (!c) {
         var data = readCartData();
         data.coupon = null;
+        data.couponMeta = null;
         writeCartData(data);
         var resObj = { success: true, message: 'Coupon removed' };
         if (callback) callback(resObj);
@@ -371,41 +463,42 @@
       }
 
       var totals = this.getTotals();
-      var user = window.SangoAuth && window.SangoAuth.getUser ? window.SangoAuth.getUser() : null;
-      var userEmail = user ? (user.email || '') : '';
+      if (!totals.count || totals.subtotal <= 0) {
+        var emptyRes = { success: false, message: 'Add items to your cart before applying a promo code.' };
+        if (callback) callback(emptyRes);
+        return emptyRes;
+      }
 
-      // Validate against Spring Boot backend with First-Time Buyer check via SangoAPI
-      var validateCall = (window.SangoAPI && window.SangoAPI.validateCoupon)
-        ? window.SangoAPI.validateCoupon(c, totals.subtotal)
-        : fetch('/api/coupons/validate?code=' + encodeURIComponent(c)).then(function (res) { return res.json(); });
-
-      validateCall.then(function (res) {
+      // Always validate dynamically with Supabase / Spring Boot server (never hardcoded fallback)
+      validateCouponWithServer(c, totals.subtotal).then(function (res) {
         if (res && (res.valid || res.discountPercent)) {
-          VALID_COUPONS[c] = { percent: res.percent || res.discountPercent, label: res.label || 'Discount', minSubtotal: 0 };
+          var canonCode = (res.code || c).toUpperCase();
+          var meta = {
+            code: canonCode,
+            percent: Number(res.percent || res.discountPercent || 0),
+            label: res.label || (Number(res.percent || res.discountPercent || 0) + '% Discount'),
+            minSubtotal: Number(res.minSubtotal || 0)
+          };
+          dynamicCouponCache[canonCode] = meta;
           var d = readCartData();
-          d.coupon = c;
+          d.coupon = canonCode;
+          d.couponMeta = meta;
           writeCartData(d);
-          var msg = res.message || ('Coupon "' + c + '" applied successfully!');
+          var msg = res.message || ('Coupon "' + canonCode + '" applied!');
           if (callback) callback({ success: true, message: msg, discountAmount: res.discountAmount });
         } else {
           var d2 = readCartData();
           if (d2.coupon === c) {
             d2.coupon = null;
+            d2.couponMeta = null;
             writeCartData(d2);
           }
-          var errMsg = (res && res.message) || 'Invalid coupon code';
+          var errMsg = (res && res.message) || 'Invalid or expired coupon code';
           if (callback) callback({ success: false, message: errMsg });
         }
       }).catch(function (err) {
         console.error('[Cart] Coupon validation error:', err);
-        if (VALID_COUPONS[c]) {
-          var d = readCartData();
-          d.coupon = c;
-          writeCartData(d);
-          if (callback) callback({ success: true, message: 'Coupon applied!' });
-        } else {
-          if (callback) callback({ success: false, message: 'Invalid coupon code.' });
-        }
+        if (callback) callback({ success: false, message: (err && err.message) || 'Could not verify coupon code with server. Please try again.' });
       });
 
       return { success: true, message: 'Validating coupon with botanical server...' };
@@ -416,7 +509,7 @@
     },
 
     clearCart: function () {
-      writeCartData({ items: [], coupon: null });
+      writeCartData({ version: STORAGE_VERSION, items: [], coupon: null, couponMeta: null });
       var user = window.SangoAuth && window.SangoAuth.getUser ? window.SangoAuth.getUser() : null;
       if (user && user.email && window.SangoAPI && window.SangoAPI.deleteSyncedCart) {
         window.SangoAPI.deleteSyncedCart(user.email).catch(function (err) {
@@ -426,7 +519,7 @@
     },
 
     resetLocalCart: function () {
-      writeCartData({ version: STORAGE_VERSION, items: [], coupon: null }, true);
+      writeCartData({ version: STORAGE_VERSION, ownerId: null, items: [], coupon: null, couponMeta: null }, true);
       renderDrawer();
     }
   };
@@ -593,9 +686,11 @@
     }
 
     if (couponRow && couponDiscountEl) {
-      if (totals.couponDiscount > 0) {
+      var couponLabelEl = document.getElementById('drawer-coupon-label');
+      if (totals.couponCode && totals.couponDiscount > 0) {
         couponRow.classList.remove('hidden');
         couponRow.classList.add('flex');
+        if (couponLabelEl) couponLabelEl.textContent = 'Coupon (' + totals.couponCode + ')';
         couponDiscountEl.textContent = '-' + formatCurrency(totals.couponDiscount);
       } else {
         couponRow.classList.add('hidden');
@@ -692,6 +787,14 @@
     if (rem) {
       window.CartEngine.setQty(rem.dataset.remove, 0);
       if (window.showToast) window.showToast('Item removed from cart');
+      return;
+    }
+    var remCoupon = e.target.closest('[data-remove-coupon]');
+    if (remCoupon) {
+      e.preventDefault();
+      window.CartEngine.removeCoupon(function (res) {
+        if (window.showToast && res && res.message) window.showToast(res.message);
+      });
       return;
     }
 

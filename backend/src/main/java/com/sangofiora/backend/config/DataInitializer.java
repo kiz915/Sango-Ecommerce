@@ -120,7 +120,7 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         List<Coupon> defaultCoupons = List.of(
-                Coupon.builder().code("WELCOME10").percent(10).label("10% New Member Discount").minSubtotal(0).isActive(true).timesUsed(0).build(),
+                Coupon.builder().code("WELCOME10").percent(10).label("10% New Member Discount").minSubtotal(0).isActive(true).firstTimeOnly(true).timesUsed(0).build(),
                 Coupon.builder().code("PLANTLOVE15").percent(15).label("15% Plant Lover Discount").minSubtotal(0).isActive(true).timesUsed(0).build(),
                 Coupon.builder().code("BULK20").percent(20).label("20% Bulk Order Discount").minSubtotal(5000).isActive(true).timesUsed(0).build(),
                 Coupon.builder().code("SANGO10").percent(10).label("10% Welcome Discount").minSubtotal(0).isActive(true).timesUsed(0).build()

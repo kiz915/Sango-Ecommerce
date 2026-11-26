@@ -149,9 +149,16 @@ public class CartController {
 
         cart.setItemsJson(request.getItemsJson());
         cart.setItemCount(request.getItemCount() != null ? request.getItemCount() : 0);
-        cart.setSubtotal(request.getSubtotal() != null ? request.getSubtotal() : 0);
-        if (request.getCouponCode() != null) {
-            cart.setCouponCode(request.getCouponCode().trim());
+        int currentSubtotal = request.getSubtotal() != null ? request.getSubtotal() : 0;
+        cart.setSubtotal(currentSubtotal);
+
+        // Dynamically verify coupon against active catalog before saving (or clear if blank/invalid)
+        String rawCoupon = request.getCouponCode() != null ? request.getCouponCode().trim() : "";
+        if (rawCoupon.isEmpty()) {
+            cart.setCouponCode(null);
+        } else {
+            CouponValidationResponse couponCheck = couponService.validateCoupon(rawCoupon, currentSubtotal, email);
+            cart.setCouponCode(couponCheck.isValid() ? couponCheck.getCode() : null);
         }
         cart.setIsRecovered(false);
 

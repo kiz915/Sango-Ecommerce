@@ -44,6 +44,10 @@ public class Coupon {
     @Column(name = "expires_at")
     private OffsetDateTime expiresAt;
 
+    @Builder.Default
+    @Column(name = "first_time_only")
+    private Boolean firstTimeOnly = false;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private OffsetDateTime createdAt;
