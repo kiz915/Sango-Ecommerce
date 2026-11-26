@@ -41,11 +41,14 @@
           return;
         }
         var orders = (res.data || []).map(function (o) {
+          var isPendingOnline = o.payment_method !== 'COD' && o.payment_status === 'Pending' && o.status !== 'Cancelled';
           return {
             orderId: o.order_id,
             dateString: new Date(o.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
-            status: o.status || 'Order Placed',
-            statusStep: o.status_step || 1,
+            status: isPendingOnline ? 'Pending Payment' : (o.status || 'Order Placed'),
+            statusStep: isPendingOnline ? 0 : (o.status_step || 1),
+            paymentMethod: o.payment_method || 'COD',
+            paymentStatus: o.payment_status || 'Pending',
             trackingNotes: o.tracking_notes || '',
             items: (o.order_items || []).map(function (i) {
               return { name: i.product_name, slug: i.product_slug, image: i.product_image, price: i.price, qty: i.qty };
@@ -90,14 +93,19 @@
       }
 
       wrap.innerHTML = orders.map(function (o) {
-        var step = o.status === 'Cancelled' ? 0 : (o.statusStep || 1);
+        var isPendingPay = o.status === 'Pending Payment';
+        var isCancelled = o.status === 'Cancelled';
+        var step = (isCancelled || isPendingPay) ? 0 : (o.statusStep || 1);
+        var badgeClass = isCancelled
+          ? 'bg-red-100 text-red-700'
+          : (isPendingPay ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800');
       return '<div class="bg-slate-50 border border-gray-200 rounded-2xl p-4 space-y-3">' +
         '<div class="flex items-center justify-between border-b border-gray-200 pb-2.5">' +
         '<div>' +
         '<p class="font-bold font-mono text-xs text-gray-900">' + esc(o.orderId) + '</p>' +
         '<p class="text-[11px] text-gray-400">' + esc(o.dateString) + ' · ' + o.items.length + ' item(s)</p>' +
         '</div>' +
-        '<span class="bg-green-100 text-green-800 text-[11px] font-bold px-2.5 py-1 rounded-full">' + esc(o.status) + '</span>' +
+        '<span class="' + badgeClass + ' text-[11px] font-bold px-2.5 py-1 rounded-full">' + esc(o.status) + '</span>' +
         '</div>' +
 
         '<!-- Timeline Progress Bar -->' +
@@ -123,9 +131,12 @@
         }).join('') +
         '</div>' +
 
-        '<div class="flex justify-between items-center text-xs pt-2 border-t border-gray-200 font-bold">' +
+        '<div class="flex justify-between items-center text-xs pt-2 border-t border-gray-200 font-bold gap-2">' +
         '<span>Total: <strong class="text-plant-main text-sm">' + formatCurrency(o.totals.netTotal) + '</strong></span>' +
+        '<div class="flex items-center gap-2">' +
+        (isPendingPay ? '<a href="/payment/?orderId=' + encodeURIComponent(o.orderId) + '" class="bg-deep-forest hover:bg-primary-container text-white px-3 py-1.5 rounded-xl font-bold text-[11px]">Complete Payment →</a>' : '') +
         '<button type="button" data-reorder="' + esc(o.orderId) + '" class="bg-amber-500 hover:bg-amber-400 text-plant-dark px-3 py-1.5 rounded-xl font-bold text-[11px] cursor-pointer">Reorder All</button>' +
+        '</div>' +
         '</div>' +
         '</div>';
     }).join('');

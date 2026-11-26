@@ -182,6 +182,8 @@ public class PaymentService {
 
             order.setPaymentStatus("Paid");
             order.setStatus("Order Placed");
+            order.setStatusStep(1);
+            order.setTrackingNotes("Payment confirmed. Order queued for Quality Inspection.");
             order.setTxnId(gatewayPaymentId);
         }
 
@@ -278,6 +280,8 @@ public class PaymentService {
             payment.setVerifiedAt(OffsetDateTime.now());
             order.setPaymentStatus("Paid");
             order.setStatus("Order Placed");
+            order.setStatusStep(1);
+            order.setTrackingNotes("Payment confirmed. Order queued for Quality Inspection.");
 
             paymentRepository.save(payment);
             orderRepository.save(order);
@@ -361,6 +365,8 @@ public class PaymentService {
 
         order.setPaymentStatus("Paid");
         order.setStatus("Order Placed");
+        order.setStatusStep(1);
+        order.setTrackingNotes("Payment confirmed. Order queued for Quality Inspection.");
         order.setTxnId(payment.getGatewayPaymentId());
 
         paymentRepository.save(payment);

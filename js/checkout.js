@@ -77,7 +77,8 @@
           dateString: now.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
           estDeliveryDate: new Date(now.getTime() + 4 * 864e5).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' }),
           status: res.status || 'Order Placed',
-          statusStep: 1,
+          status: res.status || (method === 'COD' ? 'Order Placed' : 'Pending Payment'),
+          statusStep: method === 'COD' ? 1 : 0,
           items: JSON.parse(JSON.stringify(items)),
           customer: {
             name: customerData.name, phone: customerData.phone, email: customerData.email,

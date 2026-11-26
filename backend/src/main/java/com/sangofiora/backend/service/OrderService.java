@@ -140,6 +140,7 @@ public class OrderService {
         String estDeliveryDate = estDate.format(DateTimeFormatter.ofPattern("EEE, d MMM yyyy"));
 
         String uniqueOrderId = generateUniqueOrderId();
+        boolean isCod = "COD".equalsIgnoreCase(request.getPaymentMethod());
 
         Order order = Order.builder()
                 .orderId(uniqueOrderId)
@@ -155,7 +156,7 @@ public class OrderService {
                 .state(request.getState())
                 .gstin(request.getGstin())
                 .paymentMethod(request.getPaymentMethod())
-                .paymentStatus("COD".equalsIgnoreCase(request.getPaymentMethod()) ? "Pending (COD)" : "Pending")
+                .paymentStatus(isCod ? "Pending (COD)" : "Pending")
                 .txnId("TXN-" + ThreadLocalRandom.current().nextInt(10000000, 99999999))
                 .subtotal(calculatedSubtotal)
                 .mrpTotal(calculatedMrpTotal)
@@ -167,10 +168,10 @@ public class OrderService {
                 .deliveryFee(deliveryFee)
                 .gstAmount(gstAmount)
                 .netTotal(netTotal)
-                .status("Order Placed")
-                .statusStep(1)
+                .status(isCod ? "Order Placed" : "Pending Payment")
+                .statusStep(isCod ? 1 : 0)
                 .estDeliveryDate(estDeliveryDate)
-                .trackingNotes("Order received and queued for Quality Inspection.")
+                .trackingNotes(isCod ? "Order received and queued for Quality Inspection." : "Awaiting online payment confirmation.")
                 .items(new ArrayList<>())
                 .build();
 

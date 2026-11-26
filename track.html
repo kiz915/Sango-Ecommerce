@@ -302,8 +302,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Update 5-Box Pipeline
+    var isPendingPayment = order.status === 'Pending Payment' || (order.paymentMethod !== 'COD' && order.paymentStatus === 'Pending' && order.status !== 'Cancelled');
     var stepNum = 1;
-    if (order.status === 'Cancelled') stepNum = 0;
+    if (order.status === 'Cancelled' || isPendingPayment) stepNum = 0;
     else if (order.status === 'Order Placed') stepNum = 1;
     else if (order.status === 'Quality Inspected' || order.status === 'Quality Inspection') stepNum = 2;
     else if (order.status === 'Eco-Pot Packaging' || order.status === 'Packed') stepNum = 3;
