@@ -235,9 +235,28 @@
           if (current.ownerId && current.ownerId !== authData.user.id) {
             current = { version: STORAGE_VERSION, ownerId: authData.user.id, items: [], coupon: null, couponMeta: null };
           }
+          var isSameOwner = Boolean(current.ownerId && current.ownerId === authData.user.id);
           var localItems = current.items || [];
           var hasRemoteItems = Array.isArray(remoteItems) && remoteItems.length > 0;
           var cleanRemoteCoupon = (remoteCoupon && String(remoteCoupon).trim()) ? String(remoteCoupon).trim().toUpperCase() : null;
+
+          // Same signed-in user navigating across pages: NEVER merge/sum local + remote quantities!
+          if (isSameOwner) {
+            if (localItems.length === 0 && hasRemoteItems) {
+              writeCartData({
+                version: STORAGE_VERSION,
+                ownerId: authData.user.id,
+                items: remoteItems.slice(),
+                coupon: cleanRemoteCoupon || null,
+                couponMeta: null
+              }, true);
+              renderDrawer();
+              revalidateAppliedCoupon(true);
+            } else {
+              revalidateAppliedCoupon(true);
+            }
+            return;
+          }
 
           if (!hasRemoteItems) {
             if (localItems.length > 0) {
@@ -254,6 +273,7 @@
             return;
           }
 
+          // Fresh sign-in from guest state: merge guest items with account's saved cart once
           var mergedItems = mergeCartItems(localItems, remoteItems);
           // Account coupon takes priority over guest coupon; never inherit another account's coupon
           var canUseLocalCoupon = !current.ownerId || current.ownerId === authData.user.id;
@@ -268,7 +288,7 @@
             couponMeta: mergedMeta
           };
 
-          writeCartData(mergedCart);
+          writeCartData(mergedCart, localItems.length === 0);
           renderDrawer();
           revalidateAppliedCoupon(true);
 
