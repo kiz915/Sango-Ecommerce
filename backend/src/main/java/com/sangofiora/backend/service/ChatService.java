@@ -175,7 +175,10 @@ public class ChatService {
 
         // Dynamic categories & matching/featured products from DB
         List<String> categories = productRepository.findDistinctCategories();
-        sb.append("LIVE CATEGORIES: ").append(String.join(", ", categories)).append("\n");
+        String categoryLinks = categories.stream()
+                .map(c -> c + " (/collections/" + c.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "-") + "/)")
+                .collect(Collectors.joining(", "));
+        sb.append("LIVE CATEGORIES (always use exact lowercase URLs): ").append(categoryLinks).append("\n");
 
         List<Product> matchedProducts = findRelevantProducts(userMessage);
         sb.append("LIVE PRODUCTS FROM DATABASE (prices in INR ₹):\n");
@@ -188,7 +191,7 @@ public class ChatService {
               .append(" | Price: ₹").append(p.getPrice())
               .append(" (MRP ₹").append(p.getMrp()).append(")")
               .append(" | ").append(stockNote)
-              .append(" | Link: /product-live/?slug=").append(p.getSlug())
+              .append(" | Link: /product/?slug=").append(p.getSlug())
               .append("\n");
         }
         sb.append("\n");

@@ -21,9 +21,18 @@
     var safe = escapeHtml(text);
     // Bold **text**
     safe = safe.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold text-[#1B4332]">$1</strong>');
-    // Internal storefront links (/products/, /product-live/?slug=..., /track/, /checkout/, /collections/, /wishlist/, /contact/, /cart/)
-    safe = safe.replace(/(\/(?:products|product-live|track|checkout|collections|wishlist|contact|cart)\/[^\s<),]*)/g,
-      '<a href="$1" class="underline font-medium text-[#1B4332] hover:text-emerald-700">$1</a>');
+    // Internal storefront links (strip trailing sentence punctuation and normalize /collections/<cat>/)
+    safe = safe.replace(/(\/(?:products|product|product-live|track|checkout|collections|wishlist|contact|cart)\/[^\s<)]*)([.,!?;:]*)/g,
+      function (_, rawPath, punct) {
+        var cleanPath = rawPath.replace(/[.,!?;:]+$/, '');
+        var trailing = rawPath.slice(cleanPath.length) + (punct || '');
+        if (/^\/collections\/[^/?#]+$/i.test(cleanPath)) {
+          cleanPath = cleanPath.toLowerCase() + '/';
+        } else if (/^\/collections\/[^/?#]+\/$/i.test(cleanPath)) {
+          cleanPath = cleanPath.toLowerCase();
+        }
+        return '<a href="' + cleanPath + '" class="underline font-medium text-[#1B4332] hover:text-emerald-700">' + cleanPath + '</a>' + trailing;
+      });
     safe = safe.replace(/\n/g, '<br>');
     return safe;
   }
