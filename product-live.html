@@ -76,6 +76,12 @@ description: Premium artificial plants and trees from Sango Fiora.
 <script>
 (function () {
   var slug = new URLSearchParams(location.search).get('slug') || '';
+  if (!slug) {
+    var pathMatch = location.pathname.match(/\/products\/([^\/]+)/);
+    if (pathMatch && pathMatch[1]) {
+      slug = decodeURIComponent(pathMatch[1]);
+    }
+  }
   var $ = function (id) { return document.getElementById(id); };
   var current = null;
 

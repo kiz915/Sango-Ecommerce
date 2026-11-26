@@ -55,6 +55,13 @@ public class StaticResourceConfig implements WebMvcConfigurer {
                         if (resourcePath.isEmpty() || resourcePath.equals("/")) {
                             return location.createRelative("index.html");
                         }
+                        // Fallback for dynamically added admin products (/products/<slug>/)
+                        if (resourcePath.matches("^products/[^/]+/?$")) {
+                            Resource liveProductPage = location.createRelative("product/index.html");
+                            if (liveProductPage.exists() && liveProductPage.isReadable()) {
+                                return liveProductPage;
+                            }
+                        }
                         return null;
                     }
                 });

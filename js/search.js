@@ -193,7 +193,7 @@
         '<div class="p-4 flex flex-col flex-1">' +
           '<p class="text-[11px] font-semibold text-deep-forest/80 uppercase tracking-wider mb-1">' + escapeHTML(p.category) + ' · ' + escapeHTML(p.size) + '</p>' +
           '<a href="/products/' + p.slug + '/" class="font-headline-sm font-bold text-gray-900 leading-snug hover:text-deep-forest transition-colors text-sm line-clamp-1">' + escapeHTML(p.name) + '</a>' +
-          '<div class="flex items-center gap-1 mt-1.5"><span class="text-amber-gold text-xs">★★★★★</span><span class="text-[11px] text-on-surface-variant font-medium">' + p.rating + ' (' + p.reviews + ')</span></div>' +
+          (p.rating ? '<div class="flex items-center gap-1 mt-1.5"><span class="text-amber-gold text-xs">★★★★★</span><span class="text-[11px] text-on-surface-variant font-medium">' + escapeHTML(p.rating) + (p.reviews ? ' (' + escapeHTML(p.reviews) + ')' : '') + '</span></div>' : '') +
           '<div class="mt-auto pt-3 flex items-end justify-between gap-2">' +
             '<div><span class="text-base font-bold text-deep-forest">₹' + p.price + '</span>' + (p.mrp > p.price ? '<span class="ml-1 text-xs text-gray-400 line-through">₹' + p.mrp + '</span>' : '') + '</div>' +
             '<button type="button" data-add-to-cart data-slug="' + p.slug + '" data-name="' + escapeHTML(p.name) + '" data-variant="' + escapeHTML(p.variant || '') + '" data-category="' + escapeHTML(p.category) + '" data-size="' + escapeHTML(p.size) + '" data-price="' + p.price + '" data-mrp="' + p.mrp + '" data-image="' + escapeHTML(p.image) + '" class="bg-amber-gold hover:bg-amber-400 text-deep-forest text-xs font-bold px-3.5 py-1.5 rounded-full transition-colors shrink-0 shadow-sm">Add +</button>' +

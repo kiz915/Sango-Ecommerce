@@ -43,6 +43,7 @@ class WebSecurityRoutesTest {
         assertEquals(200, get("/").statusCode());
         assertEquals(200, get("/checkout/").statusCode());
         assertEquals(200, get("/wishlist/").statusCode());
+        assertEquals(200, get("/products/dynamic-admin-added-plant/").statusCode());
         assertEquals(200, get("/js/cart.js").statusCode());
         assertEquals(200, get("/api/health").statusCode());
         assertEquals(200, get("/api/chat/suggestions").statusCode());
