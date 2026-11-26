@@ -88,7 +88,17 @@ public class SecurityConfig {
                     auth.requestMatchers("/h2-console/**").denyAll();
                 }
 
-                // All other requests require authentication
+                // Actuator endpoints (health/info public; remaining require ADMIN)
+                auth.requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll();
+                auth.requestMatchers("/actuator/**").hasRole("ADMIN");
+
+                // Lock down all other /api/** endpoints by default
+                auth.requestMatchers("/api/**").authenticated();
+
+                // Public static storefront HTML pages, JS, CSS & images (HTML shells enforce client/RLS auth)
+                auth.requestMatchers(HttpMethod.GET, "/**").permitAll();
+
+                // Reject all other unauthenticated write requests
                 auth.anyRequest().authenticated();
             })
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
