@@ -81,6 +81,7 @@
 
   {% include 'partials/footer.html' %}
   {% include 'partials/auth-modal.html' %}
+  {% include 'partials/chat-widget.html' %}
 
   <!-- Supabase CDN (Deferred) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
@@ -100,6 +101,7 @@
   <script src="{{ '/js/inquiry.js' | assetHash }}" defer></script>
   <script src="{{ '/js/search.js' | assetHash }}" defer></script>
   <script src="{{ '/js/live-sync.js' | assetHash }}" defer></script>
+  <script src="{{ '/js/chatbot.js' | assetHash }}" defer></script>
   <script src="{{ '/js/main.js' | assetHash }}" defer></script>
 </body>
 </html>

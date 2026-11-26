@@ -16,6 +16,7 @@ public class AppProperties {
     private Jwt jwt = new Jwt();
     private Cors cors = new Cors();
     private Upload upload = new Upload();
+    private Nvidia nvidia = new Nvidia();
     private String googleSheetsWebhookUrl;
     private List<String> adminEmails = new ArrayList<>();
 
@@ -81,6 +82,19 @@ public class AppProperties {
         public void setMaxFileSize(long maxFileSize) { this.maxFileSize = maxFileSize; }
     }
 
+    public static class Nvidia {
+        private String apiKey = "";
+        private String model = "nvidia/nemotron-3.5-bolt-e4b";
+        private String apiUrl = "https://integrate.api.nvidia.com/v1/chat/completions";
+
+        public String getApiKey() { return apiKey; }
+        public void setApiKey(String apiKey) { this.apiKey = apiKey; }
+        public String getModel() { return model; }
+        public void setModel(String model) { this.model = model; }
+        public String getApiUrl() { return apiUrl; }
+        public void setApiUrl(String apiUrl) { this.apiUrl = apiUrl; }
+    }
+
     public String paymentSecret() {
         if (payment != null && payment.getSecret() != null && !payment.getSecret().isBlank()) {
             return payment.getSecret();
@@ -121,4 +135,7 @@ public class AppProperties {
 
     public List<String> getAdminEmails() { return adminEmails; }
     public void setAdminEmails(List<String> adminEmails) { this.adminEmails = adminEmails; }
+
+    public Nvidia getNvidia() { return nvidia; }
+    public void setNvidia(Nvidia nvidia) { this.nvidia = nvidia; }
 }

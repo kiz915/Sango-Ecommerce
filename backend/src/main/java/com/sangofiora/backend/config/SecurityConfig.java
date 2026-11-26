@@ -76,6 +76,9 @@ public class SecurityConfig {
                 // Public Cart validation (allows guests & logged in users to validate price/stock)
                 auth.requestMatchers(HttpMethod.POST, "/api/cart/validate").permitAll();
 
+                // Public AI Storefront Chatbot (authenticates optional JWT for order context)
+                auth.requestMatchers("/api/chat", "/api/chat/**").permitAll();
+
                 // Protected Customer & Order endpoints (Ownership verified in controller)
                 auth.requestMatchers("/api/orders/**").authenticated();
                 auth.requestMatchers("/api/cart/**").authenticated();

@@ -45,6 +45,8 @@ class WebSecurityRoutesTest {
         assertEquals(200, get("/wishlist/").statusCode());
         assertEquals(200, get("/js/cart.js").statusCode());
         assertEquals(200, get("/api/health").statusCode());
+        assertEquals(200, get("/api/chat/suggestions").statusCode());
+        assertEquals(200, postJson("/api/chat", "{\"message\":\"What plants do you have?\"}").statusCode());
     }
 
     @Test
