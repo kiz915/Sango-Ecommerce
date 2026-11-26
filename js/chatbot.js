@@ -222,5 +222,17 @@
         resetChat();
       });
     }
+
+    // Hide floating chatbot button while Cart Drawer is open so it never overlaps checkout CTA
+    var cartDrawer = el('cart-drawer');
+    var chatRoot = el('sango-chatbot-root');
+    if (cartDrawer && chatRoot && window.MutationObserver) {
+      var syncDrawerOverlap = function () {
+        var isDrawerOpen = !cartDrawer.classList.contains('translate-x-full');
+        chatRoot.classList.toggle('hidden', isDrawerOpen);
+      };
+      syncDrawerOverlap();
+      new MutationObserver(syncDrawerOverlap).observe(cartDrawer, { attributes: true, attributeFilter: ['class'] });
+    }
   });
 })();
