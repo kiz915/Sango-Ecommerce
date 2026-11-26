@@ -130,6 +130,12 @@ document.addEventListener('DOMContentLoaded', function () {
   var netEl = document.getElementById('success-net-total');
   var trackLink = document.getElementById('track-link-btn');
 
+  function esc(str) {
+    var d = document.createElement('div');
+    d.appendChild(document.createTextNode(str == null ? '' : String(str)));
+    return d.innerHTML;
+  }
+
   function renderOrder(order) {
     if (!order) return;
     if (idEl) idEl.textContent = order.orderId;
@@ -162,17 +168,18 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
 
-    // Render line items
+    // Render line items (XSS-safe)
     if (itemsEl && order.items) {
       var html = '';
       order.items.forEach(function (it) {
+        var imgUrl = esc(it.productImage || it.image || '');
         html += '<div class="flex items-center justify-between py-2 text-xs">' +
                 '<div class="flex items-center gap-3">' +
-                (it.productImage || it.image ? '<img src="' + (it.productImage || it.image) + '" class="w-10 h-10 object-cover rounded-lg">' : '') +
-                '<div><p class="font-bold text-gray-800">' + (it.productName || it.name) + '</p>' +
-                '<p class="text-gray-500">' + (it.size || '') + ' · Qty: ' + it.qty + '</p></div>' +
+                (imgUrl ? '<img src="' + imgUrl + '" class="w-10 h-10 object-cover rounded-lg">' : '') +
+                '<div><p class="font-bold text-gray-800">' + esc(it.productName || it.name) + '</p>' +
+                '<p class="text-gray-500">' + esc(it.size || '') + ' · Qty: ' + (it.qty || 1) + '</p></div>' +
                 '</div>' +
-                '<span class="font-bold text-gray-900">₹' + Number((it.price || 0) * it.qty).toLocaleString('en-IN') + '</span>' +
+                '<span class="font-bold text-gray-900">₹' + Number((it.price || 0) * (it.qty || 1)).toLocaleString('en-IN') + '</span>' +
                 '</div>';
       });
       itemsEl.innerHTML = html;

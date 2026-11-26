@@ -48,7 +48,7 @@
       '<div class="p-4 flex flex-col flex-1">' +
         '<p class="text-[11px] font-semibold text-deep-forest/80 uppercase tracking-wider mb-1">' + esc(p.category) + ' · ' + esc(p.size) + '</p>' +
         '<a href="' + href + '" class="font-headline-sm font-bold text-gray-900 leading-snug hover:text-deep-forest transition-colors text-sm line-clamp-1">' + esc(p.name) + '</a>' +
-        '<div class="flex items-center gap-1 mt-1.5"><span class="text-amber-gold text-xs">★★★★★</span><span class="text-[11px] text-on-surface-variant font-medium">' + p.rating + ' (' + p.reviews + ')</span></div>' +
+        '<div class="flex items-center gap-1.5 mt-1.5"><span class="text-[10px] font-semibold tracking-wider text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60 uppercase">Handcrafted</span></div>' +
         '<div class="mt-auto pt-3 flex items-end justify-between gap-2">' +
           '<div><span class="live-price text-base font-bold text-deep-forest">₹' + p.price + '</span>' + (p.mrp > p.price ? '<span class="live-mrp ml-1 text-xs text-gray-400 line-through">₹' + p.mrp + '</span>' : '') + '</div>' +
           '<button type="button" ' + (sold ? 'disabled' : 'data-add-to-cart') + ' ' + attrs + ' aria-label="Add ' + esc(p.name) + ' to cart" class="' + (sold ? BTN_SOLD : BTN_ADD) + '">' + (sold ? 'Sold Out' : 'Add +') + '</button>' +

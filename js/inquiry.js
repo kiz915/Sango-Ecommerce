@@ -63,51 +63,53 @@
           message: formData.get('message')
         });
 
-        // Auto-sync contact details to Supabase contact_inquiries table
-        if (window.SangoSupabase) {
-          window.SangoSupabase.from('contact_inquiries').insert([{
-            ticket_id: record.ticketId,
-            name: record.name,
-            phone: record.phone,
-            email: record.email,
-            topic: record.topic,
-            message: record.message,
-            status: record.status
-          }]).then(function () {}).catch(function (sbErr) {
-            console.warn('[Inquiry] Supabase inquiry notice:', sbErr);
-          });
+        // Submit contact inquiry to Supabase enquiries (via SangoAPI) or backend /api/contact
+        var submitBtn = contactForm.querySelector('[type="submit"]');
+        var origBtnText = submitBtn ? submitBtn.textContent : '';
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Sending...';
         }
 
-        // Auto-sync contact details to the Contact Inquiries Spreadsheet
-        try {
-          var contactCall = (window.SangoAPI && window.SangoAPI.submitContact)
-            ? window.SangoAPI.submitContact({
-                ticketId: record.ticketId,
+        var contactCall = (window.SangoAPI && window.SangoAPI.submitContact)
+          ? window.SangoAPI.submitContact({
+              ticketId: record.ticketId,
+              name: record.name,
+              phone: record.phone,
+              email: record.email,
+              subject: record.topic,
+              topic: record.topic,
+              message: record.message,
+              status: record.status
+            })
+          : fetch('/api/contact', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
                 name: record.name,
-                phone: record.phone,
                 email: record.email,
-                topic: record.topic,
-                message: record.message,
-                status: record.status
+                phone: record.phone,
+                subject: record.topic,
+                message: record.message
               })
-            : fetch('/api/spreadsheet/contact', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(record)
-              });
+            }).then(function (r) { if (!r.ok) throw new Error('Could not send your message'); return r.json(); });
 
-          contactCall.catch(function (err) {
-            console.error('[Inquiry] Could not sync to spreadsheet endpoint:', err.message);
-          });
-        } catch (e) {
-          console.error('[Inquiry] Spreadsheet sync exception:', e);
-        }
-
-        if (window.showToast) {
-          window.showToast('Ticket ' + record.ticketId + ' created! Our plant team will contact you within 24h');
-        }
-
-        contactForm.reset();
+        contactCall.then(function () {
+          if (window.showToast) {
+            window.showToast('Ticket ' + record.ticketId + ' created! Our plant team will contact you within 24h');
+          }
+          contactForm.reset();
+        }).catch(function (err) {
+          console.error('[Inquiry] Submit error:', err);
+          if (window.showToast) {
+            window.showToast((err && err.message) || 'Could not send your message. Please try again.');
+          }
+        }).finally(function () {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = origBtnText;
+          }
+        });
       });
     }
   });

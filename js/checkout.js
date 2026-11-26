@@ -103,18 +103,7 @@
     }
   };
 
-  // Indian Pincode Auto City/State Lookup Table
-  var PINCODE_DB = {
-    '636001': { city: 'Salem', state: 'Tamil Nadu' },
-    '600001': { city: 'Chennai', state: 'Tamil Nadu' },
-    '560001': { city: 'Bengaluru', state: 'Karnataka' },
-    '500001': { city: 'Hyderabad', state: 'Telangana' },
-    '400001': { city: 'Mumbai', state: 'Maharashtra' },
-    '110001': { city: 'New Delhi', state: 'Delhi' },
-    '641001': { city: 'Coimbatore', state: 'Tamil Nadu' },
-    '625001': { city: 'Madurai', state: 'Tamil Nadu' }
-  };
-
+  // Shared Pincode Lookup delegated cleanly to PincodeLookup (no duplicate hardcoded table)
   // Checkout UI Controller
   document.addEventListener('DOMContentLoaded', function () {
     var step1 = document.getElementById('checkout-step-1');
@@ -531,7 +520,7 @@
         '<div class="flex justify-between text-base font-bold text-gray-900 pt-2 border-t border-gray-100"><span>Total Paid:</span><span class="text-plant-main">' + formatCurrency(order.totals.netTotal) + '</span></div>' +
         '</div>' +
         '<div class="mt-6 pt-4 border-t border-gray-100 flex flex-wrap gap-3 justify-center">' +
-        '<a href="/order-success.html?orderId=' + encodeURIComponent(order.orderId) + '" class="px-6 py-2.5 rounded-full bg-amber-gold hover:bg-amber-400 text-deep-forest font-bold text-xs shadow-md transition-all">View Printable Invoice &amp; Live Tracking →</a>' +
+        '<a href="/order-success/?orderId=' + encodeURIComponent(order.orderId) + '" class="px-6 py-2.5 rounded-full bg-amber-gold hover:bg-amber-400 text-deep-forest font-bold text-xs shadow-md transition-all">View Printable Invoice &amp; Live Tracking →</a>' +
         '</div>';
     }
 

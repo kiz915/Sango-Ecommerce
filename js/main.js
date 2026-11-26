@@ -30,8 +30,16 @@
       if (email) email.focus();
       return;
     }
-    window.showToast('Welcome to the Sango Fiora family! Check your inbox');
-    form.reset();
+    var subEmail = email.value.trim();
+    var saveCall = (window.SangoAPI && window.SangoAPI.submitContact)
+      ? window.SangoAPI.submitContact({ name: 'Newsletter Subscriber', email: subEmail, subject: 'Newsletter Signup', message: 'Subscribed via website footer/newsletter form.' })
+      : Promise.resolve();
+    saveCall.then(function () {
+      window.showToast('Welcome to the Sango Fiora family! Check your inbox');
+      form.reset();
+    }).catch(function () {
+      window.showToast('Could not save subscription right now. Please try again.');
+    });
   });
 
   // ---------- Scroll reveal ----------
@@ -89,14 +97,8 @@
   }
 
   
-  // ---------- Purge Deleted Products Across Site ----------
+  // ---------- Purge Inactive/Deleted Products Dynamically From Database ----------
   function purgeDeletedProducts() {
-    var deletedSlugs = JSON.parse(localStorage.getItem('sango_deleted_slugs') || '["calathea-orbifolia-120cm"]');
-    if (deletedSlugs.indexOf('calathea-orbifolia-120cm') === -1) {
-      deletedSlugs.push('calathea-orbifolia-120cm');
-      localStorage.setItem('sango_deleted_slugs', JSON.stringify(deletedSlugs));
-    }
-
     function applyPurge(slugs) {
       if (!slugs || !slugs.length) return;
       slugs.forEach(function (slug) {
@@ -111,19 +113,16 @@
       });
     }
 
-    applyPurge(deletedSlugs);
-
     if (window.SangoSupabase && window.SUPABASE_CONFIGURED) {
       try {
         window.SangoSupabase.from('products').select('slug, is_active').then(function (res) {
           if (res.data) {
+            var inactiveSlugs = [];
             res.data.forEach(function (p) {
-              if (!p.is_active && deletedSlugs.indexOf(p.slug) === -1) {
-                deletedSlugs.push(p.slug);
-              }
+              if (!p.is_active && p.slug) inactiveSlugs.push(p.slug);
             });
-            localStorage.setItem('sango_deleted_slugs', JSON.stringify(deletedSlugs));
-            applyPurge(deletedSlugs);
+            try { localStorage.setItem('sango_deleted_slugs', JSON.stringify(inactiveSlugs)); } catch (e) {}
+            applyPurge(inactiveSlugs);
           }
         }).catch(function () {});
       } catch (e) {}

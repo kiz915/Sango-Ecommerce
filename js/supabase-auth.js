@@ -37,13 +37,9 @@
     isAdmin: function () {
       if (currentProfile && (currentProfile.role === 'admin' || currentProfile.role === 'superadmin')) return true;
       if (currentUser) {
-        var meta = currentUser.user_metadata || {};
         var appMeta = currentUser.app_metadata || {};
-        if (meta.role === 'admin' || appMeta.role === 'admin') return true;
+        if (appMeta.role === 'admin' || appMeta.role === 'superadmin') return true;
         var email = (currentUser.email || '').toLowerCase().trim();
-        if (email === 'kishorevk40@gmail.com' || email === 'shamnaraja07@gmail.com' || email === 'admin@sangofiora.com' || email.indexOf('admin') !== -1 || email.endsWith('@sangofiora.com')) {
-          return true;
-        }
         var appAdmins = window.SANGO_ADMIN_EMAILS || [];
         for (var i = 0; i < appAdmins.length; i++) {
           if ((appAdmins[i] || '').toLowerCase().trim() === email) return true;

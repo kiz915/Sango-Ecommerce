@@ -28,7 +28,7 @@
   window.addEventListener('storage', function (e) {
     if (e.key === 'sango-cart-v3') {
       window.AppEvent.emit('cart:updated');
-    } else if (e.key === 'sango-wishlist-v1') {
+    } else if (e.key === 'sango-wishlist-v2') {
       window.AppEvent.emit('wishlist:updated');
     } else if (e.key === 'sango-orders-v1') {
       window.AppEvent.emit('orders:updated');

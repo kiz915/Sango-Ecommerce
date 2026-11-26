@@ -4,6 +4,12 @@
 (function () {
   'use strict';
 
+  function escapeHTML(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str == null ? '' : String(str)));
+    return div.innerHTML;
+  }
+
   var STORAGE_KEY = 'sango-wishlist-v2';
   var STORAGE_VERSION = 2;
 
@@ -91,6 +97,7 @@
 
   window.WishlistEngine = {
     getWishlist: readWishlist,
+    getItems: readWishlist,
     has: function (slug) {
       return readWishlist().some(function (i) { return i.slug === slug; });
     },
@@ -178,16 +185,21 @@
     }
 
     wrap.innerHTML = list.map(function (i) {
+      var safeSlug = escapeHTML(i.slug);
+      var safeName = escapeHTML(i.name);
+      var safeImage = escapeHTML(i.image);
+      var safeCat = escapeHTML(i.category);
+      var safeSize = escapeHTML(i.size);
       return '<div class="flex gap-3 items-center py-3 border-b border-gray-100 last:border-0">' +
-        '<img src="' + i.image + '" alt="" class="w-14 h-14 rounded-xl object-cover bg-green-50 shrink-0">' +
+        '<img src="' + safeImage + '" alt="" class="w-14 h-14 rounded-xl object-cover bg-green-50 shrink-0">' +
         '<div class="flex-1 min-w-0">' +
-        '<p class="font-bold text-xs text-gray-900 truncate"><a href="/products/' + i.slug + '/" class="hover:text-plant-main">' + i.name + '</a></p>' +
-        '<p class="text-[11px] text-gray-400">' + i.category + ' · ' + i.size + '</p>' +
-        '<p class="text-xs font-bold text-plant-main">₹' + i.price + '</p>' +
+        '<p class="font-bold text-xs text-gray-900 truncate"><a href="/products/' + safeSlug + '/" class="hover:text-plant-main">' + safeName + '</a></p>' +
+        '<p class="text-[11px] text-gray-400">' + safeCat + ' · ' + safeSize + '</p>' +
+        '<p class="text-xs font-bold text-plant-main">₹' + Number(i.price || 0).toLocaleString('en-IN') + '</p>' +
         '</div>' +
         '<div class="flex items-center gap-2 shrink-0">' +
-        '<button type="button" data-move-to-cart="' + i.slug + '" class="bg-plant-accent text-plant-dark px-3 py-1.5 rounded-xl font-bold text-xs hover:bg-opacity-90">Move to Cart</button>' +
-        '<button type="button" data-remove-wishlist="' + i.slug + '" class="text-gray-300 hover:text-red-500 text-lg font-bold px-1">&times;</button>' +
+        '<button type="button" data-move-to-cart="' + safeSlug + '" class="bg-plant-accent text-plant-dark px-3 py-1.5 rounded-xl font-bold text-xs hover:bg-opacity-90">Move to Cart</button>' +
+        '<button type="button" data-remove-wishlist="' + safeSlug + '" aria-label="Remove from wishlist" class="text-gray-300 hover:text-red-500 text-lg font-bold px-1">&times;</button>' +
         '</div>' +
         '</div>';
     }).join('');
@@ -213,6 +225,11 @@
 
     var moveBtn = e.target.closest('[data-move-to-cart]');
     if (moveBtn) {
+      var isAuthed = window.SangoAuth && window.SangoAuth.isLoggedIn && window.SangoAuth.isLoggedIn();
+      if (!isAuthed) {
+        if (window.openAuthModal) window.openAuthModal('signin', 'Please sign in to move items to your cart.');
+        return;
+      }
       var slug = moveBtn.dataset.moveToCart;
       var item = readWishlist().find(function (i) { return i.slug === slug; });
       if (item && window.CartEngine) {

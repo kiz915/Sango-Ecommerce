@@ -4,28 +4,43 @@
 (function () {
   'use strict';
 
+  var cachedOrders = [];
+
+  function esc(str) {
+    var d = document.createElement('div');
+    d.appendChild(document.createTextNode(str == null ? '' : String(str)));
+    return d.innerHTML;
+  }
+
   function readOrders() {
     return window.CheckoutEngine ? window.CheckoutEngine.getOrders() : [];
   }
 
-  // Fetch live orders from Supabase (overrides localStorage data)
+  // Fetch live orders from Supabase for authenticated user (never bleed fallback local orders when logged in)
   function fetchSupabaseOrders(callback) {
     if (!window.SangoSupabase || !window.SangoAuth || !window.SangoAuth.isLoggedIn()) {
-      callback(readOrders());
+      cachedOrders = [];
+      callback([]);
       return;
     }
     var user = window.SangoAuth.getUser();
+    var isUuid = user && user.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(user.id);
+    if (!isUuid) {
+      cachedOrders = readOrders();
+      callback(cachedOrders);
+      return;
+    }
     window.SangoSupabase.from('orders')
       .select('*, order_items(*)')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .then(function (res) {
-        if (res.error || !res.data || !res.data.length) {
-          callback(readOrders());
+        if (res.error) {
+          cachedOrders = [];
+          callback([]);
           return;
         }
-        // Transform Supabase orders to match existing UI format
-        var orders = res.data.map(function (o) {
+        var orders = (res.data || []).map(function (o) {
           return {
             orderId: o.order_id,
             dateString: new Date(o.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
@@ -38,7 +53,11 @@
             totals: { netTotal: o.net_total, subtotal: o.subtotal, deliveryFee: o.delivery_fee, couponDiscount: o.coupon_discount }
           };
         });
+        cachedOrders = orders;
         callback(orders);
+      }).catch(function () {
+        cachedOrders = [];
+        callback([]);
       });
   }
 
@@ -51,9 +70,13 @@
     var countEl = document.getElementById('orders-drawer-count');
     if (!wrap) return;
 
-    // Use Supabase orders for logged-in users, localStorage fallback otherwise
+    // Use Supabase orders for logged-in users, empty when signed out
     fetchSupabaseOrders(function (orders) {
-      if (countEl) countEl.textContent = orders.length;
+      if (countEl) {
+        countEl.textContent = orders.length;
+        countEl.classList.toggle('hidden', orders.length === 0);
+        countEl.classList.toggle('flex', orders.length > 0);
+      }
 
       if (!orders.length) {
         wrap.innerHTML =
@@ -67,14 +90,14 @@
       }
 
       wrap.innerHTML = orders.map(function (o) {
-        var step = o.statusStep || 1;
+        var step = o.status === 'Cancelled' ? 0 : (o.statusStep || 1);
       return '<div class="bg-slate-50 border border-gray-200 rounded-2xl p-4 space-y-3">' +
         '<div class="flex items-center justify-between border-b border-gray-200 pb-2.5">' +
         '<div>' +
-        '<p class="font-bold font-mono text-xs text-gray-900">' + o.orderId + '</p>' +
-        '<p class="text-[11px] text-gray-400">' + o.dateString + ' · ' + o.items.length + ' item(s)</p>' +
+        '<p class="font-bold font-mono text-xs text-gray-900">' + esc(o.orderId) + '</p>' +
+        '<p class="text-[11px] text-gray-400">' + esc(o.dateString) + ' · ' + o.items.length + ' item(s)</p>' +
         '</div>' +
-        '<span class="bg-green-100 text-green-800 text-[11px] font-bold px-2.5 py-1 rounded-full">' + o.status + '</span>' +
+        '<span class="bg-green-100 text-green-800 text-[11px] font-bold px-2.5 py-1 rounded-full">' + esc(o.status) + '</span>' +
         '</div>' +
 
         '<!-- Timeline Progress Bar -->' +
@@ -95,14 +118,14 @@
         '<div class="space-y-1 text-xs border-t border-gray-200 pt-2">' +
         o.items.map(function (i) {
           return '<div class="flex justify-between text-gray-700">' +
-            '<span class="truncate">' + i.name + ' × ' + i.qty + '</span>' +
-            '<span class="font-bold">' + formatCurrency(i.price * i.qty) + '</span></div>';
+            '<span class="truncate">' + esc(i.name) + ' × ' + (i.qty || 1) + '</span>' +
+            '<span class="font-bold">' + formatCurrency((i.price || 0) * (i.qty || 1)) + '</span></div>';
         }).join('') +
         '</div>' +
 
         '<div class="flex justify-between items-center text-xs pt-2 border-t border-gray-200 font-bold">' +
         '<span>Total: <strong class="text-plant-main text-sm">' + formatCurrency(o.totals.netTotal) + '</strong></span>' +
-        '<button type="button" data-reorder="' + o.orderId + '" class="bg-amber-500 hover:bg-amber-400 text-plant-dark px-3 py-1.5 rounded-xl font-bold text-[11px]">Reorder All</button>' +
+        '<button type="button" data-reorder="' + esc(o.orderId) + '" class="bg-amber-500 hover:bg-amber-400 text-plant-dark px-3 py-1.5 rounded-xl font-bold text-[11px] cursor-pointer">Reorder All</button>' +
         '</div>' +
         '</div>';
     }).join('');
@@ -114,7 +137,7 @@
     var reorderBtn = e.target.closest('[data-reorder]');
     if (reorderBtn) {
       var orderId = reorderBtn.dataset.reorder;
-      var order = readOrders().find(function (o) { return o.orderId === orderId; });
+      var order = cachedOrders.find(function (o) { return o.orderId === orderId; }) || readOrders().find(function (o) { return o.orderId === orderId; });
       if (order && window.CartEngine) {
         order.items.forEach(function (i) { window.CartEngine.addToCart(i, i.qty); });
         if (window.showToast) window.showToast('All items added back to cart');
@@ -154,6 +177,7 @@
     if (window.AppEvent) {
       window.AppEvent.on('orders:updated', renderOrdersDrawer);
       window.AppEvent.on('order:created', renderOrdersDrawer);
+      window.AppEvent.on('auth:changed', renderOrdersDrawer);
     }
   });
 

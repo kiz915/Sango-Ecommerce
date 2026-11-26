@@ -376,10 +376,11 @@ document.addEventListener('DOMContentLoaded', function () {
       e.preventDefault();
 
       var fd = new FormData(addressForm);
+      var userEmail = (window.SangoAuth && window.SangoAuth.getUser && window.SangoAuth.getUser() || {}).email || '';
       customerData = {
         name: fd.get('name'),
         phone: fd.get('phone'),
-        email: fd.get('email') || 'customer@sangofiora.com',
+        email: fd.get('email') || userEmail,
         address: fd.get('address'),
         landmark: fd.get('landmark') || '',
         pincode: fd.get('pincode'),
