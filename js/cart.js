@@ -75,9 +75,40 @@
   }
 
   var syncTimeout = null;
-  function writeCartData(data) {
+
+  function mergeCartItems(localItems, remoteItems) {
+    localItems = Array.isArray(localItems) ? localItems : [];
+    remoteItems = Array.isArray(remoteItems) ? remoteItems : [];
+
+    if (!localItems.length) return remoteItems.slice();
+    if (!remoteItems.length) return localItems.slice();
+
+    var itemMap = new Map();
+    localItems.forEach(function (item) {
+      if (item && item.slug) {
+        itemMap.set(item.slug, Object.assign({}, item));
+      }
+    });
+
+    remoteItems.forEach(function (rItem) {
+      if (!rItem || !rItem.slug) return;
+      if (itemMap.has(rItem.slug)) {
+        var existing = itemMap.get(rItem.slug);
+        var stockLimit = parseInt(existing.stock || rItem.stock || 20, 10);
+        existing.qty = Math.min(stockLimit, (existing.qty || 1) + (rItem.qty || 1));
+      } else {
+        itemMap.set(rItem.slug, Object.assign({}, rItem));
+      }
+    });
+
+    return Array.from(itemMap.values());
+  }
+
+  function writeCartData(data, skipRemoteSync) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     if (window.AppEvent) window.AppEvent.emit('cart:updated', data);
+
+    if (skipRemoteSync) return;
 
     // Sync user's private cart to PostgreSQL / Spring Boot backend and Supabase user_carts table
     var user = window.SangoAuth && window.SangoAuth.getUser ? window.SangoAuth.getUser() : null;
@@ -94,7 +125,7 @@
           window.SangoSupabase.from('user_carts').upsert({
             user_id: user.id,
             items: items,
-            coupon_code: data.coupon,
+            coupon_code: data.coupon || null,
             updated_at: new Date().toISOString()
           }, { onConflict: 'user_id' }).then(function (res) {
             if (res.error) console.warn('[Sango] Supabase cart sync notice:', res.error.message);
@@ -107,7 +138,8 @@
             email: user.email,
             itemsJson: JSON.stringify(items),
             itemCount: totalCount,
-            subtotal: subtotal
+            subtotal: subtotal,
+            couponCode: data.coupon || ''
           }).catch(function (err) {
             console.error('[Cart] Backend cart sync error:', err);
           });
@@ -119,6 +151,12 @@
   // Handle Auth Changes — Load User's Synced Cart on Sign-In, Clear on Sign-Out
   if (window.AppEvent) {
     window.AppEvent.on('auth:changed', function (authData) {
+      if (!authData || !authData.user) {
+        // User signed out: reset local cart without deleting remote user_carts in database
+        writeCartData({ version: STORAGE_VERSION, items: [], coupon: null }, true);
+        renderDrawer();
+        return;
+      }
       if (authData.user) {
         // Execute pending cart action that required sign-in
         if (window._pendingCartAction) {
@@ -132,44 +170,79 @@
           }
         }
 
+        var applyRemoteCart = function (remoteItems, remoteCoupon) {
+          var current = readCartData();
+          var localItems = current.items || [];
+          var hasRemoteItems = Array.isArray(remoteItems) && remoteItems.length > 0;
+
+          if (!hasRemoteItems) {
+            if (localItems.length > 0) {
+              writeCartData(current);
+            }
+            return;
+          }
+
+          var mergedItems = mergeCartItems(localItems, remoteItems);
+          var mergedCoupon = current.coupon || remoteCoupon || null;
+
+          var mergedCart = {
+            version: STORAGE_VERSION,
+            items: mergedItems,
+            coupon: mergedCoupon
+          };
+
+          writeCartData(mergedCart);
+          renderDrawer();
+
+          if (window.showToast) {
+            if (localItems.length > 0) {
+              window.showToast('Merged your cart with your saved botanical items!');
+            } else {
+              window.showToast('Restored your saved botanical cart!');
+            }
+          }
+        };
+
         // Try Supabase user_carts first
         var isUuid = authData.user.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(authData.user.id);
+
         if (window.SangoSupabase && isUuid) {
-          window.SangoSupabase.from('user_carts').select('*').eq('user_id', authData.user.id).single().then(function (res) {
+          window.SangoSupabase.from('user_carts').select('*').eq('user_id', authData.user.id).maybeSingle().then(function (res) {
             if (res.data && res.data.items && res.data.items.length > 0) {
-              var current = readCartData();
-              if (!current.items || current.items.length === 0) {
-                current.items = res.data.items;
-                if (res.data.coupon_code) current.coupon = res.data.coupon_code;
-                writeCartData(current);
-                if (window.showToast) window.showToast('Restored your saved botanical cart!');
-              }
+              applyRemoteCart(res.data.items, res.data.coupon_code);
+            } else {
+              checkBackendFallback();
             }
           }).catch(function (err) {
-            console.error('[Cart] Supabase user_carts error:', err);
+            console.warn('[Cart] Supabase user_carts query notice:', err);
+            checkBackendFallback();
           });
+        } else {
+          checkBackendFallback();
         }
 
-        // Also check Spring Boot backend
-        if (authData.user.email && window.SangoAPI && window.SangoAPI.getSyncedCart) {
-          window.SangoAPI.getSyncedCart(authData.user.email)
-            .then(function (data) {
-              if (data && data.itemsJson) {
-                try {
-                  var restoredItems = JSON.parse(data.itemsJson);
-                  var current = readCartData();
-                  if ((!current.items || current.items.length === 0) && restoredItems.length > 0) {
-                    current.items = restoredItems;
-                    writeCartData(current);
-                    if (window.showToast) window.showToast('Restored your saved botanical cart!');
+        function checkBackendFallback() {
+          if (authData.user.email && window.SangoAPI && window.SangoAPI.getSyncedCart) {
+            window.SangoAPI.getSyncedCart(authData.user.email)
+              .then(function (data) {
+                if (data && data.itemsJson) {
+                  try {
+                    var restoredItems = JSON.parse(data.itemsJson);
+                    if (Array.isArray(restoredItems) && restoredItems.length > 0) {
+                      applyRemoteCart(restoredItems, data.couponCode);
+                    } else {
+                      applyRemoteCart([], null);
+                    }
+                  } catch (e) {
+                    console.error('[Cart] Synced cart JSON parse error:', e);
                   }
-                } catch (e) {
-                  console.error('[Cart] Synced cart JSON parse error:', e);
+                } else {
+                  applyRemoteCart([], null);
                 }
-              }
-            }).catch(function (err) {
-              console.error('[Cart] Backend cart fetch error:', err);
-            });
+              }).catch(function (err) {
+                console.error('[Cart] Backend cart fetch error:', err);
+              });
+          }
         }
       }
     });
@@ -338,6 +411,10 @@
       return { success: true, message: 'Validating coupon with botanical server...' };
     },
 
+    removeCoupon: function (callback) {
+      return this.applyCoupon('', callback);
+    },
+
     clearCart: function () {
       writeCartData({ items: [], coupon: null });
       var user = window.SangoAuth && window.SangoAuth.getUser ? window.SangoAuth.getUser() : null;
@@ -346,6 +423,11 @@
           console.error('[Cart] Clear synced cart notice:', err);
         });
       }
+    },
+
+    resetLocalCart: function () {
+      writeCartData({ version: STORAGE_VERSION, items: [], coupon: null }, true);
+      renderDrawer();
     }
   };
 
@@ -421,6 +503,23 @@
       if (subEl) subEl.textContent = formatCurrency(0);
       if (totEl) totEl.textContent = formatCurrency(0);
       if (delEl) delEl.textContent = '—';
+
+      // Cleanly hide all discount and savings elements when cart is empty
+      var emptySavingsTier = document.getElementById('drawer-savings-tier') || document.getElementById('drawer-volume-tier');
+      if (emptySavingsTier) {
+        emptySavingsTier.classList.add('hidden');
+        emptySavingsTier.classList.remove('flex');
+      }
+      var emptySavingsRow = document.getElementById('drawer-savings-row') || document.getElementById('drawer-volume-row');
+      if (emptySavingsRow) {
+        emptySavingsRow.classList.add('hidden');
+        emptySavingsRow.classList.remove('flex');
+      }
+      var emptyCouponRow = document.getElementById('drawer-coupon-row');
+      if (emptyCouponRow) {
+        emptyCouponRow.classList.add('hidden');
+        emptyCouponRow.classList.remove('flex');
+      }
       return;
     }
 

@@ -94,7 +94,6 @@ permalink: /products/
           chef: "Sango Fiora Atelier",
           description: "Towering 180cm artificial Fiddle Leaf Fig featuring botanical-grade silk leaves, natural textured trunk, and pre-potted ceramic-look base.",
           slug: "fiddle-leaf-fig-180cm",
-          likes: 312,
           ingredients: ["Botanical silk leaves", "Hand-moulded natural core", "Zero watering required", "Decorative nursery pot included"],
           accent: "#1B4332"
         },
@@ -111,7 +110,6 @@ permalink: /products/
           chef: "Sango Fiora Floral",
           description: "Perpetually in bloom with delicate ivory petals, lifelike thorns, and luscious green foliage. Zero watering, infinite elegance.",
           slug: "rose-plant-white-colour-90cm",
-          likes: 248,
           ingredients: ["Velvet silk petals", "Bendable wired stems", "Deep emerald leaves", "Weighted decorative pot"],
           accent: "#C5A059"
         },
@@ -128,7 +126,6 @@ permalink: /products/
           chef: "Sango Fiora Studio",
           description: "Vibrant architectural fan fronds bring coastal serenity and luxury resort warmth into any living room, patio, or executive office.",
           slug: "fan-palm-tree-120cm",
-          likes: 195,
           ingredients: ["Wide fan foliage", "Fibrous textured bark", "High colorfastness", "Heavy stability pot"],
           accent: "#2D6A4F"
         },
@@ -145,7 +142,6 @@ permalink: /products/
           chef: "Sango Fiora Studio",
           description: "Iconic Monstera Deliciosa standing 160cm tall with perforated architectural leaves and deep rainforest green luster. Delivered in a matte white decorative pot.",
           slug: "monstera-deliciosa-160cm",
-          likes: 368,
           ingredients: ["Split-leaf silk blades", "Flexible wired stems", "Deep emerald luster", "Weighted modern pot"],
           accent: "#205A44"
         },
@@ -162,7 +158,6 @@ permalink: /products/
           chef: "Sango Fiora Atelier",
           description: "Gracefully arching feather palms that effortlessly soften modern corners, bringing organic nature and volume to your home interior.",
           slug: "areca-palm-tree-190cm",
-          likes: 275,
           ingredients: ["Multi-stem cane stalks", "Feathered palm blades", "Dust-repellent coating", "Minimalist matte pot"],
           accent: "#0F291E"
         }
@@ -276,12 +271,6 @@ permalink: /products/
                         <li>Pot Included</li>
                         ${p.ingredients.map(ing => `<li>${ing}</li>`).join('')}
                       </ul>
-                      <div class="dsh-react">
-                        <button type="button" class="dsh-btn dsh-like" data-like="${i}">
-                          <span class="dsh-ico"><svg class="dsh-ico" viewBox="0 0 24 24" aria-hidden="true" style="width:16px;height:16px;"><path d="M7 10v10H3.5V10zM7 10l4-7c1.6 0 2.6 1.2 2.2 2.8L12.6 9H19a2 2 0 0 1 2 2.3l-1.3 7A2 2 0 0 1 17.7 20H7" /></svg></span>
-                          <span class="like-count">${p.likes}</span>
-                        </button>
-                      </div>
                     </div>
                   `).join('')}
                 </div>

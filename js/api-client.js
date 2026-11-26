@@ -220,11 +220,39 @@
     cancelOrder: function (orderId, reason) {
       return Promise.resolve(sb().rpc('cancel_order', { p_order_id: orderId, p_reason: reason || null })).then(function (r) { cache.at = 0; return unwrap(r, 'Could not cancel order'); });
     },
-    getCustomerProfile: function () {
-      return Promise.resolve(sb().from('orders').select('*').order('created_at', { ascending: false }).limit(1)).then(function (r) {
+    getCustomerProfile: function (email) {
+      var user = window.SangoAuth && window.SangoAuth.getUser ? window.SangoAuth.getUser() : null;
+      var targetEmail = (user && user.email) || email;
+      if (!targetEmail) return Promise.resolve(null);
+      var normalizedEmail = targetEmail.trim().toLowerCase();
+
+      // Query orders strictly scoped to the targeted authenticated user
+      var q = sb().from('orders').select('*');
+      if (user && user.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(user.id)) {
+        q = q.eq('user_id', user.id);
+      } else {
+        q = q.eq('customer_email', normalizedEmail);
+      }
+
+      return Promise.resolve(q.order('created_at', { ascending: false }).limit(1)).then(function (r) {
         var o = (unwrap(r) || [])[0];
         if (!o) return null;
-        return { fullName: o.customer_name, phone: o.customer_phone, shippingAddress: o.shipping_address, landmark: o.landmark, pincode: o.pincode, city: o.city, state: o.state };
+        // Strictly verify that the fetched order belongs to the targeted email
+        if (o.customer_email && o.customer_email.trim().toLowerCase() !== normalizedEmail) {
+          return null;
+        }
+        return {
+          email: normalizedEmail,
+          fullName: o.customer_name,
+          phone: o.customer_phone,
+          shippingAddress: o.shipping_address,
+          landmark: o.landmark,
+          pincode: o.pincode,
+          city: o.city,
+          state: o.state
+        };
+      }).catch(function () {
+        return null;
       });
     },
 
@@ -235,10 +263,37 @@
     failPayment: function (d) { return callPayments({ action: 'fail', orderId: d.orderId, reason: d.reason }); },
     confirmCod: function (orderId) { return this.getOrderById(orderId).then(function (o) { return { paymentId: 'COD-' + o.orderId, orderId: o.orderId }; }); },
 
-    // ─── Cart sync (handled directly against user_carts by cart.js) ───
-    syncCart: function () { return Promise.resolve(null); },
-    getSyncedCart: function () { return Promise.resolve(null); },
-    deleteSyncedCart: function () { return Promise.resolve(null); },
+    // ─── Cart sync (Spring Boot Backend + Supabase synchronization) ───
+    syncCart: function (d) {
+      var token = window.SangoAuth && window.SangoAuth.getToken ? window.SangoAuth.getToken() : null;
+      var headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+      return fetch('/api/cart/sync', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(d)
+      }).then(function (res) { return res.ok ? res.json() : null; }).catch(function () { return null; });
+    },
+
+    getSyncedCart: function (email) {
+      var token = window.SangoAuth && window.SangoAuth.getToken ? window.SangoAuth.getToken() : null;
+      var headers = {};
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+      return fetch('/api/cart/sync?email=' + encodeURIComponent(email), {
+        method: 'GET',
+        headers: headers
+      }).then(function (res) { return res.ok ? res.json() : null; }).catch(function () { return null; });
+    },
+
+    deleteSyncedCart: function (email) {
+      var token = window.SangoAuth && window.SangoAuth.getToken ? window.SangoAuth.getToken() : null;
+      var headers = {};
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+      return fetch('/api/cart/sync?email=' + encodeURIComponent(email), {
+        method: 'DELETE',
+        headers: headers
+      }).then(function (res) { return res.ok ? res.json() : null; }).catch(function () { return null; });
+    },
 
     // ─── Contact enquiries ───
     submitContact: function (d) {

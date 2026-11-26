@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function fallbackToLocalStorage() {
     try {
       var orders = JSON.parse(localStorage.getItem('sango-orders-v1')) || [];
-      var match = orderId ? orders.find(function (o) { return o.orderId === orderId; }) : orders[0];
+      var match = orderId ? orders.find(function (o) { return o.orderId === orderId; }) : null;
       if (match) renderOrder(match);
       else if (idEl) idEl.textContent = orderId || 'Not Found';
     } catch (e) {
